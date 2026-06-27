@@ -31,18 +31,18 @@ export function PoolStandings({ pools }: { pools: PoolStanding[] }): JSX.Element
               <tbody>
                 {pool.rows.map((row, index) => (
                   <tr key={`${row.rank}-${row.names.join("/")}`}>
-                    <td className="numeric">{row.rank || index + 1}</td>
+                    <td>{row.rank || index + 1}</td>
                     <td>
-                      {row.names.map((name, index) => (
-                        <div key={index} className="match-player">
+                      {row.names.map((name, nameIndex) => (
+                        <div key={nameIndex} className="match-player">
                           {name}
                         </div>
                       ))}
                     </td>
-                    <td className="numeric">{row.matches}</td>
-                    <td className="numeric">{row.victories}</td>
-                    <td className="numeric">{row.sets}</td>
-                    <td className="numeric">{row.games}</td>
+                    <td>{row.matches}</td>
+                    <td>{row.victories}</td>
+                    <td>{row.sets}</td>
+                    <td>{row.games}</td>
                   </tr>
                 ))}
               </tbody>
