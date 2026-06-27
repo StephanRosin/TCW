@@ -210,3 +210,29 @@ test("mapPoolStandings liefert die Pool-Tabelle nach Rang sortiert", () => {
     ["1.Bea Beispiel 2S 4:1", "2.Anna Muster (R4) 1S 3:2"],
   );
 });
+
+test("mapDrawBracket: Doppel-Klassierungen für beide und volle Namen in Folgerunden", () => {
+  const payload = {
+    Iotto: {
+      drawtable: {
+        drawbody: {
+          draw: [
+            // Einstiegsrunde (volle Namen, Doppel mit kombinierter Klassierung)
+            { alevel: 1, rposition: 0, name: { content: "(R4/R3) Rosin Stephan", name2: " / Farsky Simon" } },
+            { alevel: 1, rposition: 1, name: { content: "(R6/R7) Beck Claudia", name2: " / Sirbu Laura" } },
+            // Folgerunde: gespeichert als Kurzform, soll aber voll angezeigt werden
+            { alevel: 0, rposition: 0, name: { content: "Rosin S." }, result: { content: "6/3 6/4" } },
+          ],
+        },
+      },
+    },
+  };
+  const bracket = mapDrawBracket(payload)!;
+  const final = bracket.rounds[0]!.matches[0]!;
+  // Beide Doppelspieler mit eigener Klassierung
+  assert.deepEqual(final.side1Names, ["Rosin Stephan (R4)", "Farsky Simon (R3)"]);
+  assert.deepEqual(final.side2Names, ["Beck Claudia (R6)", "Sirbu Laura (R7)"]);
+  assert.equal(final.winnerSide, 1);
+  // Sieger wird mit vollem Namen propagiert (nicht "Rosin S.")
+  assert.deepEqual(bracket.championNames, ["Rosin Stephan (R4)", "Farsky Simon (R3)"]);
+});

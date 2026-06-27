@@ -243,33 +243,35 @@ function roundName(level: number): string {
   return ROUND_NAMES[level] ?? `Runde ${level}`;
 }
 
-function rankingPrefixTokens(content: string): { name: string; ranking: string } {
-  // Entfernt alle führenden "(…)"-Gruppen (Setzposition und/oder Klassierung)
-  // und behält die erste echte Klassierung, z. B. "(1) (R4/R3) Rosin Stephan".
+function rankingPrefixTokens(content: string): { name: string; rankings: string[] } {
+  // Entfernt alle führenden "(…)"-Gruppen (Setzposition und/oder Klassierung).
+  // Bei Doppeln enthält die Klassierungsgruppe beide Werte, z. B.
+  // "(1) (R4/R3) Rosin Stephan" → [R4 (Spieler 1), R3 (Spieler 2)].
   let rest = cleanText(content);
-  let ranking = "";
+  let rankings: string[] = [];
   const leadingGroup = /^\(([^)]*)\)\s*/;
   let match = rest.match(leadingGroup);
   while (match) {
-    const token = (match[1] ?? "")
+    const tokens = (match[1] ?? "")
       .split("/")
       .map((part) => part.trim())
-      .find((part) => isRankingToken(part));
-    if (token && !ranking) {
-      ranking = token;
+      .filter((part) => isRankingToken(part));
+    if (tokens.length > 0 && rankings.length === 0) {
+      rankings = tokens;
     }
     rest = rest.slice(match[0].length);
     match = rest.match(leadingGroup);
   }
-  return { name: cleanText(rest), ranking };
+  return { name: cleanText(rest), rankings };
 }
 
 function splitDrawSide(row: RawDrawSlot | undefined): { name: string; name2: string } {
   if (!row?.name) return { name: "", name2: "" };
   const parsed = rankingPrefixTokens(cleanText(row.name.content ?? ""));
+  const partner = cleanText(row.name.name2 ?? "").replace(/^\/\s*/, "");
   return {
-    name: formatPlayer(parsed.name, parsed.ranking),
-    name2: cleanText(row.name.name2 ?? "").replace(/^\/\s*/, ""),
+    name: formatPlayer(parsed.name, parsed.rankings[0] ?? ""),
+    name2: partner ? formatPlayer(partner, parsed.rankings[1] ?? "") : "",
   };
 }
 
@@ -421,30 +423,45 @@ export function mapDrawBracket(payload: unknown): TournamentBracket | null {
     byPosition.set(`${level}:${toNumber(row.rposition)}`, row);
     if (level > maxLevel) maxLevel = level;
   }
-  const sideAt = (level: number, position: number): string[] => {
+  // Rohnamen: in der ersten Runde vollständig, in Folgerunden gespeichert als
+  // Kurzform ("Gollnhofer J."). Daher propagieren wir die vollen Namen des
+  // Siegers nach oben, statt die Kurzform anzuzeigen (wichtig für die Suche).
+  const rawNamesAt = (level: number, position: number): string[] => {
     const { name, name2 } = splitDrawSide(byPosition.get(`${level}:${position}`));
     return [name, name2].filter((value) => value !== "");
   };
+  const lastName = (names: string[]): string => (names[0] ?? "").split(/\s+/)[0]?.toLowerCase() ?? "";
+
+  // Volle Namen je Slot, von der Einstiegsrunde (vollständig) nach oben gefüllt.
+  const fullNames = new Map<string, string[]>();
+  for (let position = 0; position < 2 ** maxLevel; position += 1) {
+    fullNames.set(`${maxLevel}:${position}`, rawNamesAt(maxLevel, position));
+  }
 
   const rounds: TournamentBracketRound[] = [];
   for (let level = maxLevel - 1; level >= 0; level -= 1) {
     const matches: TournamentBracketMatch[] = [];
     for (let position = 0; position < 2 ** level; position += 1) {
-      const slot = byPosition.get(`${level}:${position}`);
-      const result = cleanText(slot?.result?.content ?? "").replace(/\//g, ":");
-      const side1Names = sideAt(level + 1, position * 2);
-      const side2Names = sideAt(level + 1, position * 2 + 1);
-      const winnerName = splitDrawSide(slot).name;
-      const winnerSide =
-        winnerSideFromScore(result) ||
-        (winnerName && winnerName === side1Names[0]
-          ? 1
-          : winnerName && winnerName === side2Names[0]
-            ? 2
-            : 0);
+      const side1Names = fullNames.get(`${level + 1}:${position * 2}`) ?? [];
+      const side2Names = fullNames.get(`${level + 1}:${position * 2 + 1}`) ?? [];
+      const result = cleanText(byPosition.get(`${level}:${position}`)?.result?.content ?? "").replace(
+        /\//g,
+        ":",
+      );
+      // Sieger primär aus dem Resultat, sonst über den (Kurz-)Namen des Slots.
+      const advanced = rawNamesAt(level, position);
+      let winnerSide = winnerSideFromScore(result);
+      if (winnerSide === 0 && advanced.length > 0) {
+        const winnerLast = lastName(advanced);
+        if (winnerLast && winnerLast === lastName(side1Names)) winnerSide = 1;
+        else if (winnerLast && winnerLast === lastName(side2Names)) winnerSide = 2;
+      }
+      const winnerNames =
+        winnerSide === 1 ? side1Names : winnerSide === 2 ? side2Names : advanced.length > 0 ? advanced : [];
+      fullNames.set(`${level}:${position}`, winnerNames);
       matches.push({ side1Names, side2Names, result, winnerSide });
     }
     rounds.push({ roundName: roundName(level), matches });
   }
-  return { rounds, championNames: sideAt(0, 0) };
+  return { rounds, championNames: fullNames.get("0:0") ?? [] };
 }
