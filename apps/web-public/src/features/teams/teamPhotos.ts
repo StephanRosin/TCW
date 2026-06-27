@@ -1,8 +1,8 @@
 /**
  * Zuordnung Teamname → Teamfoto. Die Dateien liegen unter
  * `public/team-photos/<slug>.<ext>`; der Slug ergibt sich deterministisch aus
- * dem Anzeigenamen (Geschlecht + Kategorie + Liga). Teams ohne Foto (55+ Herren)
- * fehlen im Manifest.
+ * dem Anzeigenamen (Geschlecht + Kategorie + Liga). Teams ohne Foto fehlen im
+ * Manifest.
  */
 const PHOTO_FILES: Record<string, string> = {
   "damen-aktiv-nlc": "damen-aktiv-nlc.jpeg",
@@ -18,6 +18,7 @@ const PHOTO_FILES: Record<string, string> = {
   "herren-35-1-liga": "herren-35-1-liga.jpeg",
   "herren-35-2-liga": "herren-35-2-liga.jpeg",
   "herren-45-2-liga": "herren-45-2-liga.jpeg",
+  "herren-55-3-liga": "herren-55-3-liga.jpeg",
 };
 
 function teamSlug(title: string): string {
