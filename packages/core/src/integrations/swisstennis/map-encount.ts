@@ -43,10 +43,8 @@ function isWalkover(home: RawSideScore, visit: RawSideScore): boolean {
   return home.wo === 1 || visit.wo === 1;
 }
 
-function formatScore(home: RawSideScore, visit: RawSideScore): string {
-  if (isWalkover(home, visit)) {
-    return "w.o.";
-  }
+/** Gespielte Sätze als "h:v"-Liste (ungespielte Sätze mit -1 werden übersprungen). */
+function playedSets(home: RawSideScore, visit: RawSideScore): string {
   const sets: string[] = [];
   let hasPlayed = false;
   for (const key of SET_KEYS) {
@@ -60,12 +58,23 @@ function formatScore(home: RawSideScore, visit: RawSideScore): string {
     }
     sets.push(`${homeGames}:${visitGames}`);
   }
-  return hasPlayed ? sets.join(" ") : "–";
+  return hasPlayed ? sets.join(" ") : "";
+}
+
+function formatScore(home: RawSideScore, visit: RawSideScore): string {
+  const sets = playedSets(home, visit);
+  // Bei Aufgabe/Walkover zeigt Swisstennis das Teilergebnis plus "w.o." an.
+  if (isWalkover(home, visit)) {
+    return sets ? `${sets} w.o.` : "w.o.";
+  }
+  return sets || "–";
 }
 
 function determineHomeWinner(home: RawSideScore, visit: RawSideScore): boolean | null {
-  if (home.wo === 1) return false;
-  if (visit.wo === 1) return true;
+  // wo=1 markiert die Gewinnerseite (die Begegnung wird ihr per Walkover/Aufgabe
+  // zugesprochen) – nicht die Seite, die aufgegeben hat.
+  if (home.wo === 1) return true;
+  if (visit.wo === 1) return false;
   let homeSets = 0;
   let visitSets = 0;
   for (const key of SET_KEYS) {
