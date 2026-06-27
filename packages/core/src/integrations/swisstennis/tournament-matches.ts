@@ -42,7 +42,7 @@ function matchStatus(result: string): TournamentMatchStatus {
  * Ermittelt die Gewinnerseite aus dem Satzresultat (z. B. "5/7 6/2 10/3" oder
  * "6:1 6:1"). Robust für Einzel und Doppel, unabhängig vom Modus. 0 = unklar.
  */
-function winnerSideFromScore(result: string): number {
+export function winnerSideFromScore(result: string): number {
   let side1Sets = 0;
   let side2Sets = 0;
   for (const set of cleanText(result).split(/\s+/)) {

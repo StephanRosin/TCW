@@ -146,7 +146,7 @@ export function TrainingAdmin(): JSX.Element {
             {day}
           </button>
         ))}
-        <button className="btn btn--primary" disabled={busy} onClick={save} style={{ marginLeft: "auto" }}>
+        <button className="btn btn--primary btn--push-right" disabled={busy} onClick={save}>
           Alles speichern
         </button>
       </div>

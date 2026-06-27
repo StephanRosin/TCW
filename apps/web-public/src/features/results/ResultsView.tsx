@@ -86,6 +86,92 @@ function TeamPicker({
   );
 }
 
+function ResultsTable({
+  matches,
+  year,
+  onOpenEncount,
+}: {
+  matches: TeamResultsResponse["matches"];
+  year: string;
+  onOpenEncount: OpenEncount;
+}): JSX.Element {
+  const { t } = useI18n();
+  return (
+    <div>
+      <h4 className="results-subhead">{t("results.results")}</h4>
+      <div className="table-wrap">
+        <table className="board">
+          <thead>
+            <tr>
+              <th>{t("results.round")}</th>
+              <th>{t("results.date")}</th>
+              <th>{t("results.encounter")}</th>
+              <th>{t("matches.result")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {matches.map((match) => (
+              <tr key={match.encountId} className={match.homeIsOwn || match.awayIsOwn ? "is-own" : ""}>
+                <td className="numeric">{match.round}</td>
+                <td>{match.date}</td>
+                <td>
+                  <ClubName name={match.home} /> – <ClubName name={match.away} />
+                </td>
+                <td className="numeric">
+                  {match.validated && match.encountId > 0 ? (
+                    <button
+                      type="button"
+                      className="link-btn"
+                      onClick={() => onOpenEncount(match.encountId, year, "encount")}
+                    >
+                      {match.result}
+                    </button>
+                  ) : (
+                    <span>{match.result || t("common.none")}</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function StandingsTable({ standings }: { standings: TeamResultsResponse["standings"] }): JSX.Element {
+  const { t } = useI18n();
+  return (
+    <div>
+      <h4 className="results-subhead">{t("results.standings")}</h4>
+      <div className="table-wrap">
+        <table className="board">
+          <thead>
+            <tr>
+              <th>{t("results.rank")}</th>
+              <th>{t("results.team")}</th>
+              <th>{t("results.points")}</th>
+              <th>{t("results.sets")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {standings.map((row) => (
+              <tr key={row.rank} className={row.isOwn ? "is-own" : ""}>
+                <td className="numeric">{row.rank}</td>
+                <td>
+                  <ClubName name={row.teamName} />
+                </td>
+                <td className="numeric">{row.points}</td>
+                <td className="numeric">{row.sets}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function GroupResults({
   data,
   year,
@@ -95,79 +181,10 @@ function GroupResults({
   year: string;
   onOpenEncount: OpenEncount;
 }): JSX.Element {
-  const { t } = useI18n();
-
   return (
-    <div>
-      <div className="results-columns">
-        <div>
-          <h4 className="results-subhead">{t("results.results")}</h4>
-          <div className="table-wrap">
-            <table className="board">
-              <thead>
-                <tr>
-                  <th>{t("results.round")}</th>
-                  <th>{t("results.date")}</th>
-                  <th>{t("results.encounter")}</th>
-                  <th>{t("matches.result")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.matches.map((match) => (
-                  <tr key={match.encountId} className={match.homeIsOwn || match.awayIsOwn ? "is-own" : ""}>
-                    <td className="numeric">{match.round}</td>
-                    <td>{match.date}</td>
-                    <td>
-                      <ClubName name={match.home} /> – <ClubName name={match.away} />
-                    </td>
-                    <td className="numeric">
-                      {match.validated && match.encountId > 0 ? (
-                        <button
-                          type="button"
-                          className="link-btn"
-                          onClick={() => onOpenEncount(match.encountId, year, "encount")}
-                        >
-                          {match.result}
-                        </button>
-                      ) : (
-                        <span>{match.result || t("common.none")}</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div>
-          <h4 className="results-subhead">{t("results.standings")}</h4>
-          <div className="table-wrap">
-            <table className="board">
-              <thead>
-                <tr>
-                  <th>{t("results.rank")}</th>
-                  <th>{t("results.team")}</th>
-                  <th>{t("results.points")}</th>
-                  <th>{t("results.sets")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.standings.map((row) => (
-                  <tr key={row.rank} className={row.isOwn ? "is-own" : ""}>
-                    <td className="numeric">{row.rank}</td>
-                    <td>
-                      <ClubName name={row.teamName} />
-                    </td>
-                    <td className="numeric">{row.points}</td>
-                    <td className="numeric">{row.sets}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+    <div className="results-columns">
+      <ResultsTable matches={data.matches} year={year} onOpenEncount={onOpenEncount} />
+      <StandingsTable standings={data.standings} />
     </div>
   );
 }

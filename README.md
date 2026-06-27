@@ -46,8 +46,9 @@ weiter (8090 bzw. 8091).
 
 ```bash
 npm run typecheck    # TypeScript-Prüfung über alle Pakete
+npm run lint         # ESLint (Flat Config, inkl. React-Hooks-Regeln)
 npm run build        # Produktions-Build beider Frontends
-npm run test         # Unit-Tests der Domänenlogik (@tcw/core / @tcw/shared)
+npm run test         # Unit-Tests der Domänen- und Mapper-Logik (@tcw/core / @tcw/shared)
 ```
 
 ## Konfiguration (Umgebungsvariablen)

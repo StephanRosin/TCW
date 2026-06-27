@@ -4,12 +4,16 @@ Der Neubau läuft auf dem Server **parallel** zur bestehenden Interclub-App
 (8090/8091) unter zwei freien Ports und mit **eigener Datenbank** – das
 Altsystem bleibt unberührt.
 
+> Hinweis: `<MAC_MINI_LAN_IP>` ist ein Platzhalter für die lokale LAN-Adresse des
+> Server (nicht im Repo hinterlegt). Beim Ausführen der Befehle entsprechend
+> ersetzen.
+
 ## Übersicht
 
 | Dienst | Port | LaunchAgent | URL (LAN) |
 | --- | --- | --- | --- |
-| Public | 8092 | `ch.tcw.ic-claude-public` | <http://<HOST>:8092> |
-| Admin | 8093 | `ch.tcw.ic-claude-admin` | <http://<HOST>:8093> |
+| Public | 8092 | `ch.tcw.ic-claude-public` | <http://<MAC_MINI_LAN_IP>:8092> |
+| Admin | 8093 | `ch.tcw.ic-claude-admin` | <http://<MAC_MINI_LAN_IP>:8093> |
 
 - **App-Verzeichnis:** `<APP_DIR>`
 - **Datenbank (eigen):** `<APP_DIR>/data/ic_teams.sqlite`
@@ -53,13 +57,13 @@ tail -f <APP_DIR>/logs/admin.out.log
 ## Healthchecks / Akzeptanz (verifiziert)
 
 ```bash
-curl http://<HOST>:8092/api/health     # {"ok":true,"service":"public"}
-curl http://<HOST>:8093/api/health     # {"ok":true,"service":"admin"}
-curl http://<HOST>:8092/api/teams       # 14 Teams
-curl http://<HOST>:8092/api/matches     # Spieltermine + Stand
-curl http://<HOST>:8092/api/tournaments # Waidcup/Clubmeisterschaft
+curl http://<MAC_MINI_LAN_IP>:8092/api/health     # {"ok":true,"service":"public"}
+curl http://<MAC_MINI_LAN_IP>:8093/api/health     # {"ok":true,"service":"admin"}
+curl http://<MAC_MINI_LAN_IP>:8092/api/teams       # 14 Teams
+curl http://<MAC_MINI_LAN_IP>:8092/api/matches     # Spieltermine + Stand
+curl http://<MAC_MINI_LAN_IP>:8092/api/tournaments # Waidcup/Clubmeisterschaft
 # Security: DB/Quellcode/Logs müssen 404 liefern
-curl -o /dev/null -w "%{http_code}\n" http://<HOST>:8092/data/ic_teams.sqlite  # 404
+curl -o /dev/null -w "%{http_code}\n" http://<MAC_MINI_LAN_IP>:8092/data/ic_teams.sqlite  # 404
 ```
 
 ## Sicherheit / Hinweise

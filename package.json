@@ -27,11 +27,17 @@
     "dev:admin-web": "npm -w @tcw/web-admin run dev",
     "build": "npm -w @tcw/web-public run build && npm -w @tcw/web-admin run build",
     "typecheck": "tsc -b packages/shared packages/core",
+    "lint": "eslint .",
     "test": "npm -w @tcw/core run test"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "concurrently": "^9.1.0",
+    "eslint": "^10.6.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.7.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.62.0"
   }
 }

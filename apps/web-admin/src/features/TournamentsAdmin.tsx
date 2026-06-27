@@ -104,7 +104,7 @@ export function TournamentsAdmin(): JSX.Element {
           </tbody>
         </table>
       </div>
-      <div className="toolbar" style={{ marginTop: "1rem" }}>
+      <div className="toolbar toolbar--top-gap">
         <button className="btn" onClick={() => setDrafts((c) => [...c, emptyDraft(c.length)])}>Turnier hinzufügen</button>
         <button className="btn btn--primary" disabled={busy} onClick={saveAll}>Alles speichern</button>
       </div>

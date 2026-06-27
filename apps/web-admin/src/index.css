@@ -149,6 +149,12 @@ button.btn:disabled {
   align-items: center;
   margin-bottom: 1rem;
 }
+.toolbar--top-gap {
+  margin-top: 1rem;
+}
+.btn--push-right {
+  margin-left: auto;
+}
 
 .msg {
   padding: 0.6rem 0.9rem;

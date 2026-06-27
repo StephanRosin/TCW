@@ -94,7 +94,7 @@ export function mapDrawResults(payload: unknown): BracketResponse {
 
   // Führende und abschließende komplett leere Zeilen entfernen (Geometrie bleibt erhalten).
   const hasContent = (cells: Array<BracketCell | null>): boolean => cells.some((cell) => cell !== null);
-  let first = fullGrid.findIndex(hasContent);
+  const first = fullGrid.findIndex(hasContent);
   let last = fullGrid.length - 1;
   while (last >= 0 && !hasContent(fullGrid[last]!)) last -= 1;
   if (first < 0) {

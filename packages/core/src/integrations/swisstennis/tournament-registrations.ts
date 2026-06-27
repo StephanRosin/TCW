@@ -1,7 +1,7 @@
 /**
  * PublicDisplayEvent → Anmeldungen eines Events.
  */
-import { asArray, cleanText, toNumber } from "./normalize.js";
+import { asArray, cleanText } from "./normalize.js";
 
 export interface RegistrationRecord {
   playerKey: string;

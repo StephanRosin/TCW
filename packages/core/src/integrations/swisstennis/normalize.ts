@@ -20,7 +20,7 @@ export function toNumber(value: unknown, fallback = 0): number {
 /** Säubert Swisstennis-Texte (geschützte Leerzeichen, Mehrfach-Whitespace). */
 export function cleanText(value: unknown): string {
   return String(value ?? "")
-    .replace(/ /g, " ")
+    .replace(/\u00A0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
