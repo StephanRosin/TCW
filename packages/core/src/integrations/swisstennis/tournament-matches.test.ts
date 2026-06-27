@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { mapEventMatches, winnerSideFromScore } from "./tournament-matches.js";
+import {
+  mapDrawBracket,
+  mapEventMatches,
+  mapPoolStandings,
+  winnerSideFromScore,
+} from "./tournament-matches.js";
 
 test("winnerSideFromScore zählt Sätze – auch für Doppel und mit '/'-Trenner", () => {
   assert.equal(winnerSideFromScore("6:1 6:1"), 1);
@@ -118,4 +123,90 @@ test("mapEventMatches überspringt Partien mit offenem/bye-Gegner", () => {
     },
   };
   assert.deepEqual(mapEventMatches(payload, "Draw", "Damen R6", 42, false), []);
+});
+
+test("mapDrawBracket baut den Baum bis zum Final, auch ohne ausgeloste Folgerunden", () => {
+  const payload = {
+    Iotto: {
+      drawtable: {
+        drawbody: {
+          draw: [
+            { alevel: 2, rposition: 0, name: { content: "(1) (R4) Anna Muster" } },
+            { alevel: 2, rposition: 1, name: { content: "(R6) Bea Beispiel" } },
+            { alevel: 2, rposition: 2, name: { content: "(R7) Cara Test" } },
+            { alevel: 2, rposition: 3, name: { content: "(R8) Dora Demo" } },
+            { alevel: 1, rposition: 0, name: { content: "Muster A." }, result: { content: "6/1 6/2" } },
+            { alevel: 1, rposition: 1, name: { content: "" } },
+            { alevel: 0, rposition: 0, name: { content: "" } },
+          ],
+        },
+      },
+    },
+  };
+
+  const bracket = mapDrawBracket(payload)!;
+  assert.deepEqual(
+    bracket.rounds.map((round) => `${round.roundName}:${round.matches.length}`),
+    ["Halbfinal:2", "Final:1"],
+  );
+  assert.deepEqual(bracket.championNames, []);
+
+  const semi = bracket.rounds[0]!;
+  assert.deepEqual(semi.matches[0], {
+    side1Names: ["Anna Muster (R4)"],
+    side2Names: ["Bea Beispiel (R6)"],
+    result: "6:1 6:2",
+    winnerSide: 1,
+  });
+  // Noch nicht gespielte Partie bleibt erhalten (offen).
+  assert.equal(semi.matches[1]!.result, "");
+  assert.equal(semi.matches[1]!.winnerSide, 0);
+  // Final: eine Seite steht (Halbfinal-Sieger), die andere ist noch offen.
+  assert.deepEqual(bracket.rounds[1]!.matches[0]!.side2Names, []);
+});
+
+test("mapPoolStandings liefert die Pool-Tabelle nach Rang sortiert", () => {
+  const payload = {
+    Iotto: {
+      IoEvent: {
+        ioPoolSet: {
+          IoPool: {
+            polName: "Gruppe A",
+            ioPlayerPoolSet: {
+              IoPlayerPool: [
+                {
+                  plpRank: 2,
+                  plpNbMatches: 2,
+                  plpNbVictories: 1,
+                  plpNbWonsets: 3,
+                  plpNbLostSets: 2,
+                  plpNbWonGames: 20,
+                  plpNbLostGames: 18,
+                  ioPlayer: { IoPlayer: { plyFirstName: "Anna", plyName: "Muster", plyRankingComment: "R4" } },
+                },
+                {
+                  plpRank: 1,
+                  plpNbMatches: 2,
+                  plpNbVictories: 2,
+                  plpNbWonsets: 4,
+                  plpNbLostSets: 1,
+                  plpNbWonGames: 24,
+                  plpNbLostGames: 12,
+                  ioPlayer: { IoPlayer: { plyFirstName: "Bea", plyName: "Beispiel" } },
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  };
+
+  const pools = mapPoolStandings(payload, false);
+  assert.equal(pools.length, 1);
+  assert.equal(pools[0]!.poolName, "Gruppe A");
+  assert.deepEqual(
+    pools[0]!.rows.map((row) => `${row.rank}.${row.names.join("/")} ${row.victories}S ${row.sets}`),
+    ["1.Bea Beispiel 2S 4:1", "2.Anna Muster (R4) 1S 3:2"],
+  );
 });

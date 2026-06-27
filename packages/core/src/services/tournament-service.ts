@@ -19,7 +19,11 @@ import {
   mapEventRegistrations,
   type RegistrationRecord,
 } from "../integrations/swisstennis/tournament-registrations.js";
-import { mapEventMatches } from "../integrations/swisstennis/tournament-matches.js";
+import {
+  mapDrawBracket,
+  mapEventMatches,
+  mapPoolStandings,
+} from "../integrations/swisstennis/tournament-matches.js";
 import { resolveMyTennisPlayerUrl } from "../integrations/mytennis/resolve-url.js";
 import {
   readExistingPlayerUrls,
@@ -118,23 +122,25 @@ export function createTournamentService(config: AppConfig, database: TcwDatabase
       enrichRegistration(record, existingUrls.get(record.playerKey), resolvePlayerUrls),
     );
 
+    const isDouble = DOUBLE_MATCH_TYPE_IDS.has(eventMeta.matchTypeId);
     const matchesUrl =
       eventMeta.mode === "Draw"
         ? displayDrawUrl(eventMeta.eventId)
         : eventMeta.mode === "Round-robin"
           ? displayPoolsUrl(eventMeta.eventId)
           : null;
-    const matches = matchesUrl
-      ? mapEventMatches(
-          await client.fetchJson(matchesUrl),
-          eventMeta.mode,
-          eventMeta.eventName,
-          eventMeta.eventId,
-          DOUBLE_MATCH_TYPE_IDS.has(eventMeta.matchTypeId),
-        )
+    const matchesPayload = matchesUrl ? await client.fetchJson(matchesUrl) : null;
+    const matches = matchesPayload
+      ? mapEventMatches(matchesPayload, eventMeta.mode, eventMeta.eventName, eventMeta.eventId, isDouble)
       : [];
+    const pools =
+      matchesPayload && eventMeta.mode === "Round-robin"
+        ? mapPoolStandings(matchesPayload, isDouble)
+        : [];
+    const bracket =
+      matchesPayload && eventMeta.mode === "Draw" ? mapDrawBracket(matchesPayload) : null;
 
-    return { meta: eventMeta, registrations, matches };
+    return { meta: eventMeta, registrations, matches, pools, bracket };
   }
 
   async function refresh(

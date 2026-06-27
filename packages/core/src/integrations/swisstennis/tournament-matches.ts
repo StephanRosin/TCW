@@ -4,7 +4,14 @@
  * Es werden nur Partien übernommen, bei denen beide Seiten feststehen
  * (keine Platzhalter, kein "bye"/"noch offen").
  */
-import { isRankingToken, type TournamentMatchStatus } from "@tcw/shared";
+import {
+  isRankingToken,
+  type PoolStanding,
+  type TournamentBracket,
+  type TournamentBracketMatch,
+  type TournamentBracketRound,
+  type TournamentMatchStatus,
+} from "@tcw/shared";
 import { asArray, cleanText, toNumber } from "./normalize.js";
 
 export interface MatchRecord {
@@ -237,15 +244,24 @@ function roundName(level: number): string {
 }
 
 function rankingPrefixTokens(content: string): { name: string; ranking: string } {
-  const match = content.match(/^\(([^)]*)\)\s*(.*)$/);
-  if (!match) {
-    return { name: cleanText(content), ranking: "" };
+  // Entfernt alle führenden "(…)"-Gruppen (Setzposition und/oder Klassierung)
+  // und behält die erste echte Klassierung, z. B. "(1) (R4/R3) Rosin Stephan".
+  let rest = cleanText(content);
+  let ranking = "";
+  const leadingGroup = /^\(([^)]*)\)\s*/;
+  let match = rest.match(leadingGroup);
+  while (match) {
+    const token = (match[1] ?? "")
+      .split("/")
+      .map((part) => part.trim())
+      .find((part) => isRankingToken(part));
+    if (token && !ranking) {
+      ranking = token;
+    }
+    rest = rest.slice(match[0].length);
+    match = rest.match(leadingGroup);
   }
-  const tokens = (match[1] ?? "")
-    .split("/")
-    .map((token) => token.trim())
-    .filter((token) => isRankingToken(token));
-  return { name: cleanText(match[2] ?? ""), ranking: tokens[0] ?? "" };
+  return { name: cleanText(rest), ranking };
 }
 
 function splitDrawSide(row: RawDrawSlot | undefined): { name: string; name2: string } {
@@ -338,4 +354,97 @@ export function mapEventMatches(
     return mapRoundRobinMatches(payload, eventName, eventId, isDouble);
   }
   return [];
+}
+
+// --------------------------------------------------------------------------
+// Round-robin-Tabelle (DisplayPools)
+// --------------------------------------------------------------------------
+
+interface RawPoolPlayer {
+  plpRank?: number;
+  plpNbMatches?: number;
+  plpNbVictories?: number;
+  plpNbWonsets?: number;
+  plpNbLostSets?: number;
+  plpNbWonGames?: number;
+  plpNbLostGames?: number;
+  ioPlayer?: { IoPlayer?: RawRrPlayer };
+}
+
+/** Liefert die offizielle Pool-Tabelle (Rang, Siege, Sätze, Games) je Pool. */
+export function mapPoolStandings(payload: unknown, isDouble: boolean): PoolStanding[] {
+  const event = (payload as { Iotto?: { IoEvent?: { ioPoolSet?: { IoPool?: unknown } } } }).Iotto?.IoEvent;
+  const pools = asArray<{ polName?: string; ioPlayerPoolSet?: { IoPlayerPool?: unknown } }>(
+    event?.ioPoolSet?.IoPool as never,
+  );
+  return pools
+    .map((pool) => {
+      const rows = asArray<RawPoolPlayer>(pool.ioPlayerPoolSet?.IoPlayerPool as never)
+        .map((entry) => {
+          const { name, name2 } = rrName(entry.ioPlayer?.IoPlayer, isDouble);
+          return {
+            rank: toNumber(entry.plpRank, 0),
+            names: [name, name2].filter((value) => value !== ""),
+            matches: toNumber(entry.plpNbMatches),
+            victories: toNumber(entry.plpNbVictories),
+            sets: `${toNumber(entry.plpNbWonsets)}:${toNumber(entry.plpNbLostSets)}`,
+            games: `${toNumber(entry.plpNbWonGames)}:${toNumber(entry.plpNbLostGames)}`,
+          };
+        })
+        .filter((row) => row.names.length > 0)
+        .sort((a, b) => a.rank - b.rank);
+      return { poolName: cleanText(pool.polName ?? ""), rows };
+    })
+    .filter((pool) => pool.rows.length > 0);
+}
+
+// --------------------------------------------------------------------------
+// Tableau-Baum (DisplayDraw)
+// --------------------------------------------------------------------------
+
+/**
+ * Baut den vollständigen Tableau-Baum (von der ersten Runde bis zum Final),
+ * auch wenn spätere Runden noch nicht ausgelost/gespielt sind (leere Seiten).
+ */
+export function mapDrawBracket(payload: unknown): TournamentBracket | null {
+  const drawRows = asArray<RawDrawSlot>(
+    (payload as { Iotto?: { drawtable?: { drawbody?: { draw?: unknown } } } }).Iotto?.drawtable
+      ?.drawbody?.draw as never,
+  );
+  if (drawRows.length === 0) {
+    return null;
+  }
+  const byPosition = new Map<string, RawDrawSlot>();
+  let maxLevel = 0;
+  for (const row of drawRows) {
+    const level = toNumber(row.alevel);
+    byPosition.set(`${level}:${toNumber(row.rposition)}`, row);
+    if (level > maxLevel) maxLevel = level;
+  }
+  const sideAt = (level: number, position: number): string[] => {
+    const { name, name2 } = splitDrawSide(byPosition.get(`${level}:${position}`));
+    return [name, name2].filter((value) => value !== "");
+  };
+
+  const rounds: TournamentBracketRound[] = [];
+  for (let level = maxLevel - 1; level >= 0; level -= 1) {
+    const matches: TournamentBracketMatch[] = [];
+    for (let position = 0; position < 2 ** level; position += 1) {
+      const slot = byPosition.get(`${level}:${position}`);
+      const result = cleanText(slot?.result?.content ?? "").replace(/\//g, ":");
+      const side1Names = sideAt(level + 1, position * 2);
+      const side2Names = sideAt(level + 1, position * 2 + 1);
+      const winnerName = splitDrawSide(slot).name;
+      const winnerSide =
+        winnerSideFromScore(result) ||
+        (winnerName && winnerName === side1Names[0]
+          ? 1
+          : winnerName && winnerName === side2Names[0]
+            ? 2
+            : 0);
+      matches.push({ side1Names, side2Names, result, winnerSide });
+    }
+    rounds.push({ roundName: roundName(level), matches });
+  }
+  return { rounds, championNames: sideAt(0, 0) };
 }

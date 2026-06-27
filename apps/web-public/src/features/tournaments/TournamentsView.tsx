@@ -17,6 +17,8 @@ import { useI18n } from "../../i18n/I18nProvider.js";
 import { menEvents, otherEvents, womenEvents } from "./eventGrouping.js";
 import { RegistrationTable } from "./RegistrationTable.js";
 import { MatchList } from "./MatchList.js";
+import { PoolStandings } from "./PoolStandings.js";
+import { TournamentBracket } from "./TournamentBracket.js";
 
 const ALL_EVENTS = "";
 
@@ -84,6 +86,10 @@ function TournamentPanel({ tournament }: { tournament: TournamentView }): JSX.El
   const [playedOnly, setPlayedOnly] = useState<boolean>(false);
 
   const events = selectedEvents(tournament, activeEventId);
+  // Bei genau einem gewählten Event zeigen wir je nach Modus den Tableau-Baum
+  // bzw. die Round-robin-Tabelle zusätzlich zur Partienliste.
+  const singleEvent = activeEventId !== ALL_EVENTS && events.length === 1 ? events[0]! : null;
+  const showsBracket = singleEvent?.bracket != null;
 
   const players = useMemo(
     () =>
@@ -142,19 +148,34 @@ function TournamentPanel({ tournament }: { tournament: TournamentView }): JSX.El
             >
               {t("tournaments.allTableaux")}
             </button>
-            <button
-              type="button"
-              className={`chip${playedOnly ? " is-active" : ""}`}
-              aria-pressed={playedOnly}
-              onClick={() => setPlayedOnly((value) => !value)}
-            >
-              {t("tournaments.playedOnly")}
-            </button>
+            {showsBracket ? null : (
+              <button
+                type="button"
+                className={`chip${playedOnly ? " is-active" : ""}`}
+                aria-pressed={playedOnly}
+                onClick={() => setPlayedOnly((value) => !value)}
+              >
+                {t("tournaments.playedOnly")}
+              </button>
+            )}
           </>
         ) : null}
       </div>
 
-      {tournament.showsMatches ? <MatchList matches={matches} /> : <RegistrationTable players={players} />}
+      {tournament.showsMatches ? (
+        showsBracket && singleEvent?.bracket ? (
+          <TournamentBracket bracket={singleEvent.bracket} />
+        ) : (
+          <>
+            <MatchList matches={matches} />
+            {singleEvent && singleEvent.pools.length > 0 ? (
+              <PoolStandings pools={singleEvent.pools} />
+            ) : null}
+          </>
+        )
+      ) : (
+        <RegistrationTable players={players} />
+      )}
     </div>
   );
 }

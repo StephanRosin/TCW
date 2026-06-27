@@ -178,4 +178,13 @@ CREATE TABLE IF NOT EXISTS tournament_matches (
   updated_at TEXT NOT NULL,
   PRIMARY KEY (tournament_id, event_id, match_key)
 );
+
+-- Zusatzdaten je Turnier-Event: Round-robin-Tabelle und Tableau-Baum (als JSON).
+CREATE TABLE IF NOT EXISTS tournament_event_extras (
+  tournament_id INTEGER NOT NULL,
+  event_id INTEGER NOT NULL,
+  pools_json TEXT NOT NULL DEFAULT '[]',
+  bracket_json TEXT,
+  PRIMARY KEY (tournament_id, event_id)
+);
 `;

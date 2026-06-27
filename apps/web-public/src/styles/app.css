@@ -980,3 +980,81 @@ table.board tbody tr.is-own td {
     padding: 0.8rem 1rem;
   }
 }
+
+/* --- Turnier: Round-robin-Tabelle & Tableau-Baum --- */
+.pool-standings {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tbracket-wrap {
+  overflow-x: auto;
+  padding: 0.25rem 0 0.75rem;
+}
+.tbracket {
+  display: flex;
+  gap: 1.4rem;
+  min-width: min-content;
+  align-items: stretch;
+}
+.tbracket-round {
+  display: flex;
+  flex-direction: column;
+  min-width: 165px;
+}
+.tbracket-round--champion {
+  min-width: 150px;
+}
+.tbracket-round__title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--blue-800);
+  text-align: center;
+  margin-bottom: 0.45rem;
+}
+.tbracket-round__matches {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  flex: 1 1 auto;
+  gap: 0.5rem;
+}
+.tbracket-match {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.tbracket-slot {
+  display: flex;
+  flex-direction: column;
+  padding: 0.28rem 0.55rem;
+  font-size: 0.8rem;
+  line-height: 1.25;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.tbracket-slot:last-child {
+  border-bottom: none;
+}
+.tbracket-slot--winner {
+  font-weight: 700;
+  background: rgba(37, 52, 139, 0.07);
+}
+.tbracket-open {
+  color: #9aa0b3;
+  font-style: italic;
+}
+.tbracket-result {
+  padding: 0.22rem 0.55rem;
+  font-size: 0.72rem;
+  text-align: right;
+  color: var(--blue-800);
+  background: rgba(0, 0, 0, 0.035);
+}
+.tbracket-round--champion .tbracket-slot--winner {
+  background: rgba(37, 52, 139, 0.14);
+}

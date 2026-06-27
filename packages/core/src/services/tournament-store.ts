@@ -6,7 +6,9 @@ import {
   disciplineOf,
   registrationUrlForId,
   type Discipline,
+  type PoolStanding,
   type RegistrationPlayer,
+  type TournamentBracket,
   type TournamentEventView,
   type TournamentMatch,
   type TournamentMatchStatus,
@@ -98,6 +100,8 @@ export interface EventImport {
   meta: TournamentEventMeta;
   registrations: Array<RegistrationRecord & { playerUrl: string; playerUrl2: string }>;
   matches: MatchRecord[];
+  pools: PoolStanding[];
+  bracket: TournamentBracket | null;
 }
 
 /** Ersetzt alle importierten Daten eines Turniers atomar (alte bleiben bei Fehler erhalten). */
@@ -110,7 +114,12 @@ export function replaceTournamentData(
 ): void {
   const deletePlayers = database.prepare("DELETE FROM tournament_players WHERE tournament_id = ?");
   const deleteMatches = database.prepare("DELETE FROM tournament_matches WHERE tournament_id = ?");
+  const deleteExtras = database.prepare("DELETE FROM tournament_event_extras WHERE tournament_id = ?");
   const deleteEvents = database.prepare("DELETE FROM tournament_events WHERE tournament_id = ?");
+  const insertExtras = database.prepare(
+    `INSERT INTO tournament_event_extras (tournament_id, event_id, pools_json, bracket_json)
+     VALUES (@tournament_id, @event_id, @pools_json, @bracket_json)`,
+  );
   const insertEvent = database.prepare(
     `INSERT INTO tournament_events (tournament_id, event_id, tournament_name, event_name, discipline, source_descr, sort_order, updated_at)
      VALUES (@tournament_id, @event_id, @tournament_name, @event_name, @discipline, @source_descr, @sort_order, @updated_at)`,
@@ -127,6 +136,7 @@ export function replaceTournamentData(
   const run = database.transaction(() => {
     deletePlayers.run(tournamentId);
     deleteMatches.run(tournamentId);
+    deleteExtras.run(tournamentId);
     deleteEvents.run(tournamentId);
 
     for (const event of events) {
@@ -182,6 +192,12 @@ export function replaceTournamentData(
           sort_order: index,
           updated_at: importedAt,
         });
+      });
+      insertExtras.run({
+        tournament_id: tournamentId,
+        event_id: event.meta.eventId,
+        pools_json: JSON.stringify(event.pools),
+        bracket_json: event.bracket ? JSON.stringify(event.bracket) : null,
       });
     }
 
@@ -247,6 +263,14 @@ export function getPublicTournaments(database: TcwDatabase): TournamentsResponse
       if (matches.length > 0) {
         showsMatches = true;
       }
+      const extras = database
+        .prepare(
+          `SELECT pools_json, bracket_json FROM tournament_event_extras
+           WHERE tournament_id = ? AND event_id = ?`,
+        )
+        .get(tournamentId, eventRow.event_id) as
+        | { pools_json?: string; bracket_json?: string | null }
+        | undefined;
 
       return {
         eventId: eventRow.event_id,
@@ -255,6 +279,8 @@ export function getPublicTournaments(database: TcwDatabase): TournamentsResponse
         sortOrder: eventRow.sort_order,
         players: players.map(toRegistrationPlayer),
         matches: matches.map(toTournamentMatch),
+        pools: parsePools(extras?.pools_json),
+        bracket: parseBracket(extras?.bracket_json),
       };
     });
 
@@ -284,6 +310,25 @@ function toRegistrationPlayer(row: Record<string, unknown>): RegistrationPlayer 
     registeredOn: String(row.registered_on ?? ""),
     note: String(row.note ?? ""),
   };
+}
+
+function parsePools(json: string | undefined): PoolStanding[] {
+  if (!json) return [];
+  try {
+    const parsed = JSON.parse(json) as PoolStanding[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseBracket(json: string | null | undefined): TournamentBracket | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as TournamentBracket;
+  } catch {
+    return null;
+  }
 }
 
 function toTournamentMatch(row: Record<string, unknown>): TournamentMatch {

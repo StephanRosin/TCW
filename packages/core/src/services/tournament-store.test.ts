@@ -33,6 +33,8 @@ test("replaceTournamentData speichert auch Spieler ohne Notiz (kein OR-IGNORE-Ve
       meta: { eventId: 1, eventName: "WS A R1/R5", discipline: "WS", mode: "Draw", matchTypeId: 2, sortOrder: 0 },
       registrations: [registration("a", null), registration("b", "Kommentar"), registration("c", null)],
       matches: [],
+      pools: [],
+      bracket: null,
     },
   ];
 

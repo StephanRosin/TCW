@@ -58,7 +58,8 @@ function TeamPicker({
 }): JSX.Element {
   const { translateKnown } = useI18n();
   // Geschlechtszeilen ohne Label – die Buttons enthalten bereits "Damen"/"Herren".
-  const genders: Array<ResultsTeam["gender"]> = ["Damen", "Herren"];
+  // Leerer Wert "" fängt Mixed-Teams (Team-Challenge) ab.
+  const genders: Array<ResultsTeam["gender"]> = ["Damen", "Herren", ""];
   return (
     <div className="team-picker">
       {genders.map((gender) => {

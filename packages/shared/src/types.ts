@@ -250,6 +250,39 @@ export interface TournamentMatch {
   winnerSide: number;
 }
 
+/** Eine Zeile der Round-robin-Tabelle (eines Pools). */
+export interface PoolStandingRow {
+  rank: number;
+  names: string[];
+  matches: number;
+  victories: number;
+  sets: string;
+  games: string;
+}
+
+export interface PoolStanding {
+  poolName: string;
+  rows: PoolStandingRow[];
+}
+
+/** Eine Partie im Tableau-Baum (Seiten können offen/leer sein = noch nicht ausgelost). */
+export interface TournamentBracketMatch {
+  side1Names: string[];
+  side2Names: string[];
+  result: string;
+  winnerSide: number;
+}
+
+export interface TournamentBracketRound {
+  roundName: string;
+  matches: TournamentBracketMatch[];
+}
+
+export interface TournamentBracket {
+  rounds: TournamentBracketRound[];
+  championNames: string[];
+}
+
 export interface TournamentEventView {
   eventId: number;
   eventName: string;
@@ -257,6 +290,10 @@ export interface TournamentEventView {
   sortOrder: number;
   players: RegistrationPlayer[];
   matches: TournamentMatch[];
+  /** Round-robin: Tabellen je Pool (leer bei Tableaux). */
+  pools: PoolStanding[];
+  /** Tableau: Bracket-Baum (null bei Round-robin). */
+  bracket: TournamentBracket | null;
 }
 
 export interface TournamentView {
