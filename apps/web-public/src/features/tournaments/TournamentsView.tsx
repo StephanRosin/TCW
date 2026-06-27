@@ -164,7 +164,7 @@ function TournamentPanel({ tournament }: { tournament: TournamentView }): JSX.El
 
       {tournament.showsMatches ? (
         showsBracket && singleEvent?.bracket ? (
-          <TournamentBracket bracket={singleEvent.bracket} />
+          <TournamentBracket bracket={singleEvent.bracket} search={search} />
         ) : (
           <>
             <MatchList matches={matches} />
