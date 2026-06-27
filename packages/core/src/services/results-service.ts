@@ -32,7 +32,7 @@ export interface ResultsService {
 
 export function createResultsService(config: AppConfig): ResultsService {
   const client = new SwisstennisClient(
-    config.swisstennisCacheTtlSeconds * 1000,
+    config.resultsCacheTtlSeconds * 1000,
     config.swisstennisTimeoutMs,
   );
 

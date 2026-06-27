@@ -60,7 +60,8 @@ npm run test         # Unit-Tests der Domänen- und Mapper-Logik (@tcw/core / @t
 | `IC_ADMIN_PORT` | `8091` | Port der Admin-API |
 | `IC_PUBLIC_HOST` | `0.0.0.0` | Bind-Adresse Public |
 | `IC_ADMIN_HOST` | `127.0.0.1` | Bind-Adresse Admin (LAN-intern) |
-| `IC_SWISSTENNIS_CACHE_TTL` | `7200` | Cache-Dauer externer Antworten (Sek.) |
+| `IC_SWISSTENNIS_CACHE_TTL` | `7200` | Cache-Dauer für Turnier-Abrufe (Sek.) |
+| `IC_RESULTS_CACHE_TTL` | `86400` | Cache-Dauer der IC-Ergebnisse – täglich (Sek.) |
 
 ## Ausbaustand
 

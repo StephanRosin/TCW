@@ -48,6 +48,8 @@ export interface AppConfig {
   adminHost: string;
   swisstennisTimeoutMs: number;
   swisstennisCacheTtlSeconds: number;
+  /** Cache-TTL der IC-Ergebnisse (Begegnungen/Teams): bewusst lang, da Resultate stabil sind. */
+  resultsCacheTtlSeconds: number;
   enableBackgroundJobs: boolean;
   resolvePlayerUrls: boolean;
   /** Optionale Basic-Auth für den Admin-Server (leer = keine Auth, nur lokal). */
@@ -68,6 +70,8 @@ export function loadConfig(): AppConfig {
     adminHost: process.env.IC_ADMIN_HOST?.trim() || "127.0.0.1",
     swisstennisTimeoutMs: readNumber("IC_SWISSTENNIS_TIMEOUT_MS", 20_000),
     swisstennisCacheTtlSeconds: readNumber("IC_SWISSTENNIS_CACHE_TTL", 7_200),
+    // IC-Ergebnisse werden nur einmal täglich neu von Swisstennis geladen (86400 s).
+    resultsCacheTtlSeconds: readNumber("IC_RESULTS_CACHE_TTL", 86_400),
     enableBackgroundJobs: readBoolean("IC_ENABLE_JOBS", true),
     // Link-Auflösung standardmäßig aus (schont MyTennis); in Produktion aktivierbar.
     resolvePlayerUrls: readBoolean("IC_RESOLVE_PLAYER_URLS", false),
