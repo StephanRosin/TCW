@@ -1,0 +1,541 @@
+[
+  {
+    "day": "Montag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 1,
+    "label": "12h"
+  },
+  {
+    "day": "Montag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 2,
+    "label": "12h"
+  },
+  {
+    "day": "Montag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 3,
+    "label": "12h"
+  },
+  {
+    "day": "Montag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 4,
+    "label": "12h"
+  },
+  {
+    "day": "Montag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 1,
+    "team_title": "Damen Aktiv 1. Liga"
+  },
+  {
+    "day": "Montag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 2,
+    "team_title": "Damen Aktiv 1. Liga"
+  },
+  {
+    "day": "Montag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 3,
+    "team_title": "Herren 55+ 3. Liga"
+  },
+  {
+    "day": "Montag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 4,
+    "team_title": "Herren 55+ 3. Liga"
+  },
+  {
+    "day": "Montag",
+    "time_from": "20:00",
+    "time_to": "21:00",
+    "court_number": 1,
+    "team_title": "Damen Aktiv 2. Liga"
+  },
+  {
+    "day": "Montag",
+    "time_from": "20:00",
+    "time_to": "21:00",
+    "court_number": 2,
+    "team_title": "Damen Aktiv 2. Liga"
+  },
+  {
+    "day": "Montag",
+    "time_from": "20:00",
+    "time_to": "21:00",
+    "court_number": 3,
+    "team_title": "Herren 45+ 2. Liga"
+  },
+  {
+    "day": "Montag",
+    "time_from": "20:00",
+    "time_to": "21:00",
+    "court_number": 4,
+    "team_title": "Herren 45+ 2. Liga"
+  },
+  {
+    "day": "Montag",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 1,
+    "label": "12h"
+  },
+  {
+    "day": "Montag",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 2,
+    "label": "12h"
+  },
+  {
+    "day": "Montag",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 3,
+    "team_title": "Herren 45+ 2. Liga"
+  },
+  {
+    "day": "Montag",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 4,
+    "label": "12h"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 1,
+    "label": "12h"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 2,
+    "label": "12h"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 3,
+    "label": "12h"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 4,
+    "label": "12h"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 1,
+    "team_title": "Herren Aktiv 1. Liga"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 2,
+    "team_title": "Herren Aktiv 1. Liga"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 3,
+    "team_title": "Damen 30+ 1. Liga"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 4,
+    "team_title": "Damen 30+ 1. Liga"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "20:00",
+    "time_to": "21:00",
+    "court_number": 1,
+    "team_title": "Herren Aktiv 1. Liga"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "20:00",
+    "time_to": "21:00",
+    "court_number": 2,
+    "team_title": "Herren Aktiv 2. Liga"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "20:00",
+    "time_to": "21:00",
+    "court_number": 3,
+    "team_title": "Herren Aktiv 2. Liga"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "20:00",
+    "time_to": "21:00",
+    "court_number": 4,
+    "label": "12h"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 1,
+    "label": "12h"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 2,
+    "team_title": "Herren Aktiv 2. Liga"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 3,
+    "label": "12h"
+  },
+  {
+    "day": "Dienstag",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 4,
+    "label": "12h"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "18:00",
+    "time_to": "18:30",
+    "court_number": 1,
+    "label": "JIC 1"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "18:00",
+    "time_to": "18:30",
+    "court_number": 2,
+    "label": "12h"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "18:00",
+    "time_to": "18:30",
+    "court_number": 3,
+    "team_title": "Herren Aktiv NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "18:00",
+    "time_to": "18:30",
+    "court_number": 4,
+    "team_title": "Herren Aktiv NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "18:30",
+    "time_to": "19:00",
+    "court_number": 1,
+    "label": "JIC 1"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "18:30",
+    "time_to": "19:00",
+    "court_number": 2,
+    "label": "12h"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "18:30",
+    "time_to": "19:00",
+    "court_number": 3,
+    "team_title": "Herren Aktiv NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "18:30",
+    "time_to": "19:00",
+    "court_number": 4,
+    "team_title": "Herren Aktiv NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "19:00",
+    "time_to": "19:30",
+    "court_number": 1,
+    "team_title": "Damen Aktiv NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "19:00",
+    "time_to": "19:30",
+    "court_number": 2,
+    "team_title": "Damen Aktiv NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "19:00",
+    "time_to": "19:30",
+    "court_number": 3,
+    "team_title": "Herren Aktiv NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "19:00",
+    "time_to": "19:30",
+    "court_number": 4,
+    "team_title": "Herren Aktiv NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "19:30",
+    "time_to": "20:00",
+    "court_number": 1,
+    "team_title": "Damen Aktiv NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "19:30",
+    "time_to": "20:00",
+    "court_number": 2,
+    "team_title": "Damen Aktiv NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "19:30",
+    "time_to": "20:00",
+    "court_number": 3,
+    "team_title": "Herren 35+ NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "19:30",
+    "time_to": "20:00",
+    "court_number": 4,
+    "team_title": "Herren 35+ NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "20:00",
+    "time_to": "20:30",
+    "court_number": 1,
+    "label": "12h"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "20:00",
+    "time_to": "20:30",
+    "court_number": 2,
+    "label": "12h"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "20:00",
+    "time_to": "20:30",
+    "court_number": 3,
+    "team_title": "Herren 35+ NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "20:00",
+    "time_to": "20:30",
+    "court_number": 4,
+    "team_title": "Herren 35+ NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "20:30",
+    "time_to": "21:00",
+    "court_number": 1,
+    "label": "12h"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "20:30",
+    "time_to": "21:00",
+    "court_number": 2,
+    "label": "12h"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "20:30",
+    "time_to": "21:00",
+    "court_number": 3,
+    "team_title": "Herren 35+ NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "20:30",
+    "time_to": "21:00",
+    "court_number": 4,
+    "team_title": "Herren 35+ NLC"
+  },
+  {
+    "day": "Mittwoch",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 2,
+    "label": "12h"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 1,
+    "label": "12h"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 2,
+    "label": "12h"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 3,
+    "label": "12h"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 4,
+    "label": "12h"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 1,
+    "team_title": "Damen 30+ NLC"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 2,
+    "team_title": "Damen 30+ NLC"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 3,
+    "team_title": "Damen 30+ 3. Liga"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 4,
+    "team_title": "Damen 30+ 3. Liga"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "20:00",
+    "time_to": "21:00",
+    "court_number": 1,
+    "team_title": "Herren 35+ 2. Liga"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "20:00",
+    "time_to": "21:00",
+    "court_number": 2,
+    "team_title": "Herren 35+ 2. Liga"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "20:00",
+    "time_to": "21:00",
+    "court_number": 3,
+    "team_title": "Herren 35+ 1. Liga"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "20:00",
+    "time_to": "21:00",
+    "court_number": 4,
+    "team_title": "Herren 35+ 1. Liga"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 1,
+    "team_title": "Herren 35+ 2. Liga"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 2,
+    "label": "12h"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 3,
+    "team_title": "Herren 35+ 1. Liga"
+  },
+  {
+    "day": "Donnerstag",
+    "time_from": "21:00",
+    "time_to": "22:00",
+    "court_number": 4,
+    "label": "12h"
+  },
+  {
+    "day": "Freitag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 1,
+    "label": "Freitagsdoppel"
+  },
+  {
+    "day": "Freitag",
+    "time_from": "18:00",
+    "time_to": "19:00",
+    "court_number": 2,
+    "label": "Freitagsdoppel"
+  },
+  {
+    "day": "Freitag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 1,
+    "label": "Freitagsdoppel"
+  },
+  {
+    "day": "Freitag",
+    "time_from": "19:00",
+    "time_to": "20:00",
+    "court_number": 2,
+    "label": "Freitagsdoppel"
+  }
+]

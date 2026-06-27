@@ -1,0 +1,612 @@
+{
+  "teams": [
+    {
+      "name": "Damen Aktiv NLC",
+      "gender": "Damen",
+      "category": "Aktiv",
+      "liga": "NLC",
+      "teamziel": "Ligaerhalt",
+      "trainingstag": "Mittwoch",
+      "players": [
+        {
+          "name": "Emma Hubeková",
+          "captain_status": 0
+        },
+        {
+          "name": "Maria Escude",
+          "captain_status": 0
+        },
+        {
+          "name": "Andrina Peer",
+          "captain_status": 0
+        },
+        {
+          "name": "Lorena Schleiffer",
+          "captain_status": 0
+        },
+        {
+          "name": "Jasmin Lanker",
+          "captain_status": 1
+        },
+        {
+          "name": "Simone Haubensak",
+          "captain_status": 0
+        },
+        {
+          "name": "Amanda Casanova",
+          "captain_status": 0
+        }
+      ]
+    },
+    {
+      "name": "Damen Aktiv 1. Liga",
+      "gender": "Damen",
+      "category": "Aktiv",
+      "liga": "1. Liga",
+      "teamziel": "Ligaerhalt",
+      "trainingstag": "Montag",
+      "players": [
+        {
+          "name": "Maria Schnuck (neu)",
+          "captain_status": 0
+        },
+        {
+          "name": "Talissa Kucera (neu)",
+          "captain_status": 0
+        },
+        {
+          "name": "Lorena Roth (neu)",
+          "captain_status": 0
+        },
+        {
+          "name": "Sophia Kramer",
+          "captain_status": 0
+        },
+        {
+          "name": "Xenia Weiss",
+          "captain_status": 1
+        },
+        {
+          "name": "Nadia Rasetti",
+          "captain_status": 2
+        }
+      ]
+    },
+    {
+      "name": "Damen Aktiv 2 Liga (neu)",
+      "gender": "Damen",
+      "category": "Aktiv",
+      "liga": "2 Liga (neu)",
+      "teamziel": "Integration & Spass",
+      "trainingstag": "Montag",
+      "players": [
+        {
+          "name": "Elena Vaszary (07)",
+          "captain_status": 0
+        },
+        {
+          "name": "Lila Nitsch (07)",
+          "captain_status": 0
+        },
+        {
+          "name": "Josephine Müller",
+          "captain_status": 0
+        },
+        {
+          "name": "Sophie Taylor",
+          "captain_status": 0
+        },
+        {
+          "name": "Hansjosten Victoria",
+          "captain_status": 0
+        },
+        {
+          "name": "Sophie Schüller",
+          "captain_status": 0
+        },
+        {
+          "name": "Constance Weinbrenner",
+          "captain_status": 0
+        },
+        {
+          "name": "Laura Andrea Sîrbu",
+          "captain_status": 0
+        },
+        {
+          "name": "Elena Gross",
+          "captain_status": 0
+        },
+        {
+          "name": "Johanna Gollnhofer",
+          "captain_status": 0
+        }
+      ]
+    },
+    {
+      "name": "Damen 30+ NLC",
+      "gender": "Damen",
+      "category": "30+",
+      "liga": "NLC",
+      "teamziel": "Ligaerhalt",
+      "trainingstag": "Donnerstag",
+      "players": [
+        {
+          "name": "Claudia Beck",
+          "captain_status": 0
+        },
+        {
+          "name": "Eichbichler Daniela",
+          "captain_status": 0
+        },
+        {
+          "name": "Pamela Ehrler",
+          "captain_status": 0
+        },
+        {
+          "name": "Suzanne Cornelisse",
+          "captain_status": 0
+        },
+        {
+          "name": "Martina Wüst",
+          "captain_status": 1
+        },
+        {
+          "name": "Anne-Kathrin Schulze",
+          "captain_status": 2
+        },
+        {
+          "name": "Seraphine Buchmann",
+          "captain_status": 0
+        },
+        {
+          "name": "Sabine Schneider",
+          "captain_status": 0
+        }
+      ]
+    },
+    {
+      "name": "Damen 30+ 1. Liga",
+      "gender": "Damen",
+      "category": "30+",
+      "liga": "1. Liga",
+      "teamziel": "Ligaerhalt",
+      "trainingstag": "Dienstag",
+      "players": [
+        {
+          "name": "Florine Klauser",
+          "captain_status": 1
+        },
+        {
+          "name": "Jessica Hefti",
+          "captain_status": 0
+        },
+        {
+          "name": "Jasmin Schalcher",
+          "captain_status": 0
+        },
+        {
+          "name": "Karin Ganz",
+          "captain_status": 0
+        },
+        {
+          "name": "Mira Porstmann",
+          "captain_status": 0
+        },
+        {
+          "name": "Anne Bütikofer",
+          "captain_status": 0
+        }
+      ]
+    },
+    {
+      "name": "Damen 30+ 3. Liga",
+      "gender": "Damen",
+      "category": "30+",
+      "liga": "3. Liga",
+      "teamziel": "1./2.Gruppen & Spass",
+      "trainingstag": "Donnerstag",
+      "players": [
+        {
+          "name": "Hanna O'Driscoll (92)",
+          "captain_status": 0
+        },
+        {
+          "name": "Stefanie Armbruster",
+          "captain_status": 0
+        },
+        {
+          "name": "Alba Pennisi",
+          "captain_status": 0
+        },
+        {
+          "name": "Lea Goldblum",
+          "captain_status": 0
+        },
+        {
+          "name": "Jenny Bittl",
+          "captain_status": 0
+        },
+        {
+          "name": "Isabel Jüngling",
+          "captain_status": 1
+        },
+        {
+          "name": "Karin Mellini",
+          "captain_status": 2
+        }
+      ]
+    },
+    {
+      "name": "Herren Aktiv NLC",
+      "gender": "Herren",
+      "category": "Aktiv",
+      "liga": "NLC",
+      "teamziel": "Ligaerhalt & Juniorenintegration",
+      "trainingstag": "Mittwoch",
+      "players": [
+        {
+          "name": "Filip Tasic (09)",
+          "captain_status": 0
+        },
+        {
+          "name": "Farsky David",
+          "captain_status": 0
+        },
+        {
+          "name": "Simon Farsky",
+          "captain_status": 1
+        },
+        {
+          "name": "Marvin Oberli",
+          "captain_status": 0
+        },
+        {
+          "name": "Michael Rauen",
+          "captain_status": 0
+        },
+        {
+          "name": "Timo Kranz",
+          "captain_status": 0
+        },
+        {
+          "name": "Perfetti Davide",
+          "captain_status": 0
+        },
+        {
+          "name": "Ruttmann Robert",
+          "captain_status": 0
+        }
+      ]
+    },
+    {
+      "name": "Herren Aktiv 1. Liga",
+      "gender": "Herren",
+      "category": "Aktiv",
+      "liga": "1. Liga",
+      "teamziel": "Ligaerhalt & Juniorenintegration",
+      "trainingstag": "Dienstag",
+      "players": [
+        {
+          "name": "Til Novak (08)",
+          "captain_status": 0
+        },
+        {
+          "name": "Alexander Rimle",
+          "captain_status": 1
+        },
+        {
+          "name": "Florian Griesmeyer",
+          "captain_status": 0
+        },
+        {
+          "name": "Markus Rauch",
+          "captain_status": 0
+        },
+        {
+          "name": "Max Groenveld",
+          "captain_status": 0
+        },
+        {
+          "name": "Dautzenberger Roman",
+          "captain_status": 0
+        },
+        {
+          "name": "Quinten Groenveld",
+          "captain_status": 0
+        },
+        {
+          "name": "Tim Groenveld",
+          "captain_status": 0
+        },
+        {
+          "name": "Andrea Schönenberger",
+          "captain_status": 0
+        },
+        {
+          "name": "Florian Zwick",
+          "captain_status": 0
+        }
+      ]
+    },
+    {
+      "name": "Herren Aktiv 2. Liga",
+      "gender": "Herren",
+      "category": "Aktiv",
+      "liga": "2. Liga",
+      "teamziel": "Ligaerhalt & Juniorenintegration",
+      "trainingstag": "Dienstag",
+      "players": [
+        {
+          "name": "Weinmann Elio (10) - bestätigt",
+          "captain_status": 0
+        },
+        {
+          "name": "Benjamin Novak (10) - offen",
+          "captain_status": 0
+        },
+        {
+          "name": "Domas Bartusevicius",
+          "captain_status": 0
+        },
+        {
+          "name": "Nicolas Glatzer",
+          "captain_status": 1
+        },
+        {
+          "name": "Tsao Eugene",
+          "captain_status": 0
+        },
+        {
+          "name": "Tim Schäfer",
+          "captain_status": 0
+        },
+        {
+          "name": "Van Bergen Wouter",
+          "captain_status": 0
+        },
+        {
+          "name": "Abdulla Elsayed",
+          "captain_status": 0
+        },
+        {
+          "name": "Max Reinhardt",
+          "captain_status": 0
+        },
+        {
+          "name": "Yannik Stiefel",
+          "captain_status": 0
+        }
+      ]
+    },
+    {
+      "name": "Herren 35+ NLC",
+      "gender": "Herren",
+      "category": "35+",
+      "liga": "NLC",
+      "teamziel": "Ligaerhalt",
+      "trainingstag": "Mittwoch",
+      "players": [
+        {
+          "name": "Stephan Rosin",
+          "captain_status": 0
+        },
+        {
+          "name": "Daniel Aepli",
+          "captain_status": 0
+        },
+        {
+          "name": "Samuel Lang",
+          "captain_status": 1
+        },
+        {
+          "name": "Thomas Polak",
+          "captain_status": 0
+        },
+        {
+          "name": "Christian Dold",
+          "captain_status": 0
+        },
+        {
+          "name": "Pius Grüter",
+          "captain_status": 0
+        },
+        {
+          "name": "Stefan Kessler",
+          "captain_status": 0
+        }
+      ]
+    },
+    {
+      "name": "Herren 35+ 1. Liga",
+      "gender": "Herren",
+      "category": "35+",
+      "liga": "1. Liga",
+      "teamziel": "Ligaerhalt",
+      "trainingstag": "Donnerstag",
+      "players": [
+        {
+          "name": "Jonas Dennler",
+          "captain_status": 0
+        },
+        {
+          "name": "Fenner Marcel",
+          "captain_status": 0
+        },
+        {
+          "name": "Christoph Kinsperger",
+          "captain_status": 1
+        },
+        {
+          "name": "Stephan Willi",
+          "captain_status": 0
+        },
+        {
+          "name": "Roland Hofer",
+          "captain_status": 2
+        },
+        {
+          "name": "José Padilla Donoso",
+          "captain_status": 0
+        },
+        {
+          "name": "Gregory Putman",
+          "captain_status": 0
+        },
+        {
+          "name": "Schärli Christoph",
+          "captain_status": 0
+        }
+      ]
+    },
+    {
+      "name": "Herren 35+ 2. Liga",
+      "gender": "Herren",
+      "category": "35+",
+      "liga": "2. Liga",
+      "teamziel": "Ligaerhalt",
+      "trainingstag": "Donnerstag",
+      "players": [
+        {
+          "name": "Cem Kalayci",
+          "captain_status": 0
+        },
+        {
+          "name": "David Stencel",
+          "captain_status": 0
+        },
+        {
+          "name": "Raul Rivera Lopez",
+          "captain_status": 0
+        },
+        {
+          "name": "Simone Berardozzi",
+          "captain_status": 0
+        },
+        {
+          "name": "Sebastian Sommer",
+          "captain_status": 0
+        },
+        {
+          "name": "David Cartmill",
+          "captain_status": 0
+        },
+        {
+          "name": "Claudio Schenkel",
+          "captain_status": 0
+        },
+        {
+          "name": "Tomasz Siczek (Neumitglied)",
+          "captain_status": 0
+        },
+        {
+          "name": "Christoph Pedretti",
+          "captain_status": 1
+        },
+        {
+          "name": "Hasler Emanuel",
+          "captain_status": 0
+        },
+        {
+          "name": "Riccardo Delai",
+          "captain_status": 0
+        },
+        {
+          "name": "Onur Partal",
+          "captain_status": 0
+        }
+      ]
+    },
+    {
+      "name": "Herren 55+ 3.Liga",
+      "gender": "Herren",
+      "category": "55+",
+      "liga": "3.Liga",
+      "teamziel": "Aufstieg",
+      "trainingstag": "Montag",
+      "players": [
+        {
+          "name": "Joachim Hoffmann",
+          "captain_status": 0
+        },
+        {
+          "name": "Martin Weinmann",
+          "captain_status": 0
+        },
+        {
+          "name": "Derek van Rooijen",
+          "captain_status": 0
+        },
+        {
+          "name": "Andreas Vaszary",
+          "captain_status": 0
+        },
+        {
+          "name": "Tom Keller",
+          "captain_status": 0
+        },
+        {
+          "name": "Patrik Roos",
+          "captain_status": 1
+        },
+        {
+          "name": "Daniel Kolbe",
+          "captain_status": 0
+        },
+        {
+          "name": "Marcus Matz",
+          "captain_status": 0
+        },
+        {
+          "name": "Martin Birrer",
+          "captain_status": 0
+        }
+      ]
+    },
+    {
+      "name": "Herren 45+ 2. Liga",
+      "gender": "Herren",
+      "category": "45+",
+      "liga": "2. Liga",
+      "teamziel": "Aufstieg",
+      "trainingstag": "Montag",
+      "players": [
+        {
+          "name": "Stefan Issler",
+          "captain_status": 0
+        },
+        {
+          "name": "Kuschmann Stefan",
+          "captain_status": 0
+        },
+        {
+          "name": "Sven Guggenheim",
+          "captain_status": 0
+        },
+        {
+          "name": "Urs Althaus",
+          "captain_status": 0
+        },
+        {
+          "name": "Manuel Rüede",
+          "captain_status": 1
+        },
+        {
+          "name": "Denis Yuen",
+          "captain_status": 0
+        },
+        {
+          "name": "Bieri Michel",
+          "captain_status": 0
+        },
+        {
+          "name": "Mathias Weber",
+          "captain_status": 0
+        },
+        {
+          "name": "Polke Andreas",
+          "captain_status": 0
+        }
+      ]
+    }
+  ]
+}

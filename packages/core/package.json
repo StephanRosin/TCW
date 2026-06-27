@@ -1,0 +1,20 @@
+{
+  "name": "@tcw/core",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts",
+  "scripts": {
+    "test": "node --test --import tsx ./src/**/*.test.ts"
+  },
+  "dependencies": {
+    "@tcw/shared": "*",
+    "better-sqlite3": "^12.2.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12"
+  }
+}

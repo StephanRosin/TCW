@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.log
+logs/
+backups/
+data/*.sqlite
+data/*.sqlite-shm
+data/*.sqlite-wal
+data/matches.json
+data/backups/
+data/seeds/live_*.json
+data/seeds/ic_teams.legacy.sqlite
+.env
+.DS_Store
+*.tsbuildinfo

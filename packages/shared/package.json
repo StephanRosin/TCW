@@ -1,0 +1,11 @@
+{
+  "name": "@tcw/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./i18n/*": "./src/i18n/*"
+  },
+  "types": "./src/index.ts"
+}

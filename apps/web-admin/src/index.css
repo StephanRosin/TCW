@@ -1,0 +1,193 @@
+:root {
+  --navy-900: #142539;
+  --navy-700: #28507f;
+  --blue-600: #336297;
+  --sand-50: #faf8f3;
+  --sand-100: #f1eee7;
+  --border: #dcd6c8;
+  --ink-900: #1a1f27;
+  --ink-500: #5a6472;
+  --grass: #2f6b46;
+  --clay: #a8492a;
+  /* Formularfelder immer hell rendern (sonst weiß-auf-weiß im OS-Dark-Mode). */
+  color-scheme: light;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--ink-900);
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--sand-50);
+}
+
+.admin-header {
+  background: var(--navy-900);
+  color: #fff;
+  padding: 1rem 1.5rem;
+}
+.admin-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.admin-header span {
+  font-size: 0.8rem;
+  color: #9fb3c9;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--navy-700);
+  padding: 0 1rem;
+  overflow-x: auto;
+}
+.admin-tabs button {
+  border: 0;
+  background: transparent;
+  color: #cfe0f0;
+  padding: 0.8rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+}
+.admin-tabs button[aria-selected="true"] {
+  color: #fff;
+  border-bottom-color: var(--clay);
+}
+
+.admin-main {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+.admin-main h2 {
+  margin-top: 0;
+}
+
+table.grid {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+table.grid th,
+table.grid td {
+  padding: 0.5rem 0.6rem;
+  border-top: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+table.grid thead th {
+  background: var(--navy-900);
+  color: #fff;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-top: 0;
+}
+table.grid tbody tr:nth-child(even) td {
+  background: var(--sand-50);
+}
+
+input,
+select {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink-900);
+  width: 100%;
+  max-width: 100%;
+}
+option {
+  color: var(--ink-900);
+  background: #fff;
+}
+input:focus,
+select:focus {
+  outline: 2px solid var(--blue-600);
+  outline-offset: 1px;
+}
+
+button.btn {
+  font: inherit;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink-900);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+button.btn--primary {
+  background: var(--navy-700);
+  border-color: var(--navy-700);
+  color: #fff;
+}
+button.btn--danger {
+  color: var(--clay);
+  border-color: var(--clay);
+}
+button.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.toolbar {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.msg {
+  padding: 0.6rem 0.9rem;
+  border-radius: 6px;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+}
+.msg--ok {
+  background: rgba(47, 107, 70, 0.12);
+  color: var(--grass);
+}
+.msg--err {
+  background: rgba(168, 73, 42, 0.12);
+  color: var(--clay);
+}
+
+.muted {
+  color: var(--ink-500);
+}
+.actions-cell {
+  display: flex;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+.table-scroll {
+  overflow-x: auto;
+}
+.hint {
+  font-size: 0.85rem;
+  color: var(--ink-500);
+  margin-bottom: 1rem;
+}
+pre.output {
+  background: var(--navy-900);
+  color: #d7e6d9;
+  padding: 1rem;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  font-size: 0.85rem;
+  max-height: 24rem;
+  overflow: auto;
+}

@@ -1,0 +1,37 @@
+{
+  "name": "tcw-spielbetrieb",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TCW Spielbetrieb 2026 – Interclub- und Turnier-Webseite des TC Waidberg (Neubau)",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/shared",
+    "packages/core",
+    "apps/public-server",
+    "apps/admin-server",
+    "apps/web-public",
+    "apps/web-admin"
+  ],
+  "scripts": {
+    "migrate": "tsx scripts/migrate.ts",
+    "import:live": "tsx scripts/import-live-snapshot.ts",
+    "refresh:tournaments": "tsx scripts/refresh-tournaments.ts",
+    "import:agenda": "tsx scripts/import-agenda.ts",
+    "dev": "concurrently -n public-api,admin-api,public-web,admin-web -c blue,magenta,green,yellow \"npm:dev:public-api\" \"npm:dev:admin-api\" \"npm:dev:public-web\" \"npm:dev:admin-web\"",
+    "dev:public-api": "npm -w @tcw/public-server run dev",
+    "dev:admin-api": "npm -w @tcw/admin-server run dev",
+    "dev:public-web": "npm -w @tcw/web-public run dev",
+    "dev:admin-web": "npm -w @tcw/web-admin run dev",
+    "build": "npm -w @tcw/web-public run build && npm -w @tcw/web-admin run build",
+    "typecheck": "tsc -b packages/shared packages/core",
+    "test": "npm -w @tcw/core run test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
