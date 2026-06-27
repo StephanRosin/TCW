@@ -4,7 +4,7 @@
  */
 import type { JSX } from "react";
 import type { EncountDetailResponse, EncountMatch, ResultType } from "@tcw/shared";
-import { publicApi } from "../../api/client.js";
+import type { ResultsApi } from "../../api/client.js";
 import { useResource } from "../../api/useResource.js";
 import { DataView } from "../../components/DataView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
@@ -118,11 +118,19 @@ function DetailContent({ detail }: { detail: EncountDetailResponse }): JSX.Eleme
   );
 }
 
-export function EncountDetail({ encountRef, onBack }: { encountRef: EncountRef; onBack: () => void }): JSX.Element {
+export function EncountDetail({
+  api,
+  encountRef,
+  onBack,
+}: {
+  api: ResultsApi;
+  encountRef: EncountRef;
+  onBack: () => void;
+}): JSX.Element {
   const { t } = useI18n();
   const state = useResource(
-    () => publicApi.ic.encount(encountRef.encountId, encountRef.year, encountRef.type),
-    [encountRef.encountId, encountRef.year, encountRef.type],
+    () => api.encount(encountRef.encountId, encountRef.year, encountRef.type),
+    [api, encountRef.encountId, encountRef.year, encountRef.type],
   );
 
   return (

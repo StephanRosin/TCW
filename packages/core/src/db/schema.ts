@@ -80,6 +80,12 @@ CREATE TABLE IF NOT EXISTS import_state (
   last_error TEXT NOT NULL DEFAULT ''
 );
 
+-- Schlüssel/Wert-Einstellungen der öffentlichen Seite (z. B. Sichtbarkeit von Tabs).
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
 -- Vereins-Agenda (täglich von tcwaidberg.ch importiert).
 CREATE TABLE IF NOT EXISTS agenda_events (
   event_id TEXT PRIMARY KEY,

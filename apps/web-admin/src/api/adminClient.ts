@@ -7,6 +7,7 @@ import type {
   AdminTeam,
   AdminTournament,
   AdminTrainingSlot,
+  SiteSettings,
 } from "@tcw/shared";
 
 async function request<TResponse>(url: string, init?: RequestInit): Promise<TResponse> {
@@ -62,4 +63,8 @@ export const adminApi = {
   updateKlassierung: () =>
     request<UpdateKlassierungResponse>("/api/actions/update-klassierung", { method: "POST" }),
   importMatches: () => request<{ ok: true; count: number }>("/api/actions/import-matches", { method: "POST" }),
+
+  settings: () => request<SiteSettings>("/api/settings"),
+  saveSettings: (patch: Partial<SiteSettings>) =>
+    request<SiteSettings>("/api/settings", { method: "PUT", body: JSON.stringify(patch) }),
 };

@@ -291,6 +291,12 @@ export interface AgendaResponse {
   updatedAt: string;
 }
 
+/** Sichtbarkeit einzelner Bereiche der öffentlichen Seite (über das Admin-UI steuerbar). */
+export interface SiteSettings {
+  showTraining: boolean;
+  showMatches: boolean;
+}
+
 // ---------------------------------------------------------------------------
 // Admin-DTOs
 // ---------------------------------------------------------------------------

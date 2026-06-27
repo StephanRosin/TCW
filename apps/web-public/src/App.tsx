@@ -12,8 +12,11 @@ import { TabBar } from "./components/TabBar.js";
 import { I18nProvider, useI18n } from "./i18n/I18nProvider.js";
 import { useHashRoute } from "./app/useHashRoute.js";
 import {
+  DEFAULT_VIEW,
+  isViewVisible,
   ratingsSubViewFromHash,
   viewFromHash,
+  visibleNavItems,
   type MainView,
   type RatingsSubView,
 } from "./app/navigation.js";
@@ -36,6 +39,8 @@ interface ViewState {
   consumePending: () => void;
 }
 
+const noop = (): void => {};
+
 function ActiveView(state: ViewState): JSX.Element {
   switch (state.view) {
     case "teams":
@@ -54,9 +59,19 @@ function ActiveView(state: ViewState): JSX.Element {
     case "results":
       return (
         <ResultsView
+          api={publicApi.ic}
           pendingEncounter={state.pendingEncounter}
           onConsumePending={state.consumePending}
           onBackToMatches={() => state.navigate("matches")}
+        />
+      );
+    case "team-challenge":
+      return (
+        <ResultsView
+          api={publicApi.tc}
+          pendingEncounter={null}
+          onConsumePending={noop}
+          onBackToMatches={noop}
         />
       );
     case "tournaments":
@@ -71,9 +86,15 @@ function ActiveView(state: ViewState): JSX.Element {
 function Layout(): JSX.Element {
   const { t } = useI18n();
   const { hash, navigate } = useHashRoute();
-  const view = viewFromHash(hash);
   const ratingsSubView = ratingsSubViewFromHash(hash);
   const matchesState = useResource(() => publicApi.matches(), []);
+  const settingsState = useResource(() => publicApi.settings(), []);
+  // Während des Ladens gelten die Server-Defaults (Training/Spieltermine aus),
+  // damit ausgeblendete Tabs nicht kurz aufblitzen.
+  const settings =
+    settingsState.status === "ready" ? settingsState.data : { showTraining: false, showMatches: false };
+  const requestedView = viewFromHash(hash);
+  const view = isViewVisible(requestedView, settings) ? requestedView : DEFAULT_VIEW;
   const stand = matchesState.status === "ready" ? matchesState.data.updatedAt : "";
   const [pendingEncounter, setPendingEncounter] = useState<EncountRef | null>(null);
 
@@ -93,7 +114,7 @@ function Layout(): JSX.Element {
   return (
     <div className="layout">
       <SiteHeader stand={stand} />
-      <TabBar activeView={view} onSelect={(next) => navigate(next)} />
+      <TabBar items={visibleNavItems(settings)} activeView={view} onSelect={(next) => navigate(next)} />
       <main className="container">
         <ActiveView
           view={view}

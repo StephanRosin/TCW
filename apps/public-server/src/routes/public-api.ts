@@ -10,6 +10,7 @@ import {
   getPublicTeams,
   getPublicTournaments,
   getRankingChanges,
+  getSiteSettings,
   getTrainingPlan,
   type TcwDatabase,
 } from "@tcw/core";
@@ -21,4 +22,5 @@ export function registerPublicCoreRoutes(app: FastifyInstance, database: TcwData
   app.get("/api/matches", async () => getMatches(database));
   app.get("/api/tournaments", async () => getPublicTournaments(database));
   app.get("/api/agenda", async () => getPublicAgenda(database));
+  app.get("/api/settings", async () => getSiteSettings(database));
 }

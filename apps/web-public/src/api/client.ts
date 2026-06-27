@@ -10,6 +10,7 @@ import type {
   RankingChangesResponse,
   ResultsTeamsResponse,
   ResultType,
+  SiteSettings,
   TeamResultsResponse,
   TournamentsResponse,
   TrainingPlanResponse,
@@ -23,6 +24,31 @@ async function fetchJson<TResponse>(url: string): Promise<TResponse> {
   return (await response.json()) as TResponse;
 }
 
+/** Team-basierte Resultat-Endpunkte (Interclub bzw. Team-Challenge) – identisches Schema. */
+export interface ResultsApi {
+  teams: (year: string) => Promise<ResultsTeamsResponse>;
+  team: (teamId: number, year: string) => Promise<TeamResultsResponse>;
+  encount: (encountId: number, year: string, type: ResultType) => Promise<EncountDetailResponse>;
+  draw: (ligueId: number, promotion: 0 | 1, year: string) => Promise<BracketResponse>;
+}
+
+function resultsApi(basePath: string): ResultsApi {
+  return {
+    teams: (year) =>
+      fetchJson<ResultsTeamsResponse>(`${basePath}/teams?year=${encodeURIComponent(year)}`),
+    team: (teamId, year) =>
+      fetchJson<TeamResultsResponse>(`${basePath}/team/${teamId}?year=${encodeURIComponent(year)}`),
+    encount: (encountId, year, type) =>
+      fetchJson<EncountDetailResponse>(
+        `${basePath}/encount/${encountId}?year=${encodeURIComponent(year)}&type=${type}`,
+      ),
+    draw: (ligueId, promotion, year) =>
+      fetchJson<BracketResponse>(
+        `${basePath}/draw?ligueId=${ligueId}&promotion=${promotion}&year=${encodeURIComponent(year)}`,
+      ),
+  };
+}
+
 export const publicApi = {
   teams: () => fetchJson<PublicTeamsResponse>("/api/teams"),
   trainingPlan: () => fetchJson<TrainingPlanResponse>("/api/training-slots"),
@@ -30,18 +56,7 @@ export const publicApi = {
   matches: () => fetchJson<MatchesResponse>("/api/matches"),
   tournaments: () => fetchJson<TournamentsResponse>("/api/tournaments"),
   agenda: () => fetchJson<AgendaResponse>("/api/agenda"),
-  ic: {
-    teams: (year: string) =>
-      fetchJson<ResultsTeamsResponse>(`/api/ic/teams?year=${encodeURIComponent(year)}`),
-    team: (teamId: number, year: string) =>
-      fetchJson<TeamResultsResponse>(`/api/ic/team/${teamId}?year=${encodeURIComponent(year)}`),
-    encount: (encountId: number, year: string, type: ResultType) =>
-      fetchJson<EncountDetailResponse>(
-        `/api/ic/encount/${encountId}?year=${encodeURIComponent(year)}&type=${type}`,
-      ),
-    draw: (ligueId: number, promotion: 0 | 1, year: string) =>
-      fetchJson<BracketResponse>(
-        `/api/ic/draw?ligueId=${ligueId}&promotion=${promotion}&year=${encodeURIComponent(year)}`,
-      ),
-  },
+  settings: () => fetchJson<SiteSettings>("/api/settings"),
+  ic: resultsApi("/api/ic"),
+  tc: resultsApi("/api/tc"),
 };

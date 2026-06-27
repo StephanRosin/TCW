@@ -147,7 +147,12 @@ function determineBracket(
   return null;
 }
 
-export function mapTeamResults(payload: unknown, _year: string): TeamResultsResponse {
+export function mapTeamResults(
+  payload: unknown,
+  _year: string,
+  options: { brackets?: boolean } = {},
+): TeamResultsResponse {
+  const withBrackets = options.brackets ?? true;
   const root = (payload as { I2cm?: Record<string, unknown> }).I2cm ?? {};
   const pool = root.IcPool as
     | { ended?: number; poolName2?: unknown; icTeamPoolSet?: { IcTeamPool?: unknown } }
@@ -170,7 +175,9 @@ export function mapTeamResults(payload: unknown, _year: string): TeamResultsResp
   const liga = cleanText(ligue?.lgName ?? "");
   const group = pool?.poolName2 == null ? "" : cleanText(pool.poolName2);
   const complete = isGroupPhaseComplete(toNumber(pool?.ended), sortedEncounts);
-  const bracket = determineBracket(standings, toNumber(ligue?.ligueId), liga, complete);
+  const bracket = withBrackets
+    ? determineBracket(standings, toNumber(ligue?.ligueId), liga, complete)
+    : null;
 
   return { title: liga, liga, group, matches, standings, bracket };
 }

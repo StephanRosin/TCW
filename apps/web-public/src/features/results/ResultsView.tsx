@@ -12,7 +12,7 @@ import {
   type ResultType,
   type TeamResultsResponse,
 } from "@tcw/shared";
-import { publicApi } from "../../api/client.js";
+import type { ResultsApi } from "../../api/client.js";
 import { useResource } from "../../api/useResource.js";
 import { DataView } from "../../components/DataView.js";
 import { ClubName } from "../../components/ClubName.js";
@@ -190,17 +190,19 @@ function GroupResults({
 }
 
 function BracketPanel({
+  api,
   ligueId,
   promotion,
   year,
   onOpenEncount,
 }: {
+  api: ResultsApi;
   ligueId: number;
   promotion: 0 | 1;
   year: string;
   onOpenEncount: OpenEncount;
 }): JSX.Element {
-  const state = useResource(() => publicApi.ic.draw(ligueId, promotion, year), [ligueId, promotion, year]);
+  const state = useResource(() => api.draw(ligueId, promotion, year), [api, ligueId, promotion, year]);
   return (
     <DataView state={state} errorKey="results.loadError">
       {(bracket) => (
@@ -211,16 +213,18 @@ function BracketPanel({
 }
 
 function TeamResultsPanel({
+  api,
   teamId,
   year,
   onOpenEncount,
 }: {
+  api: ResultsApi;
   teamId: number;
   year: string;
   onOpenEncount: OpenEncount;
 }): JSX.Element {
   const { t, translateKnown } = useI18n();
-  const state = useResource(() => publicApi.ic.team(teamId, year), [teamId, year]);
+  const state = useResource(() => api.team(teamId, year), [api, teamId, year]);
   const [tab, setTab] = useState<"group" | "bracket">("group");
 
   useEffect(() => {
@@ -265,6 +269,7 @@ function TeamResultsPanel({
             <GroupResults data={data} year={year} onOpenEncount={onOpenEncount} />
           ) : (
             <BracketPanel
+              api={api}
               ligueId={data.bracket.ligueId}
               promotion={data.bracket.promotion}
               year={year}
@@ -279,12 +284,14 @@ function TeamResultsPanel({
 }
 
 interface ResultsViewProps {
+  api: ResultsApi;
   pendingEncounter: EncountRef | null;
   onConsumePending: () => void;
   onBackToMatches: () => void;
 }
 
 export function ResultsView({
+  api,
   pendingEncounter,
   onConsumePending,
   onBackToMatches,
@@ -295,7 +302,7 @@ export function ResultsView({
   const [detail, setDetail] = useState<EncountRef | null>(null);
   const [detailFromMatches, setDetailFromMatches] = useState(false);
 
-  const teamsState = useResource(() => publicApi.ic.teams(year), [year]);
+  const teamsState = useResource(() => api.teams(year), [api, year]);
 
   useEffect(() => {
     if (pendingEncounter) {
@@ -329,7 +336,7 @@ export function ResultsView({
   if (detail) {
     return (
       <section>
-        <EncountDetail encountRef={detail} onBack={handleBack} />
+        <EncountDetail api={api} encountRef={detail} onBack={handleBack} />
       </section>
     );
   }
@@ -345,7 +352,12 @@ export function ResultsView({
             <>
               <TeamPicker teams={data.items} activeTeamId={activeTeamId} onSelect={setActiveTeamId} />
               {activeTeamId !== null ? (
-                <TeamResultsPanel teamId={activeTeamId} year={year} onOpenEncount={openEncount} />
+                <TeamResultsPanel
+                  api={api}
+                  teamId={activeTeamId}
+                  year={year}
+                  onOpenEncount={openEncount}
+                />
               ) : null}
             </>
           )

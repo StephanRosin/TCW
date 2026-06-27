@@ -120,9 +120,14 @@ function formatEncountDate(date: RawEncountInfo["Played"]): string {
   return `${value.day}.${value.month + 1}.${value.year}`;
 }
 
-function buildSwisstennisUrl(encountId: number, year: string, type: ResultType): string {
+function buildSwisstennisUrl(
+  mytennisPath: string,
+  encountId: number,
+  year: string,
+  type: ResultType,
+): string {
   const path = type === "tableau" ? "tableau-ergebnisse" : "begegnungsergebnisse";
-  return `https://www.mytennis.ch/de/interclub/${path}?encounterId=${encountId}&year=${encodeURIComponent(year)}`;
+  return `https://www.mytennis.ch/de/${mytennisPath}/${path}?encounterId=${encountId}&year=${encodeURIComponent(year)}`;
 }
 
 export function mapEncountDetail(
@@ -130,6 +135,7 @@ export function mapEncountDetail(
   encountId: number,
   year: string,
   resultType: ResultType,
+  mytennisPath = "interclub",
 ): EncountDetailResponse {
   const encount =
     (payload as { I2cm?: { EncountResults?: { Encount?: Record<string, unknown> } } }).I2cm
@@ -153,7 +159,7 @@ export function mapEncountDetail(
     group: cleanText(info.groupNb ?? ""),
     singles,
     doubles,
-    swisstennisUrl: buildSwisstennisUrl(encountId, year, resultType),
+    swisstennisUrl: buildSwisstennisUrl(mytennisPath, encountId, year, resultType),
     resultType,
     year,
   };

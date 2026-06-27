@@ -1,6 +1,7 @@
 /**
- * Ergebnis-Dienst: lädt Interclub-Daten serverseitig von Swisstennis und gibt
- * normalisierte DTOs zurück. Hält einen gemeinsamen, gecachten Client.
+ * Ergebnis-Dienst: lädt team-basierte Resultate (Interclub oder Team-Challenge)
+ * serverseitig von Swisstennis und gibt normalisierte DTOs zurück. Hält einen
+ * gemeinsamen, gecachten Client.
  */
 import type {
   BracketResponse,
@@ -11,6 +12,7 @@ import type {
 } from "@tcw/shared";
 import type { AppConfig } from "../config.js";
 import { SwisstennisClient } from "../integrations/swisstennis/raw-client.js";
+import { INTERCLUB, type Competition } from "../integrations/swisstennis/competition.js";
 import {
   drawResultsUrl,
   encountResultsUrl,
@@ -30,27 +32,31 @@ export interface ResultsService {
   getDraw(ligueId: number, promotion: 0 | 1, year: string): Promise<BracketResponse>;
 }
 
-export function createResultsService(config: AppConfig): ResultsService {
+export function createResultsService(
+  config: AppConfig,
+  competition: Competition = INTERCLUB,
+): ResultsService {
   const client = new SwisstennisClient(
     config.resultsCacheTtlSeconds * 1000,
     config.swisstennisTimeoutMs,
   );
+  const { urlPrefix, hasBrackets, mytennisPath, normalize } = competition;
 
   return {
     async listTeams(year) {
-      const payload = await client.fetchJson(entryPageUrl(year));
+      const payload = normalize(await client.fetchJson(entryPageUrl(urlPrefix, year)));
       return { items: mapEntryPageToTeams(payload) };
     },
     async getTeamResults(teamId, year) {
-      const payload = await client.fetchJson(teamResultsUrl(teamId, year));
-      return mapTeamResults(payload, normalizeYear(year));
+      const payload = normalize(await client.fetchJson(teamResultsUrl(urlPrefix, teamId, year)));
+      return mapTeamResults(payload, normalizeYear(year), { brackets: hasBrackets });
     },
     async getEncountDetail(encountId, year, type) {
-      const payload = await client.fetchJson(encountResultsUrl(encountId, year, type));
-      return mapEncountDetail(payload, encountId, normalizeYear(year), type);
+      const payload = normalize(await client.fetchJson(encountResultsUrl(urlPrefix, encountId, year, type)));
+      return mapEncountDetail(payload, encountId, normalizeYear(year), type, mytennisPath);
     },
     async getDraw(ligueId, promotion, year) {
-      const payload = await client.fetchJson(drawResultsUrl(ligueId, promotion, year));
+      const payload = normalize(await client.fetchJson(drawResultsUrl(urlPrefix, ligueId, promotion, year)));
       return mapDrawResults(payload);
     },
   };

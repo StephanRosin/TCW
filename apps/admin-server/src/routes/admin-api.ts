@@ -17,6 +17,8 @@ import {
   listRankingChanges,
   listTeams,
   listTrainingSlots,
+  getSiteSettings,
+  updateSiteSettings,
   saveTournaments,
   saveTrainingGrid,
   updatePlayer,
@@ -146,5 +148,15 @@ export function registerAdminRoutes(app: FastifyInstance, deps: AdminDependencie
   app.post("/api/actions/import-agenda", async () => {
     const count = await deps.agendaImporter.importAgenda();
     return { ok: true, count };
+  });
+
+  // ----- Seiten-Einstellungen (Sichtbarkeit) -----
+  app.get("/api/settings", async () => getSiteSettings(database));
+  app.put("/api/settings", async (request) => {
+    const body = (request.body ?? {}) as { showTraining?: unknown; showMatches?: unknown };
+    return updateSiteSettings(database, {
+      showTraining: typeof body.showTraining === "boolean" ? body.showTraining : undefined,
+      showMatches: typeof body.showMatches === "boolean" ? body.showMatches : undefined,
+    });
   });
 }

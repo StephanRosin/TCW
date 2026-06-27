@@ -8,6 +8,7 @@ import { TrainingAdmin } from "./features/TrainingAdmin.js";
 import { RankingAdmin } from "./features/RankingAdmin.js";
 import { TournamentsAdmin } from "./features/TournamentsAdmin.js";
 import { ActionsAdmin } from "./features/ActionsAdmin.js";
+import { SettingsAdmin } from "./features/SettingsAdmin.js";
 
 const TABS = [
   { key: "teams", label: "Teams", render: () => <TeamsAdmin /> },
@@ -15,6 +16,7 @@ const TABS = [
   { key: "training", label: "Trainingsraster", render: () => <TrainingAdmin /> },
   { key: "ranking", label: "Klassierungen", render: () => <RankingAdmin /> },
   { key: "tournaments", label: "Turniere", render: () => <TournamentsAdmin /> },
+  { key: "anzeige", label: "Anzeige", render: () => <SettingsAdmin /> },
   { key: "actions", label: "Aktionen", render: () => <ActionsAdmin /> },
 ] as const;
 

@@ -90,7 +90,7 @@ async function loadPlayoffMeta(
     return { type: "", title: "", ligueId: 0 };
   }
   try {
-    const payload = (await client.fetchJson(drawMetaByEncountUrl(encountId, year))) as {
+    const payload = (await client.fetchJson(drawMetaByEncountUrl("ic", encountId, year))) as {
       I2cm?: { DrawResults?: { Promotion?: number; Title?: string; LigueId?: number } };
     };
     const draw = payload.I2cm?.DrawResults;
@@ -193,7 +193,7 @@ export function createMatchesImporter(config: AppConfig, database: TcwDatabase):
     async importMatches(yearInput) {
       const year = normalizeYear(yearInput);
       try {
-        const payload = (await client.fetchJson(clubResultUrl(year))) as {
+        const payload = (await client.fetchJson(clubResultUrl("ic", year))) as {
           I2cm?: {
             Today?: { day?: number; month?: number; year?: number };
             Encounts?: { Encount?: unknown };

@@ -1,7 +1,9 @@
 /**
- * URL-Bildung für die Swisstennis-Interclub-Endpunkte.
+ * URL-Bildung für die Swisstennis-Wettbewerbs-Endpunkte.
  *
- * Das laufende Jahr nutzt den Pfad `/ic/`, Vorjahre `/ic{YYYY}/`.
+ * Beide Wettbewerbe nutzen dieselben Servlets, nur mit eigenem Pfad-Präfix:
+ * Interclub `/ic.../`, Team-Challenge `/hic.../`. Das laufende Jahr nutzt den
+ * Pfad ohne Jahr (`/ic/`), Vorjahre mit Jahr (`/ic{YYYY}/`).
  */
 import { OWN_CLUB_ID, type ResultType } from "@tcw/shared";
 
@@ -23,36 +25,46 @@ export function yearSuffix(year: string | undefined): string {
   return normalized === currentYear() ? "" : normalized;
 }
 
-function servlet(year: string | undefined, path: string): string {
-  return `${BASE}/ic${yearSuffix(year)}/servlet/${path}`;
+function servlet(competition: string, year: string | undefined, path: string): string {
+  return `${BASE}/${competition}${yearSuffix(year)}/servlet/${path}`;
 }
 
-export function entryPageUrl(year: string | undefined): string {
-  return servlet(year, `EntryPage?ClubName=${OWN_CLUB_ID}&outputFormat=JSON`);
+export function entryPageUrl(competition: string, year: string | undefined): string {
+  return servlet(competition, year, `EntryPage?ClubName=${OWN_CLUB_ID}&outputFormat=JSON`);
 }
 
-export function clubResultUrl(year: string | undefined): string {
-  return servlet(year, `ClubResult?ClubName=${OWN_CLUB_ID}&Lang=de&outputFormat=JSON`);
+export function clubResultUrl(competition: string, year: string | undefined): string {
+  return servlet(competition, year, `ClubResult?ClubName=${OWN_CLUB_ID}&Lang=de&outputFormat=JSON`);
 }
 
 /** DrawResults nach EncountId (für Playoff-Metadaten der Spieltermine). */
-export function drawMetaByEncountUrl(encountId: number, year: string | undefined): string {
-  return servlet(year, `DrawResults?EncountId=${encountId}&Lang=D&outputFormat=JSON`);
+export function drawMetaByEncountUrl(competition: string, encountId: number, year: string | undefined): string {
+  return servlet(competition, year, `DrawResults?EncountId=${encountId}&Lang=D&outputFormat=JSON`);
 }
 
-export function teamResultsUrl(teamId: number, year: string | undefined): string {
-  return servlet(year, `TeamResults?TeamId=${teamId}&Lang=de&outputFormat=JSON`);
+export function teamResultsUrl(competition: string, teamId: number, year: string | undefined): string {
+  return servlet(competition, year, `TeamResults?TeamId=${teamId}&Lang=de&outputFormat=JSON`);
 }
 
-export function encountResultsUrl(encountId: number, year: string | undefined, type: ResultType): string {
+export function encountResultsUrl(
+  competition: string,
+  encountId: number,
+  year: string | undefined,
+  type: ResultType,
+): string {
   const servletName = type === "tableau" ? "TableauResults" : "EncountResults";
-  return servlet(year, `${servletName}?EncountId=${encountId}&Lang=de&outputFormat=JSON`);
+  return servlet(competition, year, `${servletName}?EncountId=${encountId}&Lang=de&outputFormat=JSON`);
 }
 
 export function drawResultsUrl(
+  competition: string,
   ligueId: number,
   promotion: 0 | 1,
   year: string | undefined,
 ): string {
-  return servlet(year, `DrawResults?LigueId=${ligueId}&Promotion=${promotion}&Lang=de&outputFormat=JSON`);
+  return servlet(
+    competition,
+    year,
+    `DrawResults?LigueId=${ligueId}&Promotion=${promotion}&Lang=de&outputFormat=JSON`,
+  );
 }
