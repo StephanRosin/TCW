@@ -375,8 +375,12 @@ main.container {
   text-decoration: underline;
 }
 .card__title-icon {
-  font-size: 0.85rem;
-  opacity: 0.7;
+  display: inline-flex;
+  opacity: 0.75;
+}
+.card__title-icon svg {
+  width: 1.05em;
+  height: 1.05em;
 }
 
 /* ---------- Teamfoto-Modal ---------- */
