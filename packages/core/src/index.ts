@@ -11,6 +11,7 @@ export * from "./integrations/swisstennis/competition.js";
 export * from "./services/tournament-store.js";
 export * from "./services/tournament-service.js";
 export * from "./services/matches-import-service.js";
+export * from "./services/player-matches-service.js";
 export * from "./services/agenda-service.js";
 export * from "./services/settings-service.js";
 export * from "./services/admin/errors.js";

@@ -532,8 +532,10 @@ table.board tbody tr.is-own td {
   white-space: nowrap;
 }
 
-.player-row td {
-  border-top: 1px solid var(--border);
+/* Test: keine horizontalen Trennlinien in der Teams-Spielerliste
+   (überschreibt die allgemeinere Regel table.board tbody td) */
+table.board .player-row td {
+  border-top: 0;
   padding: 0.32rem 0.7rem;
 }
 .player-rank {
@@ -1110,4 +1112,200 @@ table.board tbody tr.is-own td {
 }
 .tbracket-round--champion .tbracket-slot--winner {
   background: rgba(37, 52, 139, 0.14);
+}
+
+/* ---------- Spielermatches ---------- */
+.pm-heading {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0 0 0.2rem;
+}
+.pm-intro {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+}
+.pm-search {
+  position: relative;
+  max-width: 26rem;
+}
+.pm-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.85rem;
+  font: inherit;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+.pm-input:focus {
+  outline: 2px solid var(--blue-800);
+  outline-offset: 1px;
+}
+.pm-suggest {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  max-height: 18rem;
+  overflow-y: auto;
+}
+.pm-suggest__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  border-radius: 7px;
+}
+.pm-suggest__item:hover {
+  background: var(--surface-2);
+}
+.pm-suggest__rank {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--blue-800);
+  background: rgba(37, 52, 139, 0.1);
+  border-radius: 6px;
+  padding: 0.08rem 0.4rem;
+}
+.pm-empty {
+  margin: 1rem 0;
+  color: var(--text-muted);
+}
+.pm-group {
+  margin-top: 1.3rem;
+}
+.pm-group__title {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  padding-bottom: 0.3rem;
+  border-bottom: 2px solid var(--green-600);
+}
+.pm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.pm-match {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.pm-match__meta {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 7rem;
+}
+.pm-badge {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: var(--blue-800);
+  border-radius: 7px;
+  padding: 0.28rem 0.5rem;
+}
+.pm-badge--waidcup {
+  background: var(--green-600);
+}
+.pm-badge--cm {
+  background: #8a5a00;
+}
+.pm-badge--tc {
+  background: #5a3a8a;
+}
+.pm-match__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-top: 0.1rem;
+}
+.pm-match__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.1rem 0.4rem;
+  line-height: 1.5;
+}
+.pm-score-line {
+  margin-top: 0.15rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--text);
+}
+.pm-date {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  padding-top: 0.1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.pm-side {
+  color: var(--text);
+}
+.pm-side--winner {
+  font-weight: 800;
+}
+.pm-vs {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.pm-amp {
+  color: var(--text-muted);
+}
+.pm-name {
+  color: var(--text);
+}
+a.pm-name {
+  color: var(--accent);
+  text-decoration: none;
+}
+a.pm-name:hover {
+  text-decoration: underline;
+}
+.pm-outcome {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+.pm-outcome--won {
+  color: var(--green-600);
+}
+.pm-outcome--lost {
+  color: #b23b3b;
+}
+.pm-outcome--open {
+  color: var(--text-muted);
 }

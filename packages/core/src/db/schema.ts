@@ -187,4 +187,47 @@ CREATE TABLE IF NOT EXISTS tournament_event_extras (
   bracket_json TEXT,
   PRIMARY KEY (tournament_id, event_id)
 );
+
+-- Spielerzentrierte Einzel-/Doppelmatches (aktuelles Jahr), normalisiert über
+-- alle Wettbewerbe (IC, TC, Waidcup, CM). Pro Beteiligtem ein reihenfolge-
+-- unabhängiger Namens-Schlüssel (*_key) zum Suchen sowie die Profil-URL.
+CREATE TABLE IF NOT EXISTS player_matches (
+  match_uid TEXT PRIMARY KEY,
+  year INTEGER NOT NULL,
+  competition_code TEXT NOT NULL,
+  competition_label TEXT NOT NULL,
+  discipline TEXT NOT NULL,
+  match_date TEXT,
+  sort_key TEXT NOT NULL DEFAULT '',
+  s1p1_name TEXT NOT NULL DEFAULT '', s1p1_key TEXT NOT NULL DEFAULT '', s1p1_url TEXT,
+  s1p2_name TEXT NOT NULL DEFAULT '', s1p2_key TEXT NOT NULL DEFAULT '', s1p2_url TEXT,
+  s2p1_name TEXT NOT NULL DEFAULT '', s2p1_key TEXT NOT NULL DEFAULT '', s2p1_url TEXT,
+  s2p2_name TEXT NOT NULL DEFAULT '', s2p2_key TEXT NOT NULL DEFAULT '', s2p2_url TEXT,
+  result TEXT NOT NULL DEFAULT '',
+  winner_side INTEGER NOT NULL DEFAULT 0,
+  match_url TEXT,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_pm_s1p1 ON player_matches(s1p1_key);
+CREATE INDEX IF NOT EXISTS idx_pm_s1p2 ON player_matches(s1p2_key);
+CREATE INDEX IF NOT EXISTS idx_pm_s2p1 ON player_matches(s2p1_key);
+CREATE INDEX IF NOT EXISTS idx_pm_s2p2 ON player_matches(s2p2_key);
+
+-- Importzustand je Begegnung (IC/TC), damit nur neue/geänderte Begegnungen
+-- erneut von Swisstennis geladen werden.
+CREATE TABLE IF NOT EXISTS encounter_detail_state (
+  competition_code TEXT NOT NULL,
+  encount_id INTEGER NOT NULL,
+  result_hash TEXT NOT NULL,
+  imported_at TEXT NOT NULL,
+  PRIMARY KEY (competition_code, encount_id)
+);
+
+-- Cache der über die Namenssuche aufgelösten Spieler-Profil-URLs (Gegner),
+-- damit jeder Name nur einmal gesucht wird. url NULL = gesucht, nichts gefunden.
+CREATE TABLE IF NOT EXISTS opponent_url_cache (
+  name_key TEXT PRIMARY KEY,
+  url TEXT,
+  resolved_at TEXT NOT NULL
+);
 `;

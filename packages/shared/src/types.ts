@@ -393,3 +393,37 @@ export interface AdminTournament {
 export interface ApiError {
   error: string;
 }
+
+/** Autocomplete-Vorschlag für die Spielermatches-Suche. */
+export interface PlayerSuggestion {
+  name: string;
+  key: string;
+  klassierung: string;
+  url: string | null;
+}
+
+/** Ein an einem Match beteiligter Spieler (Partner oder Gegner). */
+export interface PlayerMatchParticipant {
+  name: string;
+  url: string | null;
+}
+
+/** Ein Match aus Sicht des gesuchten Spielers. */
+export interface PlayerMatchView {
+  competition: string;
+  competitionCode: string;
+  discipline: "single" | "double";
+  date: string;
+  /** Der gesuchte Spieler selbst (Name inkl. Klassierung). */
+  player: PlayerMatchParticipant;
+  partner: PlayerMatchParticipant | null;
+  opponents: PlayerMatchParticipant[];
+  result: string;
+  won: boolean | null;
+  matchUrl: string | null;
+}
+
+export interface PlayerMatchesResponse {
+  player: string;
+  matches: PlayerMatchView[];
+}

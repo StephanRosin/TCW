@@ -8,6 +8,7 @@ import {
   createAgendaImporter,
   createMatchesImporter,
   createTournamentService,
+  syncPlayerMatches,
   type AppConfig,
   type TcwDatabase,
 } from "@tcw/core";
@@ -19,6 +20,7 @@ const INITIAL_DELAY_MS = 5_000;
 const MATCHES_JITTER_MS = 5 * 60 * 1000;
 const TOURNAMENT_JITTER_MS = 10 * 60 * 1000;
 const AGENDA_JITTER_MS = 15 * 60 * 1000;
+const PLAYER_MATCHES_JITTER_MS = 8 * 60 * 1000;
 
 function jitter(maxMs: number): number {
   return Math.floor(Math.random() * maxMs);
@@ -89,5 +91,26 @@ export function startBackgroundJobs(
     AGENDA_JITTER_MS,
   );
 
-  logger.info("Hintergrund-Jobs gestartet (Spieltermine + Turniere stündlich, Agenda täglich).");
+  // Spielermatches inkrementell: nur neue/geänderte Begegnungen, gedeckelt und
+  // mit 4s Pause zwischen Abrufen, damit Swisstennis nicht belastet wird.
+  scheduleRecurring(
+    async () => {
+      try {
+        await syncPlayerMatches(database, config, {
+          delayMs: 4_000,
+          maxEncounters: 20,
+          maxUrlLookups: 25,
+          resolveUrls: true,
+          log: (message) => logger.debug(message),
+        });
+        logger.info("Spielermatches synchronisiert.");
+      } catch (error) {
+        logger.error({ error }, "Spielermatches-Sync fehlgeschlagen – bestehende Daten bleiben erhalten.");
+      }
+    },
+    HOUR_MS,
+    PLAYER_MATCHES_JITTER_MS,
+  );
+
+  logger.info("Hintergrund-Jobs gestartet (Spieltermine + Turniere + Spielermatches stündlich, Agenda täglich).");
 }

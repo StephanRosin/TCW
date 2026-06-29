@@ -19,3 +19,22 @@ export function cleanPlayerName(rawName: string): string {
   }
   return name;
 }
+
+/**
+ * Reihenfolge-unabhängiger Vergleichsschlüssel eines Spielernamens für das
+ * Matching zwischen Quellen, die mal "Vorname Nachname" (Vereinsdaten) und mal
+ * "Nachname Vorname" (Swisstennis-Begegnungen) liefern. Entfernt Klassierung
+ * und Diakritika, sortiert die Namensteile alphabetisch.
+ *
+ * Beispiel: "Rosin Stephan (R4)" und "Stephan Rosin" → beide "rosin stephan".
+ */
+export function playerNameKey(rawName: string): string {
+  const tokens = cleanPlayerName(rawName)
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((token) => token !== "");
+  return [...tokens].sort().join(" ");
+}

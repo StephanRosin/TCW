@@ -25,6 +25,7 @@ import { TrainingView } from "./features/training/TrainingView.js";
 import { MatchesView } from "./features/matches/MatchesView.js";
 import { RatingsView } from "./features/ratings/RatingsView.js";
 import { ResultsView } from "./features/results/ResultsView.js";
+import { PlayerMatchesView } from "./features/player-matches/PlayerMatchesView.js";
 import { TournamentsView } from "./features/tournaments/TournamentsView.js";
 import { AgendaView } from "./features/agenda/AgendaView.js";
 import type { EncountRef } from "./features/results/EncountDetail.js";
@@ -74,6 +75,8 @@ function ActiveView(state: ViewState): JSX.Element {
           onBackToMatches={noop}
         />
       );
+    case "player-matches":
+      return <PlayerMatchesView />;
     case "tournaments":
       return <TournamentsView />;
     case "agenda":
