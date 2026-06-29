@@ -21,6 +21,38 @@ const PHOTO_FILES: Record<string, string> = {
   "herren-55-3-liga": "herren-55-3-liga.jpeg",
 };
 
+/**
+ * Vertikaler Bildausschnitt (background-position-y) je Team für den Foto-
+ * Hintergrund der Spielerliste. Höherer Wert = Ausschnitt weiter unten im Bild.
+ * Pro Foto so gewählt, dass die Köpfe nicht abgeschnitten werden (Hochformat-
+ * und Zwei-Reihen-Bilder brauchen tiefere Werte). Default siehe CSS.
+ */
+const PHOTO_FOCUS_Y: Record<string, string> = {
+  "damen-aktiv-nlc": "42%",
+  "damen-aktiv-1-liga": "32%",
+  "damen-aktiv-2-liga": "30%",
+  "damen-30-nlc": "50%",
+  "damen-30-1-liga": "38%",
+  "damen-30-3-liga": "30%",
+  "herren-aktiv-nlc": "90%",
+  "herren-aktiv-1-liga": "30%",
+  "herren-aktiv-2-liga": "32%",
+  "herren-35-nlc": "33%",
+  "herren-35-1-liga": "35%",
+  "herren-35-2-liga": "37%",
+  "herren-45-2-liga": "30%",
+  "herren-55-3-liga": "35%",
+};
+
+/**
+ * Optionaler Zoom (background-size) je Team. Default ist `cover` (siehe CSS).
+ * Nötig nur, wo `cover` die Personen zu klein zeigt (z. B. Hochformat mit viel
+ * Rand) – stärker reinzoomen, seitlicher Beschnitt ist gewollt.
+ */
+const PHOTO_ZOOM: Record<string, string> = {
+  "herren-aktiv-nlc": "125% auto",
+};
+
 function teamSlug(title: string): string {
   return title
     .toLowerCase()
@@ -32,4 +64,14 @@ function teamSlug(title: string): string {
 export function teamPhotoUrl(title: string): string | null {
   const file = PHOTO_FILES[teamSlug(title)];
   return file ? `/team-photos/${file}` : null;
+}
+
+/** Vertikaler Fokus (background-position-y) des Teamfotos oder null. */
+export function teamPhotoFocusY(title: string): string | null {
+  return PHOTO_FOCUS_Y[teamSlug(title)] ?? null;
+}
+
+/** Optionaler Zoom (background-size) des Teamfotos oder null (=> cover). */
+export function teamPhotoZoom(title: string): string | null {
+  return PHOTO_ZOOM[teamSlug(title)] ?? null;
 }

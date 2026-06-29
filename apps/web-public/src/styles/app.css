@@ -82,7 +82,7 @@ body {
   -webkit-font-smoothing: antialiased;
   /* Court-Foto als atmosphärischer, fixierter Hintergrund */
   background:
-    linear-gradient(rgba(15, 26, 74, 0.45), rgba(15, 26, 74, 0.5)),
+    linear-gradient(rgba(15, 26, 74, 0.6), rgba(15, 26, 74, 0.65)),
     url("/bg-home.jpg") center / cover fixed no-repeat;
 }
 
@@ -351,6 +351,46 @@ main.container {
   background: linear-gradient(120deg, var(--blue-900), var(--blue-800));
   color: #fff;
   border-bottom: 3px solid var(--green-600);
+}
+
+/* ---------- Test: Teamfoto als abgedunkelter Hintergrund der Spielerliste ----------
+   Nur der Body (Spielerliste) bekommt das Foto; das Banner bleibt unverändert.
+   --team-photo-y  = vertikaler Bildausschnitt (Köpfe sichtbar).
+   --team-photo-zoom = Bildgröße; Default cover. Höher = stärker reingezoomt
+   (Höhe füllt das Panel, seitlich darf abgeschnitten werden). */
+.card--photo .card__body {
+  position: relative;
+  /* füllt die ggf. im Grid gestreckte Kartenhöhe, sonst weisser Rest darunter */
+  flex: 1 1 auto;
+  background-image: linear-gradient(rgba(8, 15, 40, 0.58), rgba(8, 15, 40, 0.72)), var(--team-photo);
+  background-size: var(--team-photo-zoom, cover);
+  background-position: center var(--team-photo-y, 35%);
+  background-repeat: no-repeat;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+.card--photo table.board {
+  color: #fff;
+}
+.card--photo table.board tbody tr:nth-child(even) td,
+.card--photo table.board tbody tr.is-own td {
+  background: transparent;
+}
+.card--photo .player-row td {
+  border-top-color: rgba(255, 255, 255, 0.18);
+}
+.card--photo .player-name a {
+  color: #fff;
+  text-decoration: underline;
+}
+.card--photo .captain-tag {
+  color: #dfe6fb;
+}
+/* Klassierungs-Chip auf hellem Grund, damit er auf dem Foto lesbar bleibt */
+.card--photo .player-rank {
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--blue-900);
+  text-shadow: none;
 }
 .card__title {
   font-size: 1.05rem;

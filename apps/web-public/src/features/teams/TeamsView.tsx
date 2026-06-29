@@ -1,14 +1,14 @@
 /**
  * Teams-Ansicht: Damen/Herren-Umschalter mit Teamkarten und Spielerlisten.
  */
-import { useState, type JSX } from "react";
+import { useState, type CSSProperties, type JSX } from "react";
 import { CAPTAIN_STATUS, type PublicPlayer, type PublicTeam } from "@tcw/shared";
 import { publicApi } from "../../api/client.js";
 import { useResource } from "../../api/useResource.js";
 import { DataView } from "../../components/DataView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 import { translateTrainingDays } from "../../lib/trainingDays.js";
-import { teamPhotoUrl } from "./teamPhotos.js";
+import { teamPhotoFocusY, teamPhotoUrl, teamPhotoZoom } from "./teamPhotos.js";
 import { TeamPhotoModal } from "./TeamPhotoModal.js";
 
 type GenderSection = "damen" | "herren";
@@ -56,9 +56,16 @@ function TeamCard({
   const { t, translateKnown } = useI18n();
   const displayTitle = translateKnown(team.title);
   const photoUrl = teamPhotoUrl(team.title);
+  const photoStyle = photoUrl
+    ? ({
+        "--team-photo": `url('${photoUrl}')`,
+        "--team-photo-y": teamPhotoFocusY(team.title) ?? "35%",
+        ...(teamPhotoZoom(team.title) ? { "--team-photo-zoom": teamPhotoZoom(team.title) } : {}),
+      } as CSSProperties)
+    : undefined;
 
   return (
-    <article className="card">
+    <article className={photoUrl ? "card card--photo" : "card"} style={photoStyle}>
       <div className="card__head">
         {photoUrl ? (
           <button
