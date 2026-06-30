@@ -28,6 +28,7 @@ import { ResultsView } from "./features/results/ResultsView.js";
 import { PlayerMatchesView } from "./features/player-matches/PlayerMatchesView.js";
 import { TournamentsView } from "./features/tournaments/TournamentsView.js";
 import { AgendaView } from "./features/agenda/AgendaView.js";
+import { PlaetzeView } from "./features/plaetze/PlaetzeView.js";
 import type { EncountRef } from "./features/results/EncountDetail.js";
 
 interface ViewState {
@@ -81,6 +82,8 @@ function ActiveView(state: ViewState): JSX.Element {
       return <TournamentsView />;
     case "agenda":
       return <AgendaView />;
+    case "plaetze":
+      return <PlaetzeView />;
     default:
       return <TeamsView />;
   }

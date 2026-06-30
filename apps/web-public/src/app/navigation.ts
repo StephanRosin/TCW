@@ -13,6 +13,7 @@ export const MAIN_VIEWS = [
   "ratings",
   "tournaments",
   "agenda",
+  "plaetze",
 ] as const;
 
 export type MainView = (typeof MAIN_VIEWS)[number];
@@ -34,6 +35,7 @@ export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "ratings", labelKey: "nav.ratings" },
   { view: "tournaments", labelKey: "nav.tournaments" },
   { view: "agenda", labelKey: "nav.agenda" },
+  { view: "plaetze", labelKey: "nav.plaetze" },
 ];
 
 /** Ob eine Ansicht laut Einstellungen sichtbar ist (Training/Spieltermine schaltbar). */

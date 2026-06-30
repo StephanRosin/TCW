@@ -169,5 +169,10 @@
   "agenda.empty": "No upcoming events.",
   "agenda.loadError": "Agenda could not be loaded.",
   "nav.agenda": "Agenda",
-  "nav.helfereinsatz": "Volunteering"
+  "nav.plaetze": "Courts",
+  "nav.helfereinsatz": "Volunteering",
+  "plaetze.webcam": "Webcam",
+  "plaetze.webcamOpen": "Enlarge",
+  "plaetze.webcamError": "Webcam currently unavailable.",
+  "plaetze.occupancy": "Court occupancy"
 }

@@ -169,5 +169,10 @@
   "agenda.empty": "Aucun événement à venir.",
   "agenda.loadError": "Agenda introuvable.",
   "nav.agenda": "Agenda",
-  "nav.helfereinsatz": "Bénévolat"
+  "nav.plaetze": "Courts",
+  "nav.helfereinsatz": "Bénévolat",
+  "plaetze.webcam": "Webcam",
+  "plaetze.webcamOpen": "Agrandir",
+  "plaetze.webcamError": "Webcam momentanément indisponible.",
+  "plaetze.occupancy": "Occupation des courts"
 }
