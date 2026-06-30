@@ -3,6 +3,10 @@
  * Spieltermine und Turnier-Polling (mit Jitter, damit Swisstennis nicht mit
  * Request-Spitzen belastet wird). Fehler werden geloggt, alte Daten bleiben
  * bei Fehlern erhalten.
+ *
+ * Zur Schonung der Swisstennis-API laufen die Swisstennis-Jobs nur tagsüber
+ * (Nachtruhe 23–09 Uhr); der Interclub-Import läuft zudem nur in der Saison
+ * (Mai–Juni). Die Agenda (kein Swisstennis) ist davon ausgenommen.
  */
 import {
   createAgendaImporter,
@@ -22,8 +26,25 @@ const TOURNAMENT_JITTER_MS = 10 * 60 * 1000;
 const AGENDA_JITTER_MS = 15 * 60 * 1000;
 const PLAYER_MATCHES_JITTER_MS = 8 * 60 * 1000;
 
+// Nachtruhe: zwischen 23:00 und 09:00 (Serverzeit = CH-Zeit) keine
+// Swisstennis-Abrufe – spart Calls und Laufzeit, wenn ohnehin niemand spielt.
+const QUIET_START_HOUR = 23;
+const QUIET_END_HOUR = 9;
+// Interclub-Saison: Mai + Juni. Ausserhalb wird IC nicht mehr abgerufen
+// (Saison vorbei, Daten ändern sich nicht mehr).
+const INTERCLUB_MONTHS = [4, 5]; // 0 = Januar
+
 function jitter(maxMs: number): number {
   return Math.floor(Math.random() * maxMs);
+}
+
+function isQuietHour(date = new Date()): boolean {
+  const hour = date.getHours();
+  return hour >= QUIET_START_HOUR || hour < QUIET_END_HOUR;
+}
+
+function isInterclubSeason(date = new Date()): boolean {
+  return INTERCLUB_MONTHS.includes(date.getMonth());
 }
 
 function scheduleRecurring(task: () => Promise<void>, intervalMs: number, jitterMs: number): void {
@@ -51,6 +72,8 @@ export function startBackgroundJobs(
 
   scheduleRecurring(
     async () => {
+      if (isQuietHour()) return;
+      if (!isInterclubSeason()) return; // Interclub nur Mai–Juni abrufen
       try {
         const count = await matchesImporter.importMatches();
         logger.info(`Spieltermine importiert: ${count} Einträge.`);
@@ -64,6 +87,7 @@ export function startBackgroundJobs(
 
   scheduleRecurring(
     async () => {
+      if (isQuietHour()) return;
       try {
         const results = await tournamentService.refreshAllActive({
           resolvePlayerUrls: config.resolvePlayerUrls,
@@ -95,6 +119,7 @@ export function startBackgroundJobs(
   // mit 4s Pause zwischen Abrufen, damit Swisstennis nicht belastet wird.
   scheduleRecurring(
     async () => {
+      if (isQuietHour()) return;
       try {
         await syncPlayerMatches(database, config, {
           delayMs: 4_000,
@@ -112,5 +137,8 @@ export function startBackgroundJobs(
     PLAYER_MATCHES_JITTER_MS,
   );
 
-  logger.info("Hintergrund-Jobs gestartet (Spieltermine + Turniere + Spielermatches stündlich, Agenda täglich).");
+  logger.info(
+    "Hintergrund-Jobs gestartet (Spieltermine + Turniere + Spielermatches stündlich, Agenda täglich; " +
+      "Swisstennis-Jobs pausieren 23–09 Uhr, Interclub nur Mai–Juni).",
+  );
 }
