@@ -168,5 +168,6 @@
   "agenda.registration": "Registration",
   "agenda.empty": "No upcoming events.",
   "agenda.loadError": "Agenda could not be loaded.",
-  "nav.agenda": "Agenda"
+  "nav.agenda": "Agenda",
+  "nav.helfereinsatz": "Volunteering"
 }

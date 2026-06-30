@@ -168,5 +168,6 @@
   "agenda.registration": "Inscription",
   "agenda.empty": "Aucun événement à venir.",
   "agenda.loadError": "Agenda introuvable.",
-  "nav.agenda": "Agenda"
+  "nav.agenda": "Agenda",
+  "nav.helfereinsatz": "Bénévolat"
 }

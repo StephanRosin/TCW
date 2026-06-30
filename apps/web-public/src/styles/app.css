@@ -506,6 +506,36 @@ main.container {
   opacity: 1;
 }
 
+/* Hervorgehobener externer Call-to-Action ganz rechts ("Helfereinsatz") */
+.tabbar__cta {
+  margin-left: auto;
+  align-self: center;
+  margin-right: 0.2rem;
+  padding: 0.42rem 0.95rem;
+  border-radius: 999px;
+  background: var(--green-600);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.tabbar__cta::after {
+  display: none; /* kein Tab-Unterstrich für den Button */
+}
+.tabbar__cta:hover {
+  color: #fff;
+  background: var(--green-700);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.3);
+  text-decoration: none;
+}
+.tabbar__cta-icon {
+  margin-left: 0.35rem;
+  font-size: 0.85em;
+  opacity: 0.9;
+}
+
 /* ---------- Pills / chips / sub-tabs (einheitlich, blau aktiv) ---------- */
 .subtabs {
   display: flex;

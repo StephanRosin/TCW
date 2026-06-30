@@ -28,6 +28,17 @@ export function TabBar({ items, activeView, onSelect }: TabBarProps): JSX.Elemen
             {t(item.labelKey)}
           </button>
         ))}
+        <a
+          className="tabbar__btn tabbar__cta"
+          href="https://tcwaidberg.ch/helfereinsatz"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t("nav.helfereinsatz")}
+          <span className="tabbar__cta-icon" aria-hidden="true">
+            ↗
+          </span>
+        </a>
       </div>
     </nav>
   );

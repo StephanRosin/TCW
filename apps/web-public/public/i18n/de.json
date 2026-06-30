@@ -168,5 +168,6 @@
   "agenda.registration": "Anmeldung",
   "agenda.empty": "Keine bevorstehenden Veranstaltungen.",
   "agenda.loadError": "Agenda konnte nicht geladen werden.",
-  "nav.agenda": "Agenda"
+  "nav.agenda": "Agenda",
+  "nav.helfereinsatz": "Helfereinsatz"
 }
