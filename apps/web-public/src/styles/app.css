@@ -881,7 +881,7 @@ main.container {
 }
 .courts-row {
   display: grid;
-  grid-template-columns: 4.7rem 5.2rem 1fr;
+  grid-template-columns: 4.7rem 1fr;
   align-items: baseline;
   gap: 0.5rem;
   padding: 0.32rem 0.25rem;
@@ -893,11 +893,6 @@ main.container {
 .courts-row__court {
   font-weight: 800;
   color: var(--text);
-}
-.courts-row__time {
-  font-variant-numeric: tabular-nums;
-  color: var(--muted, #6b7794);
-  font-size: 0.9rem;
 }
 .courts-row__who {
   color: var(--text);

@@ -47,9 +47,6 @@ function OccupancyBlock({ block }: { block: CourtBlock }): JSX.Element {
           {block.bookings.map((booking) => (
             <li className="courts-row" key={`${booking.court}-${booking.from}`}>
               <span className="courts-row__court">{booking.court}</span>
-              <span className="courts-row__time">
-                {booking.from}–{booking.to}
-              </span>
               <span className="courts-row__who">{booking.who}</span>
             </li>
           ))}

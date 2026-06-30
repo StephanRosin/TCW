@@ -14,12 +14,30 @@ const SAMPLE: GotCourtsReservationList = {
     { id: 6, label: "Platz 6" },
   ],
   reservations: [
-    { courtId: 1, startTime: 19 * 3600, endTime: 21 * 3600, text: "Clubmeisterschaften" },
-    { courtId: 2, startTime: 18 * 3600, endTime: 20 * 3600, text: "Clubmeisterschaften" },
-    { courtId: 3, startTime: 19 * 3600, endTime: 21 * 3600, text: "J. Lanker", shortDesc: "-" },
-    { courtId: 4, startTime: 19 * 3600, endTime: 20 * 3600, text: "D. van Rooijen" },
-    { courtId: 5, startTime: 19 * 3600, endTime: 21 * 3600, text: "Tennisschule (Nicolas)" },
-    { courtId: 6, startTime: 18 * 3600, endTime: 22 * 3600, text: "Tennisschule (Seraphine)" },
+    {
+      courtId: 1,
+      startTime: 19 * 3600,
+      endTime: 21 * 3600,
+      text: "Clubmeisterschaften",
+      shortDesc: "Clubmeisterschaften",
+      partners: [{ shortName: "A. Pennisi", name: "Alba Pennisi" }],
+    },
+    { courtId: 2, startTime: 18 * 3600, endTime: 20 * 3600, text: "Clubmeisterschaften", shortDesc: "Clubmeisterschaften" },
+    {
+      courtId: 3,
+      startTime: 19 * 3600,
+      endTime: 21 * 3600,
+      text: "J. Lanker",
+      shortDesc: "-",
+      partners: [
+        { shortName: "S. Haubensak" },
+        { shortName: "A. Casanova" },
+        { shortName: "A. Diercksen" },
+      ],
+    },
+    { courtId: 4, startTime: 19 * 3600, endTime: 20 * 3600, text: "D. van Rooijen", shortDesc: "-", partners: [{ shortName: "M. Matz" }] },
+    { courtId: 5, startTime: 19 * 3600, endTime: 21 * 3600, text: "Tennisschule (Nicolas)", shortDesc: "Tennisschule (Nicolas)" },
+    { courtId: 6, startTime: 18 * 3600, endTime: 22 * 3600, text: "Tennisschule (Seraphine)", shortDesc: "Tennisschule (Seraphine)" },
   ],
   blockings: [],
 };
@@ -30,9 +48,11 @@ test("buildCourtBlocks um 19:30: aktuelle Stunde zeigt alle sechs belegten Plät
   assert.equal(live.live, true);
   assert.equal(live.label, "19:00–20:00");
   assert.equal(live.bookings.length, 6);
-  assert.deepEqual(live.bookings[0], { court: "Platz 1", from: "19:00", to: "21:00", who: "Clubmeisterschaften" });
-  // text hat Vorrang vor shortDesc "-"
-  assert.equal(live.bookings[2]!.who, "J. Lanker");
+  // Vereinsanlass: Titel plus vorhandene Mitspieler.
+  assert.equal(live.bookings[0]!.who, "Clubmeisterschaften · A. Pennisi");
+  // Mitgliederbuchung: Hauptbucher und ALLE Mitspieler.
+  assert.equal(live.bookings[2]!.who, "J. Lanker, S. Haubensak, A. Casanova, A. Diercksen");
+  assert.equal(live.bookings[3]!.who, "D. van Rooijen, M. Matz");
 });
 
 test("buildCourtBlocks um 19:30: Folgestunde 20:00–21:00 nur mit noch laufenden Buchungen", () => {

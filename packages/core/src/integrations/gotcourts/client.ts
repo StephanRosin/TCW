@@ -106,6 +106,11 @@ export interface GotCourtsRawCourt {
   id: number;
   label: string;
 }
+export interface GotCourtsPartner {
+  name?: string;
+  shortName?: string;
+  label?: string;
+}
 export interface GotCourtsRawEntry {
   courtId: number;
   startTime: number;
@@ -113,6 +118,8 @@ export interface GotCourtsRawEntry {
   text?: string;
   shortDesc?: string;
   type?: string;
+  /** Mitspieler der Buchung (ohne Hauptbucher); für die vollständige Namensliste. */
+  partners?: GotCourtsPartner[];
 }
 export interface GotCourtsReservationList {
   courts: GotCourtsRawCourt[];

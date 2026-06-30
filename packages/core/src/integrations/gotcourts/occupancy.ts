@@ -25,13 +25,35 @@ function hhmm(seconds: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-/** Erste sinnvolle Beschreibung; "-" und Leerwerte werden übersprungen. */
+function clean(value: string | undefined): string {
+  const trimmed = (value ?? "").trim();
+  return trimmed === "-" ? "" : trimmed;
+}
+
+/** Namen der Mitspieler (Kurzform bevorzugt). */
+function partnerNames(entry: GotCourtsRawEntry): string[] {
+  return (entry.partners ?? [])
+    .map((partner) => clean(partner.shortName) || clean(partner.name) || clean(partner.label))
+    .filter((name) => name !== "");
+}
+
+/**
+ * Vollständige Beschreibung einer Buchung. Vereinsanlässe (eigene Bezeichnung
+ * in shortDesc, z. B. "Clubmeisterschaften") behalten ihren Titel und hängen
+ * vorhandene Mitspieler an; reine Mitgliederbuchungen listen Hauptbucher und
+ * alle Mitspieler auf.
+ */
 function describe(entry: GotCourtsRawEntry): string {
-  for (const value of [entry.text, entry.shortDesc, entry.type]) {
-    const trimmed = (value ?? "").trim();
-    if (trimmed !== "" && trimmed !== "-") return trimmed;
+  const partners = partnerNames(entry);
+  const label = clean(entry.shortDesc);
+  const text = clean(entry.text);
+  const isEvent = label !== "";
+  if (isEvent) {
+    return partners.length > 0 ? `${label} · ${partners.join(", ")}` : label;
   }
-  return "Reserviert";
+  const everyone = [text, ...partners].filter((name) => name !== "");
+  if (everyone.length > 0) return everyone.join(", ");
+  return clean(entry.type) || "Reserviert";
 }
 
 /** Platznummer aus dem Label ("Platz 1" → 1) für stabile Sortierung. */
