@@ -6,6 +6,7 @@
  * UI nicht leer bleibt.
  */
 import { parseSwisstennisXml } from "./xml.js";
+import { requestSwisstennis } from "./http.js";
 
 const USER_AGENT = "TCW-Interclub/1.0";
 
@@ -46,19 +47,10 @@ export class SwisstennisClient {
   }
 
   private async requestData(url: string): Promise<unknown> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
-    try {
-      const response = await fetch(url, {
-        headers: { "User-Agent": USER_AGENT, Accept: "application/xml, text/xml" },
-        signal: controller.signal,
-      });
-      if (!response.ok) {
-        throw new Error(`Swisstennis antwortete mit HTTP ${response.status} für ${url}`);
-      }
-      return parseSwisstennisXml(await response.text());
-    } finally {
-      clearTimeout(timeout);
-    }
+    const response = await requestSwisstennis(url, {
+      headers: { "User-Agent": USER_AGENT, Accept: "application/xml, text/xml" },
+      timeoutMs: this.timeoutMs,
+    });
+    return parseSwisstennisXml(await response.text());
   }
 }

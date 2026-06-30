@@ -24,7 +24,7 @@ import {
   mapEventMatches,
   mapPoolStandings,
 } from "../integrations/swisstennis/tournament-matches.js";
-import { resolveMyTennisPlayerUrl } from "../integrations/mytennis/resolve-url.js";
+import { resolveMyTennisPlayerUrl } from "../integrations/mytennis/search.js";
 import {
   readExistingPlayerUrls,
   readTournamentConfigs,

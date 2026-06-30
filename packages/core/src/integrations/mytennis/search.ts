@@ -1,10 +1,16 @@
 /**
  * MyTennis-Spielersuche mit robuster Namensnormalisierung.
  *
- * Sonderfälle, die erhalten bleiben müssen: Umlaute/Akzente (Hubeková →
- * Hubekova), Apostrophe/Bindestriche (O'Driscoll), zwei Vornamen sowie
- * mehrteilige Nachnamen. Die Suche probiert mehrere Namensvarianten.
+ * Bietet zwei Zugänge auf denselben Suchendpoint:
+ *  - `searchPlayers` + `chooseBestHit`: Treffer per Name (für Gegner-Links),
+ *  - `resolveMyTennisPlayerUrl`: Profil-URL per exakter Lizenznummer.
+ *
+ * Sonderfälle der Namensnormalisierung, die erhalten bleiben müssen:
+ * Umlaute/Akzente (Hubeková → Hubekova), Apostrophe/Bindestriche (O'Driscoll),
+ * zwei Vornamen sowie mehrteilige Nachnamen.
  */
+import { requestSwisstennis } from "../swisstennis/http.js";
+
 const SEARCH_URL = "https://high-scalability.microservices.swisstennis.ch/main-index-query";
 const PLAYER_PROFILE_BASE = "https://www.mytennis.ch/de/spieler";
 
@@ -23,9 +29,22 @@ export interface MyTennisHit {
   url: string;
 }
 
+interface PlayerSource {
+  type?: string;
+  rawId?: string | number;
+  title?: string;
+  classification?: string | number;
+  number?: string | number;
+}
+
 /** Entfernt diakritische Zeichen (ä→a, é→e), behält Buchstaben. */
 function normalizeForSearch(value: string): string {
-  return value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+  return value.normalize("NFKD").replace(/[̀-ͯ]/g, "");
+}
+
+/** Reduziert eine Lizenznummer auf ihre Ziffern für robusten Vergleich. */
+function licenseDigits(value: string): string {
+  return value.replace(/\D+/g, "");
 }
 
 /** Erzeugt geordnete, deduplizierte Nachnamensvarianten. */
@@ -79,52 +98,69 @@ function buildQueries(fullName: string): NameQuery[] {
   return [...queries.values()];
 }
 
-async function searchOnce(query: NameQuery, timeoutMs: number): Promise<MyTennisHit[]> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+/** Fragt den Suchendpoint zu einem Stichwort ab und liefert die Spieler-Treffer. */
+async function querySearch(keyword: string, timeoutMs: number): Promise<PlayerSource[]> {
+  const trimmed = keyword.trim();
+  if (trimmed === "") {
+    return [];
+  }
   try {
-    const response = await fetch(SEARCH_URL, {
+    const response = await requestSwisstennis(SEARCH_URL, {
       method: "POST",
       headers: SEARCH_HEADERS,
-      body: JSON.stringify({ keyword: `${query.first} ${query.last}`.trim(), offset: 0, limit: 50 }),
-      signal: controller.signal,
+      body: JSON.stringify({ keyword: trimmed, offset: 0, limit: 50 }),
+      timeoutMs,
     });
-    if (!response.ok) {
-      return [];
-    }
-    const payload = (await response.json()) as {
-      hits?: { hits?: Array<{ _source?: Record<string, unknown> }> };
-    };
-    const hits = payload.hits?.hits ?? [];
-    return hits
+    const payload = (await response.json()) as { hits?: { hits?: Array<{ _source?: PlayerSource }> } };
+    return (payload.hits?.hits ?? [])
       .map((hit) => hit._source)
-      .filter((source): source is Record<string, unknown> => source?.type === "player")
-      .map((source) => ({
-        id: String(source.rawId ?? ""),
-        name: String(source.title ?? "–"),
-        classification: String(source.classification ?? ""),
-        license: String(source.number ?? ""),
-        url: `${PLAYER_PROFILE_BASE}/${source.rawId}`,
-      }));
+      .filter((source): source is PlayerSource => source?.type === "player");
   } catch {
+    // Best-effort: ein fehlgeschlagener Lookup darf den Import nicht abbrechen.
     return [];
-  } finally {
-    clearTimeout(timeout);
   }
+}
+
+function toHit(source: PlayerSource): MyTennisHit {
+  return {
+    id: String(source.rawId ?? ""),
+    name: String(source.title ?? "–"),
+    classification: String(source.classification ?? ""),
+    license: String(source.number ?? ""),
+    url: `${PLAYER_PROFILE_BASE}/${source.rawId}`,
+  };
 }
 
 /** Sucht über alle Namensvarianten und dedupliziert die Treffer nach URL. */
 export async function searchPlayers(fullName: string, timeoutMs: number): Promise<MyTennisHit[]> {
-  const queries = buildQueries(fullName);
   const byUrl = new Map<string, MyTennisHit>();
-  for (const query of queries) {
-    for (const hit of await searchOnce(query, timeoutMs)) {
-      if (hit.url !== "" && !byUrl.has(hit.url)) {
-        byUrl.set(hit.url, hit);
-      }
+  for (const query of buildQueries(fullName)) {
+    for (const source of await querySearch(`${query.first} ${query.last}`, timeoutMs)) {
+      if (source.rawId === undefined) continue;
+      const hit = toHit(source);
+      if (!byUrl.has(hit.url)) byUrl.set(hit.url, hit);
     }
   }
   return [...byUrl.values()];
+}
+
+/** Liefert die Profil-URL des Spielers mit exakt passender Lizenz oder "". */
+export async function resolveMyTennisPlayerUrl(
+  firstName: string,
+  lastName: string,
+  license: string,
+  timeoutMs: number,
+): Promise<string> {
+  const targetLicense = licenseDigits(license);
+  if (targetLicense === "") {
+    return "";
+  }
+  for (const source of await querySearch(`${firstName} ${lastName}`, timeoutMs)) {
+    if (licenseDigits(String(source.number ?? "")) === targetLicense) {
+      return `${PLAYER_PROFILE_BASE}/${source.rawId}`;
+    }
+  }
+  return "";
 }
 
 function scoreHit(hit: MyTennisHit, firstName: string, lastName: string): number {
