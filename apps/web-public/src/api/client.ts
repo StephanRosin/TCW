@@ -4,6 +4,7 @@
 import type {
   AgendaResponse,
   BracketResponse,
+  CourtsResponse,
   EncountDetailResponse,
   MatchesResponse,
   PlayerMatchesResponse,
@@ -58,6 +59,8 @@ export const publicApi = {
   matches: () => fetchJson<MatchesResponse>("/api/matches"),
   tournaments: () => fetchJson<TournamentsResponse>("/api/tournaments"),
   agenda: () => fetchJson<AgendaResponse>("/api/agenda"),
+  courts: (at?: string) =>
+    fetchJson<CourtsResponse>(at ? `/api/courts?at=${encodeURIComponent(at)}` : "/api/courts"),
   settings: () => fetchJson<SiteSettings>("/api/settings"),
   playerSuggest: (q: string) =>
     fetchJson<{ items: PlayerSuggestion[] }>(`/api/player-matches/suggest?q=${encodeURIComponent(q)}`),

@@ -1,16 +1,22 @@
 /**
  * Plätze: links das Webcam-Bild (Klick öffnet es im Vollbild – dasselbe Modal
- * wie die Teamfotos), rechts die Live-Platzbelegung (GotCourts) eingebettet.
- * Das Webcam-Standbild wird alle 10 Sekunden frisch geladen.
+ * wie die Teamfotos), rechts die Live-Platzbelegung aus GotCourts, selbst
+ * gerendert. Das Webcam-Standbild wird alle 10 Sekunden frisch geladen.
+ *
+ * Ein optionaler `?at=`-Parameter (ISO, z. B. 2026-07-01T19:30) verschiebt den
+ * Bezugszeitpunkt der Belegung – zum Testen; ohne ihn gilt „jetzt".
  */
 import { useEffect, useState, type JSX } from "react";
+import type { CourtBlock } from "@tcw/shared";
+import { publicApi } from "../../api/client.js";
+import { useResource } from "../../api/useResource.js";
+import { DataView } from "../../components/DataView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 import { TeamPhotoModal } from "../teams/TeamPhotoModal.js";
 
 // Same-Origin-Proxy (siehe apps/public-server/src/routes/webcam.ts): umgeht
 // CSP/Mixed-Content und verbirgt den internen Kamera-Host.
 const WEBCAM_URL = "/api/webcam";
-const OCCUPANCY_URL = "https://apps.gotcourts.com/en/terminal/tv/673a6";
 const REFRESH_MS = 10_000;
 
 /** Hängt einen Zeitstempel an, damit der Browser ein frisches Standbild lädt. */
@@ -18,11 +24,47 @@ function webcamSrc(tick: number): string {
   return `${WEBCAM_URL}?t=${tick}`;
 }
 
+/** Optionaler Test-Zeitpunkt aus der URL (?at=YYYY-MM-DDTHH:MM). */
+function testAt(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  return new URLSearchParams(window.location.search).get("at") ?? undefined;
+}
+
+function OccupancyBlock({ block }: { block: CourtBlock }): JSX.Element {
+  const { t } = useI18n();
+  return (
+    <div className={block.live ? "courts-block courts-block--live" : "courts-block"}>
+      <div className="courts-block__head">
+        <span className="courts-block__label">
+          {block.live ? `🎾 ${t("plaetze.now")}` : t("plaetze.next")}
+        </span>
+        <span className="courts-block__time">{block.label}</span>
+      </div>
+      {block.bookings.length === 0 ? (
+        <div className="courts-empty">{t("plaetze.noPlay")}</div>
+      ) : (
+        <ul className="courts-list">
+          {block.bookings.map((booking) => (
+            <li className="courts-row" key={`${booking.court}-${booking.from}`}>
+              <span className="courts-row__court">{booking.court}</span>
+              <span className="courts-row__time">
+                {booking.from}–{booking.to}
+              </span>
+              <span className="courts-row__who">{booking.who}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function PlaetzeView(): JSX.Element {
   const { t } = useI18n();
   const [tick, setTick] = useState(() => Date.now());
   const [failed, setFailed] = useState(false);
   const [modalSrc, setModalSrc] = useState<string | null>(null);
+  const occupancy = useResource(() => publicApi.courts(testAt()), []);
 
   useEffect(() => {
     const id = setInterval(() => setTick(Date.now()), REFRESH_MS);
@@ -56,12 +98,21 @@ export function PlaetzeView(): JSX.Element {
 
         <div className="plaetze__occupancy">
           <div className="plaetze__caption">{t("plaetze.occupancy")}</div>
-          <iframe
-            className="plaetze__frame"
-            src={OCCUPANCY_URL}
-            title={t("plaetze.occupancy")}
-            loading="lazy"
-          />
+          <div className="plaetze__courts">
+            <DataView state={occupancy} errorKey="plaetze.occupancyError">
+              {(data) =>
+                !data.available ? (
+                  <div className="state">{t("plaetze.occupancyUnavailable")}</div>
+                ) : (
+                  <>
+                    {data.blocks.map((block) => (
+                      <OccupancyBlock block={block} key={block.label} />
+                    ))}
+                  </>
+                )
+              }
+            </DataView>
+          </div>
         </div>
       </div>
 

@@ -11,8 +11,6 @@ const PUBLIC_CONTENT_SECURITY_POLICY = [
   "img-src 'self' data: https:",
   "font-src 'self'",
   "connect-src 'self'",
-  // GotCourts-Platzbelegung wird auf der "Plätze"-Seite eingebettet.
-  "frame-src https://apps.gotcourts.com",
   "object-src 'none'",
   "base-uri 'self'",
   "frame-ancestors 'self'",

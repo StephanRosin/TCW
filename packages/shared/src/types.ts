@@ -427,3 +427,35 @@ export interface PlayerMatchesResponse {
   player: string;
   matches: PlayerMatchView[];
 }
+
+/** Eine belegte Platz-Buchung (GotCourts) für die Anzeige im Plätze-Tab. */
+export interface CourtBooking {
+  /** Platzbezeichnung wie bei GotCourts, z. B. "Platz 1". */
+  court: string;
+  /** Beginn als "HH:MM". */
+  from: string;
+  /** Ende als "HH:MM". */
+  to: string;
+  /** Beschreibung/Spieler, z. B. "Clubmeisterschaften" oder "J. Lanker". */
+  who: string;
+}
+
+/** Ein Zeitblock (aktuelle bzw. nächste Stunde) mit den belegten Plätzen. */
+export interface CourtBlock {
+  /** Zeitfenster als "HH:MM–HH:MM". */
+  label: string;
+  /** True für die aktuell laufende Stunde (Tennisball-Markierung). */
+  live: boolean;
+  /** Nur belegte Plätze, nach Platznummer sortiert. */
+  bookings: CourtBooking[];
+}
+
+/** Platzbelegung für den Plätze-Tab: aktuelle und (falls belegt) folgende Stunde. */
+export interface CourtsResponse {
+  /** Abgefragtes Datum als "YYYY-MM-DD". */
+  date: string;
+  /** Ob GotCourts konfiguriert und erreichbar war. */
+  available: boolean;
+  /** [aktuelle Stunde, ggf. nächste Stunde]. */
+  blocks: CourtBlock[];
+}

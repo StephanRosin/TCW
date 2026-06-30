@@ -779,17 +779,12 @@ main.container {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   gap: 1.1rem;
-  /* Beide Panels gleich hoch: Die Webcam (festes 4:3) bestimmt die Höhe,
-     das GotCourts-iframe füllt dieselbe Höhe (statt fixer 72vh). */
-  align-items: stretch;
+  /* Beide Panels in ihrer natürlichen Höhe, oben bündig. */
+  align-items: start;
 }
 @media (max-width: 860px) {
   .plaetze__grid {
     grid-template-columns: 1fr;
-  }
-  /* Einspaltig gestapelt: dem iframe wieder eine echte Höhe geben. */
-  .plaetze__frame {
-    min-height: 60vh;
   }
 }
 .plaetze__cam,
@@ -844,14 +839,73 @@ main.container {
   padding: 2.5rem 1rem;
   text-align: center;
 }
-.plaetze__frame {
-  width: 100%;
-  /* Füllt die vom Webcam-Panel vorgegebene Zeilenhöhe. */
+/* Selbst gerenderte Belegungsliste: füllt die Panel-Höhe, scrollt bei Bedarf. */
+.plaetze__courts {
   flex: 1 1 auto;
-  height: auto;
   min-height: 0;
-  border: 0;
-  background: #fff;
+  overflow-y: auto;
+  padding: 0.6rem 0.8rem 0.8rem;
+}
+.courts-block + .courts-block {
+  margin-top: 0.9rem;
+}
+.courts-block__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.35rem 0.1rem 0.45rem;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 0.4rem;
+}
+.courts-block__label {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+.courts-block--live .courts-block__label {
+  color: var(--green-600);
+}
+.courts-block__time {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted, #6b7794);
+}
+.courts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.courts-row {
+  display: grid;
+  grid-template-columns: 4.7rem 5.2rem 1fr;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.32rem 0.25rem;
+  border-radius: var(--radius-sm);
+}
+.courts-row:nth-child(even) {
+  background: var(--surface-2);
+}
+.courts-row__court {
+  font-weight: 800;
+  color: var(--text);
+}
+.courts-row__time {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted, #6b7794);
+  font-size: 0.9rem;
+}
+.courts-row__who {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.courts-empty {
+  padding: 0.6rem 0.25rem;
+  color: var(--muted, #6b7794);
 }
 
 /* ---------- Tables (kompaktes Scoreboard) ---------- */

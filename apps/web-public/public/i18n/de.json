@@ -174,5 +174,10 @@
   "plaetze.webcam": "Webcam",
   "plaetze.webcamOpen": "Vergrössern",
   "plaetze.webcamError": "Webcam derzeit nicht erreichbar.",
-  "plaetze.occupancy": "Platzbelegung"
+  "plaetze.occupancy": "Platzbelegung",
+  "plaetze.now": "Jetzt am Spielen",
+  "plaetze.next": "Anschliessend",
+  "plaetze.noPlay": "Gerade spielt niemand.",
+  "plaetze.occupancyError": "Platzbelegung konnte nicht geladen werden.",
+  "plaetze.occupancyUnavailable": "Platzbelegung momentan nicht verfügbar."
 }

@@ -174,5 +174,10 @@
   "plaetze.webcam": "Webcam",
   "plaetze.webcamOpen": "Enlarge",
   "plaetze.webcamError": "Webcam currently unavailable.",
-  "plaetze.occupancy": "Court occupancy"
+  "plaetze.occupancy": "Court occupancy",
+  "plaetze.now": "Playing now",
+  "plaetze.next": "Up next",
+  "plaetze.noPlay": "Nobody is playing right now.",
+  "plaetze.occupancyError": "Court occupancy could not be loaded.",
+  "plaetze.occupancyUnavailable": "Court occupancy currently unavailable."
 }

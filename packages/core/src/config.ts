@@ -6,8 +6,38 @@
  */
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
 
 const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
+
+let dotEnvLoaded = false;
+
+/**
+ * Lädt `.env` aus dem Repo-Wurzelverzeichnis in process.env (nur fehlende
+ * Schlüssel). Hält Secrets wie GotCourts-Zugangsdaten aus dem Code/Repo heraus
+ * (.env ist gitignored). Einmal pro Prozess.
+ */
+function loadDotEnv(): void {
+  if (dotEnvLoaded) return;
+  dotEnvLoaded = true;
+  const envPath = resolve(REPO_ROOT, ".env");
+  if (!existsSync(envPath)) return;
+  for (const line of readFileSync(envPath, "utf8").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed === "" || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq <= 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (process.env[key] === undefined) process.env[key] = value;
+  }
+}
 
 function readNumber(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -55,9 +85,15 @@ export interface AppConfig {
   /** Optionale Basic-Auth für den Admin-Server (leer = keine Auth, nur lokal). */
   adminUser: string;
   adminPassword: string;
+  /** GotCourts-Zugangsdaten für die Platzbelegung (leer = Funktion deaktiviert). */
+  gotcourtsEmail: string;
+  gotcourtsPassword: string;
+  gotcourtsClubId: number;
+  gotcourtsTimeoutMs: number;
 }
 
 export function loadConfig(): AppConfig {
+  loadDotEnv();
   const dataDir = readPath("IC_DATA_DIR", "data");
   return {
     repoRoot: REPO_ROOT,
@@ -77,5 +113,9 @@ export function loadConfig(): AppConfig {
     resolvePlayerUrls: readBoolean("IC_RESOLVE_PLAYER_URLS", false),
     adminUser: process.env.IC_ADMIN_USER?.trim() ?? "",
     adminPassword: process.env.IC_ADMIN_PASSWORD ?? "",
+    gotcourtsEmail: process.env.GC_EMAIL?.trim() ?? "",
+    gotcourtsPassword: process.env.GC_PASSWORD ?? "",
+    gotcourtsClubId: readNumber("GC_CLUB_ID", 193),
+    gotcourtsTimeoutMs: readNumber("GC_TIMEOUT_SECONDS", 20) * 1000,
   };
 }

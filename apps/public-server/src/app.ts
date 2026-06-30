@@ -15,6 +15,7 @@ import type { HealthResponse } from "@tcw/shared";
 import { registerPublicCoreRoutes } from "./routes/public-api.js";
 import { registerIcResultRoutes } from "./routes/ic-results.js";
 import { registerWebcamRoute } from "./routes/webcam.js";
+import { registerCourtsRoute } from "./routes/courts.js";
 
 const WEB_DIST_DIR = resolve(loadConfig().repoRoot, "apps/web-public/dist");
 
@@ -57,6 +58,7 @@ export async function buildPublicApp(config: AppConfig = loadConfig()): Promise<
   registerPublicCoreRoutes(app, database);
   registerIcResultRoutes(app, config);
   registerWebcamRoute(app);
+  registerCourtsRoute(app, config);
 
   if (existsSync(WEB_DIST_DIR)) {
     app.register(fastifyStatic, { root: WEB_DIST_DIR });

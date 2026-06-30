@@ -174,5 +174,10 @@
   "plaetze.webcam": "Webcam",
   "plaetze.webcamOpen": "Agrandir",
   "plaetze.webcamError": "Webcam momentanément indisponible.",
-  "plaetze.occupancy": "Occupation des courts"
+  "plaetze.occupancy": "Occupation des courts",
+  "plaetze.now": "En jeu maintenant",
+  "plaetze.next": "Ensuite",
+  "plaetze.noPlay": "Personne ne joue actuellement.",
+  "plaetze.occupancyError": "Occupation des courts introuvable.",
+  "plaetze.occupancyUnavailable": "Occupation des courts indisponible pour le moment."
 }

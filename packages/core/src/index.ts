@@ -8,6 +8,8 @@ export * from "./services/ranking-service.js";
 export * from "./services/matches-service.js";
 export * from "./services/results-service.js";
 export * from "./integrations/swisstennis/competition.js";
+export * from "./integrations/gotcourts/client.js";
+export * from "./integrations/gotcourts/service.js";
 export * from "./services/tournament-store.js";
 export * from "./services/tournament-service.js";
 export * from "./services/matches-import-service.js";
