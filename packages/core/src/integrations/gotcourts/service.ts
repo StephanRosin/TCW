@@ -13,7 +13,9 @@ import {
 import { buildCourtBlocks } from "./occupancy.js";
 
 const DATE_PATTERN = /^(\d{4}-\d{2}-\d{2})(?:T(\d{2}):(\d{2}))?/;
-const CACHE_TTL_MS = 5 * 60 * 1000;
+// Daten werden stündlich (um :59) aktiv erneuert; der TTL deckt die Stunde dazwischen
+// ab, sodass On-Demand-Abrufe keine zusätzlichen Logins auslösen.
+const CACHE_TTL_MS = 65 * 60 * 1000;
 const MAX_OFFSET_DAYS = 14;
 
 interface CacheEntry {
@@ -60,6 +62,19 @@ export class GotCourtsService {
     const list = await fetchReservationList(this.credentials!, date);
     this.cache.set(date, { fetchedAt: now, list });
     return list;
+  }
+
+  /** Ob GotCourts überhaupt konfiguriert ist (für den stündlichen Refresh). */
+  get configured(): boolean {
+    return this.credentials !== null;
+  }
+
+  /** Erneuert die heutige Tagesliste aktiv (vom stündlichen :59-Job genutzt). */
+  async refreshToday(): Promise<void> {
+    if (!this.credentials) return;
+    const date = localDate(new Date());
+    const list = await fetchReservationList(this.credentials, date);
+    this.cache.set(date, { fetchedAt: Date.now(), list });
   }
 
   /** Liefert die Belegungs-Blöcke; `atIso` überschreibt den Zeitpunkt (Tests). */
