@@ -6,7 +6,7 @@
  * UI nicht leer bleibt.
  */
 import { parseSwisstennisXml } from "./xml.js";
-import { requestSwisstennis } from "./http.js";
+import { requestSwisstennis, readResponseText } from "./http.js";
 
 const USER_AGENT = "TCW-Interclub/1.0";
 
@@ -51,6 +51,6 @@ export class SwisstennisClient {
       headers: { "User-Agent": USER_AGENT, Accept: "application/xml, text/xml" },
       timeoutMs: this.timeoutMs,
     });
-    return parseSwisstennisXml(await response.text());
+    return parseSwisstennisXml(await readResponseText(response));
   }
 }

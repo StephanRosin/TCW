@@ -29,3 +29,33 @@ export async function requestSwisstennis(url: string, options: SwisstennisReques
     clearTimeout(timeout);
   }
 }
+
+/** Liest den Charset-Namen aus einem Content-Type-Header (Default utf-8). */
+function charsetOf(contentType: string | null): string {
+  const match = /charset=([^;]+)/i.exec(contentType ?? "");
+  return (match?.[1] ?? "utf-8").trim().toLowerCase();
+}
+
+/** TextDecoder für das Charset, mit Fallback auf utf-8 bei unbekanntem Label. */
+function decoderFor(charset: string): TextDecoder {
+  try {
+    return new TextDecoder(charset);
+  } catch {
+    return new TextDecoder("utf-8");
+  }
+}
+
+/**
+ * Liest den Antworttext anhand des im Content-Type deklarierten Charsets.
+ *
+ * Nötig, weil einige Swisstennis-Servlets (z. B. DrawResults der Playoffs)
+ * Umlaute als rohe ISO-8859-1-Bytes liefern. `Response.text()` dekodiert nach
+ * Fetch-Spezifikation immer als UTF-8 und würde diese Bytes zerstören
+ * (Grünfeld → Gr�nfeld). Andere Servlets liefern dieselben Umlaute als
+ * numerische Entities – diese sind reines ASCII und überstehen jede Kodierung.
+ */
+export async function readResponseText(response: Response): Promise<string> {
+  const charset = charsetOf(response.headers.get("content-type"));
+  const buffer = await response.arrayBuffer();
+  return decoderFor(charset).decode(buffer);
+}
