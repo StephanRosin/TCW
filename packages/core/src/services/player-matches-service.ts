@@ -87,6 +87,15 @@ function flipScore(score: string): string {
     .join(" ");
 }
 
+/** Sortierschlüssel (ISO YYYY-MM-DD) aus "D.M.YYYY" oder ISO; sonst "". */
+export function toSortKey(date: string): string {
+  const value = date.trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+  const match = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(value);
+  if (match) return `${match[3]}-${match[2]!.padStart(2, "0")}-${match[1]!.padStart(2, "0")}`;
+  return "";
+}
+
 function hashResult(value: string): string {
   let hash = 0;
   for (let i = 0; i < value.length; i++) {
@@ -162,7 +171,7 @@ function upsertRecords(db: Database.Database, year: string, records: MatchRecord
         competitionLabel: r.competitionLabel,
         discipline: r.discipline,
         date: r.date,
-        sortKey: r.date || "",
+        sortKey: toSortKey(r.date),
         s1p1n: s1[0] ?? "",
         s1p1k: s1[0] ? playerNameKey(s1[0]) : "",
         s1p2n: s1[1] ?? "",
@@ -480,7 +489,7 @@ export function getPlayerMatches(db: Database.Database, key: string): PlayerMatc
     .prepare(
       `SELECT * FROM player_matches
        WHERE year=? AND (s1p1_key=? OR s1p2_key=? OR s2p1_key=? OR s2p2_key=?)
-       ORDER BY match_date DESC, sort_key DESC`,
+       ORDER BY sort_key DESC, match_uid DESC`,
     )
     .all(Number(year), key, key, key, key) as PlayerMatchRow[];
 

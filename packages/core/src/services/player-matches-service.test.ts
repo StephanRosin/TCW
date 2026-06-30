@@ -2,7 +2,16 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { playerNameKey } from "@tcw/shared";
 import { openDatabase } from "../db/connection.js";
-import { getPlayerMatches, suggestPlayers } from "./player-matches-service.js";
+import { getPlayerMatches, suggestPlayers, toSortKey } from "./player-matches-service.js";
+
+test("toSortKey wandelt deutsches Datum und ISO in sortierbares ISO-Format", () => {
+  assert.equal(toSortKey("7.6.2026"), "2026-06-07");
+  assert.equal(toSortKey("17.05.2026"), "2026-05-17");
+  assert.equal(toSortKey("2026-06-07"), "2026-06-07");
+  assert.equal(toSortKey(""), "");
+  // Chronologisch korrekt: 10.5. nach 7.6. (anders als String-Vergleich).
+  assert.ok(toSortKey("7.6.2026") > toSortKey("10.5.2026"));
+});
 
 test("playerNameKey ist reihenfolge-unabhängig und ohne Klassierung/Diakritika", () => {
   assert.equal(playerNameKey("Rosin Stephan (R4)"), playerNameKey("Stephan Rosin"));
