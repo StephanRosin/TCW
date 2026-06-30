@@ -60,10 +60,19 @@ function teamSlug(title: string): string {
     .replace(/^-|-$/g, "");
 }
 
-/** Foto-URL des Teams oder null, wenn kein Foto vorhanden ist. */
+/** Foto-URL des Teams (volle Auflösung, für das Modal) oder null. */
 export function teamPhotoUrl(title: string): string | null {
   const file = PHOTO_FILES[teamSlug(title)];
   return file ? `/team-photos/${file}` : null;
+}
+
+/**
+ * Verkleinerte Panel-Version (max. 900px, JPEG) für den Karten-Hintergrund –
+ * lädt deutlich schneller als das Original. Liegt unter `team-photos/panel/`.
+ */
+export function teamPhotoPanelUrl(title: string): string | null {
+  const slug = teamSlug(title);
+  return PHOTO_FILES[slug] ? `/team-photos/panel/${slug}.jpg` : null;
 }
 
 /** Vertikaler Fokus (background-position-y) des Teamfotos oder null. */

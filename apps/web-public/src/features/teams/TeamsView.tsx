@@ -8,7 +8,7 @@ import { useResource } from "../../api/useResource.js";
 import { DataView } from "../../components/DataView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 import { translateTrainingDays } from "../../lib/trainingDays.js";
-import { teamPhotoFocusY, teamPhotoUrl, teamPhotoZoom } from "./teamPhotos.js";
+import { teamPhotoFocusY, teamPhotoPanelUrl, teamPhotoUrl, teamPhotoZoom } from "./teamPhotos.js";
 import { TeamPhotoModal } from "./TeamPhotoModal.js";
 
 type GenderSection = "damen" | "herren";
@@ -56,9 +56,10 @@ function TeamCard({
   const { t, translateKnown } = useI18n();
   const displayTitle = translateKnown(team.title);
   const photoUrl = teamPhotoUrl(team.title);
-  const photoStyle = photoUrl
+  const panelUrl = teamPhotoPanelUrl(team.title);
+  const photoStyle = panelUrl
     ? ({
-        "--team-photo": `url('${photoUrl}')`,
+        "--team-photo": `url('${panelUrl}')`,
         "--team-photo-y": teamPhotoFocusY(team.title) ?? "35%",
         ...(teamPhotoZoom(team.title) ? { "--team-photo-zoom": teamPhotoZoom(team.title) } : {}),
       } as CSSProperties)
