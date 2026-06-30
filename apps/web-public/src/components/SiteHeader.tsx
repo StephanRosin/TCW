@@ -4,6 +4,7 @@
 import type { JSX } from "react";
 import { useI18n } from "../i18n/I18nProvider.js";
 import { LanguageSwitch } from "./LanguageSwitch.js";
+import { ThemeSwitch } from "./ThemeSwitch.js";
 
 export function SiteHeader({ stand }: { stand: string }): JSX.Element {
   const { t } = useI18n();
@@ -20,7 +21,10 @@ export function SiteHeader({ stand }: { stand: string }): JSX.Element {
               <div className="brand__title">{t("app.title")}</div>
             </div>
           </div>
-          <LanguageSwitch />
+          <div className="site-header__controls">
+            <LanguageSwitch />
+            <ThemeSwitch />
+          </div>
         </div>
         <div className="site-header__meta">
           <span className="stand-badge">{standLabel}</span>

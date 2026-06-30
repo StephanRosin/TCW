@@ -63,8 +63,128 @@
   --shadow: 0 14px 30px rgba(23, 43, 123, 0.16);
   --maxw: 74rem;
 
+  /* Tönung über dem Court-Hintergrundbild (pro Theme überschreibbar) */
+  --bg-overlay-top: rgba(15, 26, 74, 0.6);
+  --bg-overlay-bottom: rgba(15, 26, 74, 0.65);
+
   font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
+}
+
+/* ---------- Theme „Nacht" (dunkel, invertiert) ---------- */
+html[data-theme="nacht"] {
+  color-scheme: dark;
+  --blue-900: #1c2a6e;
+  --blue-800: #2a3a96;
+  --blue-700: #3f54c0;
+  --blue-600: #4f63c8;
+  --green-600: #56b23a;
+  --green-700: #469a2e;
+  --red-600: #e35a4c;
+  --ink-900: #eef1fb;
+  --ink-700: #d3d9ee;
+  --ink-500: #a7b0cf;
+  --ink-400: #828cae;
+  --surface: #161b2d;
+  --surface-2: #1f2742;
+  --border: #2d3760;
+  --line: rgba(255, 255, 255, 0.14);
+  --text: #eef1fb;
+  --text-muted: #a7b0cf;
+  --on-image: #eaf0fb;
+  --accent: #8499ff;
+  --own: #3f54c0;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 16px 34px rgba(0, 0, 0, 0.55);
+  --bg-overlay-top: rgba(7, 10, 24, 0.82);
+  --bg-overlay-bottom: rgba(7, 10, 24, 0.88);
+}
+
+/* ---------- Theme „Sand" (warmer Sandplatz, komplementär) ---------- */
+html[data-theme="sand"] {
+  color-scheme: light;
+  --blue-900: #964326;
+  --blue-800: #b35d34;
+  --blue-700: #a3502c;
+  --blue-600: #c06b40;
+  --green-600: #6f9a3a;
+  --green-700: #587d2c;
+  --red-600: #bf432f;
+  --ink-900: #2f2516;
+  --ink-700: #4a3c28;
+  --ink-500: #7d6c50;
+  --ink-400: #a2906f;
+  --surface: #fffdf7;
+  --surface-2: #f6edda;
+  --border: #e7dabf;
+  --line: rgba(255, 255, 255, 0.6);
+  --text: #2f2516;
+  --text-muted: #7d6c50;
+  --on-image: #fdf3e0;
+  --accent: #a3502c;
+  --own: #b35d34;
+  --shadow-sm: 0 1px 2px rgba(120, 70, 40, 0.1);
+  --shadow: 0 14px 30px rgba(120, 70, 40, 0.18);
+  --bg-overlay-top: rgba(58, 36, 18, 0.5);
+  --bg-overlay-bottom: rgba(58, 36, 18, 0.58);
+}
+
+/* ---------- Theme „Wald" (grün, mit Gold-Akzent) ---------- */
+html[data-theme="wald"] {
+  color-scheme: light;
+  --blue-900: #1b5e2a;
+  --blue-800: #2a7d3a;
+  --blue-700: #2f8a40;
+  --blue-600: #3a9b4c;
+  --green-600: #c2902f;
+  --green-700: #a2761f;
+  --red-600: #c24132;
+  --ink-900: #16241a;
+  --ink-700: #2c402f;
+  --ink-500: #51664f;
+  --ink-400: #84a081;
+  --surface: #ffffff;
+  --surface-2: #eef6ee;
+  --border: #cfe3d0;
+  --line: rgba(255, 255, 255, 0.6);
+  --text: #16241a;
+  --text-muted: #51664f;
+  --on-image: #eafbe9;
+  --accent: #1f7a4a;
+  --own: #2a7d3a;
+  --shadow-sm: 0 1px 2px rgba(20, 70, 30, 0.1);
+  --shadow: 0 14px 30px rgba(20, 70, 30, 0.16);
+  --bg-overlay-top: rgba(10, 40, 20, 0.58);
+  --bg-overlay-bottom: rgba(10, 40, 20, 0.64);
+}
+
+/* ---------- Theme „Schiefer" (neutral/slate, ruhig) ---------- */
+html[data-theme="schiefer"] {
+  color-scheme: light;
+  --blue-900: #2a313c;
+  --blue-800: #3a4350;
+  --blue-700: #4a5566;
+  --blue-600: #59647a;
+  --green-600: #5e9c8a;
+  --green-700: #4a7e6f;
+  --red-600: #c0584a;
+  --ink-900: #232831;
+  --ink-700: #3a414e;
+  --ink-500: #646c7a;
+  --ink-400: #97a0b0;
+  --surface: #ffffff;
+  --surface-2: #f3f5f8;
+  --border: #dde2ea;
+  --line: rgba(255, 255, 255, 0.6);
+  --text: #232831;
+  --text-muted: #646c7a;
+  --on-image: #eef1f6;
+  --accent: #43618f;
+  --own: #3a4350;
+  --shadow-sm: 0 1px 2px rgba(30, 40, 55, 0.1);
+  --shadow: 0 14px 30px rgba(30, 40, 55, 0.16);
+  --bg-overlay-top: rgba(22, 26, 33, 0.62);
+  --bg-overlay-bottom: rgba(22, 26, 33, 0.68);
 }
 
 * {
@@ -80,9 +200,9 @@ body {
   color: var(--text);
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
-  /* Court-Foto als atmosphärischer, fixierter Hintergrund */
+  /* Court-Foto als atmosphärischer, fixierter Hintergrund (Tönung pro Theme) */
   background:
-    linear-gradient(rgba(15, 26, 74, 0.6), rgba(15, 26, 74, 0.65)),
+    linear-gradient(var(--bg-overlay-top), var(--bg-overlay-bottom)),
     url("/bg-home.jpg") center / cover fixed no-repeat;
 }
 
@@ -213,6 +333,49 @@ main.container {
 .lang-switch__flag {
   font-size: 1rem;
   line-height: 1;
+}
+
+/* Sprach- und Themenwahl rechts gestapelt; Theme-Leiste = Breite der Sprachwahl */
+.site-header__controls {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+/* ---------- Theme switch (unter der Sprachwahl, Farbpunkte) ---------- */
+.theme-switch {
+  display: flex;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.25rem;
+  border-radius: 999px;
+}
+.theme-switch__btn {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 0.3rem 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.theme-switch__btn[aria-pressed="true"] {
+  background: rgba(255, 255, 255, 0.22);
+}
+.theme-switch__dot {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.theme-switch__btn[aria-pressed="true"] .theme-switch__dot {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px #fff;
 }
 
 /* ---------- Main navigation tabs (solid blau, sticky) ---------- */
