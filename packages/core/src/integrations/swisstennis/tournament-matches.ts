@@ -288,54 +288,112 @@ function parseCourt(court: RawDrawSlot["court"]): { date: string; time: string; 
   };
 }
 
-function mapDrawMatches(payload: unknown, eventName: string, eventId: number): MatchRecord[] {
+interface DrawMatchNode {
+  level: number;
+  position: number;
+  slot: RawDrawSlot | undefined;
+  side1Names: string[];
+  side2Names: string[];
+  result: string;
+  winnerSide: number;
+}
+
+interface DrawTree {
+  maxLevel: number;
+  /** Alle Match-Knoten, Level absteigend (Einstiegsrunde … Final). */
+  nodes: DrawMatchNode[];
+  championNames: string[];
+}
+
+/**
+ * Liest den Tableau-Baum und propagiert die in der Einstiegsrunde vollständigen
+ * Namen (mit Klassierung/Partner) nach oben. In Folgerunden speichert
+ * Swisstennis nur Kurzformen ("Rosin S."); ohne Propagierung fehlten dort
+ * Vorname und Klassierung – einheitliche Quelle für Baum und "Alle"-Liste.
+ */
+function buildDrawTree(payload: unknown): DrawTree | null {
   const drawRows = asArray<RawDrawSlot>(
     (payload as { Iotto?: { drawtable?: { drawbody?: { draw?: unknown } } } }).Iotto?.drawtable
       ?.drawbody?.draw as never,
   );
+  if (drawRows.length === 0) {
+    return null;
+  }
   const byPosition = new Map<string, RawDrawSlot>();
+  let maxLevel = 0;
   for (const row of drawRows) {
-    byPosition.set(`${toNumber(row.alevel)}:${toNumber(row.rposition)}`, row);
+    const level = toNumber(row.alevel);
+    byPosition.set(`${level}:${toNumber(row.rposition)}`, row);
+    if (level > maxLevel) maxLevel = level;
   }
 
+  const rawNamesAt = (level: number, position: number): string[] => {
+    const { name, name2 } = splitDrawSide(byPosition.get(`${level}:${position}`));
+    return [name, name2].filter((value) => value !== "");
+  };
+  // Swisstennis-Tableau-Namen stehen als "Nachname Vorname"; das erste Token
+  // (der Nachname) identifiziert den Sieger auch in der Kurzform ("Rosin S.").
+  const surnameOf = (names: string[]): string => (names[0] ?? "").split(/\s+/)[0]?.toLowerCase() ?? "";
+
+  const fullNames = new Map<string, string[]>();
+  for (let position = 0; position < 2 ** maxLevel; position += 1) {
+    fullNames.set(`${maxLevel}:${position}`, rawNamesAt(maxLevel, position));
+  }
+
+  const nodes: DrawMatchNode[] = [];
+  for (let level = maxLevel - 1; level >= 0; level -= 1) {
+    for (let position = 0; position < 2 ** level; position += 1) {
+      const side1Names = fullNames.get(`${level + 1}:${position * 2}`) ?? [];
+      const side2Names = fullNames.get(`${level + 1}:${position * 2 + 1}`) ?? [];
+      const slot = byPosition.get(`${level}:${position}`);
+      const result = cleanText(slot?.result?.content ?? "").replace(/\//g, ":");
+      const advanced = rawNamesAt(level, position);
+      let winnerSide = winnerSideFromScore(result);
+      if (winnerSide === 0 && advanced.length > 0) {
+        const advancedSurname = surnameOf(advanced);
+        if (advancedSurname && advancedSurname === surnameOf(side1Names)) winnerSide = 1;
+        else if (advancedSurname && advancedSurname === surnameOf(side2Names)) winnerSide = 2;
+      }
+      const winnerNames =
+        winnerSide === 1 ? side1Names : winnerSide === 2 ? side2Names : advanced.length > 0 ? advanced : [];
+      fullNames.set(`${level}:${position}`, winnerNames);
+      nodes.push({ level, position, slot, side1Names, side2Names, result, winnerSide });
+    }
+  }
+  return { maxLevel, nodes, championNames: fullNames.get("0:0") ?? [] };
+}
+
+function mapDrawMatches(payload: unknown, eventName: string, eventId: number): MatchRecord[] {
+  const tree = buildDrawTree(payload);
+  if (!tree) {
+    return [];
+  }
   const records: MatchRecord[] = [];
-  for (const slot of drawRows) {
-    if (!slot.court && !slot.result?.content) {
+  for (const node of tree.nodes) {
+    if (!node.slot?.court && !node.slot?.result?.content) {
       continue;
     }
-    const level = toNumber(slot.alevel);
-    const position = toNumber(slot.rposition);
-    const side1 = byPosition.get(`${level + 1}:${position * 2}`);
-    const side2 = byPosition.get(`${level + 1}:${position * 2 + 1}`);
-    const names1 = splitDrawSide(side1);
-    const names2 = splitDrawSide(side2);
-    if (!isKnownPlayer(names1.name) || !isKnownPlayer(names2.name)) {
+    if (!isKnownPlayer(node.side1Names[0] ?? "") || !isKnownPlayer(node.side2Names[0] ?? "")) {
       continue;
     }
-    // Swisstennis trennt Satzergebnisse im Tableau mit "/" – einheitlich auf ":".
-    const result = cleanText(slot.result?.content ?? "").replace(/\//g, ":");
-    const schedule = parseCourt(slot.court);
-    const winnerName = splitDrawSide(slot).name;
-    const winnerSide =
-      winnerSideFromScore(result) ||
-      (winnerName === names1.name ? 1 : winnerName === names2.name ? 2 : 0);
+    const schedule = parseCourt(node.slot?.court);
     records.push({
-      matchKey: `draw:${eventId}:${level}:${position}`,
+      matchKey: `draw:${eventId}:${node.level}:${node.position}`,
       eventId,
       eventName,
       mode: "Draw",
       poolName: "",
-      roundName: roundName(level),
+      roundName: roundName(node.level),
       scheduledDate: schedule.date,
       scheduledTime: schedule.time,
       court: schedule.court,
-      player1Name: names1.name,
-      player1Name2: names1.name2,
-      player2Name: names2.name,
-      player2Name2: names2.name2,
-      result,
-      status: matchStatus(result),
-      winnerSide,
+      player1Name: node.side1Names[0] ?? "",
+      player1Name2: node.side1Names[1] ?? "",
+      player2Name: node.side2Names[0] ?? "",
+      player2Name2: node.side2Names[1] ?? "",
+      result: node.result,
+      status: matchStatus(node.result),
+      winnerSide: node.winnerSide,
     });
   }
   return records;
@@ -409,59 +467,21 @@ export function mapPoolStandings(payload: unknown, isDouble: boolean): PoolStand
  * auch wenn spätere Runden noch nicht ausgelost/gespielt sind (leere Seiten).
  */
 export function mapDrawBracket(payload: unknown): TournamentBracket | null {
-  const drawRows = asArray<RawDrawSlot>(
-    (payload as { Iotto?: { drawtable?: { drawbody?: { draw?: unknown } } } }).Iotto?.drawtable
-      ?.drawbody?.draw as never,
-  );
-  if (drawRows.length === 0) {
+  const tree = buildDrawTree(payload);
+  if (!tree) {
     return null;
   }
-  const byPosition = new Map<string, RawDrawSlot>();
-  let maxLevel = 0;
-  for (const row of drawRows) {
-    const level = toNumber(row.alevel);
-    byPosition.set(`${level}:${toNumber(row.rposition)}`, row);
-    if (level > maxLevel) maxLevel = level;
-  }
-  // Rohnamen: in der ersten Runde vollständig, in Folgerunden gespeichert als
-  // Kurzform ("Gollnhofer J."). Daher propagieren wir die vollen Namen des
-  // Siegers nach oben, statt die Kurzform anzuzeigen (wichtig für die Suche).
-  const rawNamesAt = (level: number, position: number): string[] => {
-    const { name, name2 } = splitDrawSide(byPosition.get(`${level}:${position}`));
-    return [name, name2].filter((value) => value !== "");
-  };
-  const lastName = (names: string[]): string => (names[0] ?? "").split(/\s+/)[0]?.toLowerCase() ?? "";
-
-  // Volle Namen je Slot, von der Einstiegsrunde (vollständig) nach oben gefüllt.
-  const fullNames = new Map<string, string[]>();
-  for (let position = 0; position < 2 ** maxLevel; position += 1) {
-    fullNames.set(`${maxLevel}:${position}`, rawNamesAt(maxLevel, position));
-  }
-
   const rounds: TournamentBracketRound[] = [];
-  for (let level = maxLevel - 1; level >= 0; level -= 1) {
-    const matches: TournamentBracketMatch[] = [];
-    for (let position = 0; position < 2 ** level; position += 1) {
-      const side1Names = fullNames.get(`${level + 1}:${position * 2}`) ?? [];
-      const side2Names = fullNames.get(`${level + 1}:${position * 2 + 1}`) ?? [];
-      const result = cleanText(byPosition.get(`${level}:${position}`)?.result?.content ?? "").replace(
-        /\//g,
-        ":",
-      );
-      // Sieger primär aus dem Resultat, sonst über den (Kurz-)Namen des Slots.
-      const advanced = rawNamesAt(level, position);
-      let winnerSide = winnerSideFromScore(result);
-      if (winnerSide === 0 && advanced.length > 0) {
-        const winnerLast = lastName(advanced);
-        if (winnerLast && winnerLast === lastName(side1Names)) winnerSide = 1;
-        else if (winnerLast && winnerLast === lastName(side2Names)) winnerSide = 2;
-      }
-      const winnerNames =
-        winnerSide === 1 ? side1Names : winnerSide === 2 ? side2Names : advanced.length > 0 ? advanced : [];
-      fullNames.set(`${level}:${position}`, winnerNames);
-      matches.push({ side1Names, side2Names, result, winnerSide });
-    }
+  for (let level = tree.maxLevel - 1; level >= 0; level -= 1) {
+    const matches: TournamentBracketMatch[] = tree.nodes
+      .filter((node) => node.level === level)
+      .map((node) => ({
+        side1Names: node.side1Names,
+        side2Names: node.side2Names,
+        result: node.result,
+        winnerSide: node.winnerSide,
+      }));
     rounds.push({ roundName: roundName(level), matches });
   }
-  return { rounds, championNames: fullNames.get("0:0") ?? [] };
+  return { rounds, championNames: tree.championNames };
 }

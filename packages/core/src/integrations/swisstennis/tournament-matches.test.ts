@@ -236,3 +236,34 @@ test("mapDrawBracket: Doppel-Klassierungen für beide und volle Namen in Folgeru
   // Sieger wird mit vollem Namen propagiert (nicht "Rosin S.")
   assert.deepEqual(bracket.championNames, ["Rosin Stephan (R4)", "Farsky Simon (R3)"]);
 });
+
+test("mapEventMatches (Draw): volle Doppelnamen auch in Folgerunden der 'Alle'-Liste", () => {
+  const payload = {
+    Iotto: {
+      drawtable: {
+        drawbody: {
+          draw: [
+            // Einstiegsrunde (volle Doppelnamen mit kombinierter Klassierung)
+            { alevel: 2, rposition: 0, name: { content: "(R4/R3) Rosin Stephan", name2: " / Farsky Simon" } },
+            { alevel: 2, rposition: 1, name: { content: "(R6/R7) Beck Claudia", name2: " / Sirbu Laura" } },
+            { alevel: 2, rposition: 2, name: { content: "(R5/R5) Lanker Jasmin", name2: " / Rauch Markus" } },
+            { alevel: 2, rposition: 3, name: { content: "(R4/R5) Zwick Florian", name2: " / Weckerle Carmen" } },
+            // Halbfinals: Sieger als Kurzform gespeichert
+            { alevel: 1, rposition: 0, name: { content: "Rosin S." }, result: { content: "6/3 6/4" } },
+            { alevel: 1, rposition: 1, name: { content: "Lanker J." }, result: { content: "6/2 6/2" } },
+            // Final: angesetzt (Court), Plätze nur als Kurzform vorbelegt
+            { alevel: 0, rposition: 0, name: { content: "" }, court: "02/02/26 10:00 (Platz 1)" },
+          ],
+        },
+      },
+    },
+  };
+
+  const records = mapEventMatches(payload, "Draw", "WD A", 1, true);
+  const final = records.find((record) => record.roundName === "Final")!;
+  // Beide Doppelspieler je Seite mit Vorname und eigener Klassierung – nicht "Rosin S."
+  assert.equal(final.player1Name, "Rosin Stephan (R4)");
+  assert.equal(final.player1Name2, "Farsky Simon (R3)");
+  assert.equal(final.player2Name, "Lanker Jasmin (R5)");
+  assert.equal(final.player2Name2, "Rauch Markus (R5)");
+});
