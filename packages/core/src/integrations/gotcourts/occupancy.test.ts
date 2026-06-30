@@ -20,9 +20,19 @@ const SAMPLE: GotCourtsReservationList = {
       endTime: 21 * 3600,
       text: "Clubmeisterschaften",
       shortDesc: "Clubmeisterschaften",
+      player: { shortName: "M. Muster" },
       partners: [{ shortName: "A. Pennisi", name: "Alba Pennisi" }],
     },
-    { courtId: 2, startTime: 18 * 3600, endTime: 20 * 3600, text: "Clubmeisterschaften", shortDesc: "Clubmeisterschaften" },
+    {
+      courtId: 2,
+      startTime: 18 * 3600,
+      endTime: 20 * 3600,
+      text: "Clubmeisterschaften",
+      shortDesc: "Clubmeisterschaften",
+      // Bucher ohne shortName -> aus Vor-/Nachname gebildet (J. Dennler).
+      player: { fullName: "Jonas Dennler", firstname: "Jonas", lastname: "Dennler" },
+      partners: [{ shortName: "C. KALAYCI" }],
+    },
     {
       courtId: 3,
       startTime: 19 * 3600,
@@ -35,7 +45,15 @@ const SAMPLE: GotCourtsReservationList = {
         { shortName: "A. Diercksen" },
       ],
     },
-    { courtId: 4, startTime: 19 * 3600, endTime: 20 * 3600, text: "D. van Rooijen", shortDesc: "-", partners: [{ shortName: "M. Matz" }] },
+    {
+      courtId: 4,
+      startTime: 19 * 3600,
+      endTime: 20 * 3600,
+      text: "A. Mraz",
+      shortDesc: "-",
+      owner: { fullName: "Alexandra Mraz", firstname: "Alexandra", lastname: "Mraz" },
+      partners: [{ shortName: "M. Mraz" }],
+    },
     { courtId: 5, startTime: 19 * 3600, endTime: 21 * 3600, text: "Tennisschule (Nicolas)", shortDesc: "Tennisschule (Nicolas)" },
     { courtId: 6, startTime: 18 * 3600, endTime: 22 * 3600, text: "Tennisschule (Seraphine)", shortDesc: "Tennisschule (Seraphine)" },
   ],
@@ -48,11 +66,14 @@ test("buildCourtBlocks um 19:30: aktuelle Stunde zeigt alle sechs belegten Plät
   assert.equal(live.live, true);
   assert.equal(live.label, "19:00–20:00");
   assert.equal(live.bookings.length, 6);
-  // Vereinsanlass: Titel plus vorhandene Mitspieler.
-  assert.equal(live.bookings[0]!.who, "Clubmeisterschaften · A. Pennisi");
-  // Mitgliederbuchung: Hauptbucher und ALLE Mitspieler.
+  // Vereinsanlass: Titel plus Bucher (player) UND Mitspieler.
+  assert.equal(live.bookings[0]!.who, "Clubmeisterschaften · M. Muster, A. Pennisi");
+  // Bucher ohne shortName wird aus Vor-/Nachname gebildet.
+  assert.equal(live.bookings[1]!.who, "Clubmeisterschaften · J. Dennler, C. KALAYCI");
+  // Mitgliederbuchung: Hauptbucher (text) und ALLE Mitspieler.
   assert.equal(live.bookings[2]!.who, "J. Lanker, S. Haubensak, A. Casanova, A. Diercksen");
-  assert.equal(live.bookings[3]!.who, "D. van Rooijen, M. Matz");
+  // Bucher aus owner-Objekt (A. Mraz) plus Mitspieler.
+  assert.equal(live.bookings[3]!.who, "A. Mraz, M. Mraz");
 });
 
 test("buildCourtBlocks um 19:30: Folgestunde 20:00–21:00 nur mit noch laufenden Buchungen", () => {

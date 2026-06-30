@@ -6,7 +6,7 @@
  * Stunde. Zeiten sind Sekunden ab Mitternacht (GotCourts-Konvention).
  */
 import type { CourtBlock, CourtBooking } from "@tcw/shared";
-import type { GotCourtsReservationList, GotCourtsRawEntry } from "./client.js";
+import type { GotCourtsReservationList, GotCourtsRawEntry, GotCourtsActor } from "./client.js";
 
 const HOUR = 3600;
 
@@ -30,6 +30,17 @@ function clean(value: string | undefined): string {
   return trimmed === "-" ? "" : trimmed;
 }
 
+/** Kurzname eines Buchers (player/owner): shortName, sonst aus Vor-/Nachname. */
+function actorName(actor: GotCourtsActor | undefined): string {
+  if (!actor) return "";
+  const short = clean(actor.shortName);
+  if (short !== "") return short;
+  const first = clean(actor.firstname) || clean(actor.first_name);
+  const last = clean(actor.lastname) || clean(actor.last_name);
+  if (first !== "" && last !== "") return `${first[0]}. ${last}`;
+  return clean(actor.fullName);
+}
+
 /** Namen der Mitspieler (Kurzform bevorzugt). */
 function partnerNames(entry: GotCourtsRawEntry): string[] {
   return (entry.partners ?? [])
@@ -37,23 +48,34 @@ function partnerNames(entry: GotCourtsRawEntry): string[] {
     .filter((name) => name !== "");
 }
 
+/** Eindeutige, nicht-leere Namen in Reihenfolge. */
+function uniqueNames(names: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const name of names) {
+    if (name !== "" && !seen.has(name)) {
+      seen.add(name);
+      result.push(name);
+    }
+  }
+  return result;
+}
+
 /**
- * Vollständige Beschreibung einer Buchung. Vereinsanlässe (eigene Bezeichnung
- * in shortDesc, z. B. "Clubmeisterschaften") behalten ihren Titel und hängen
- * vorhandene Mitspieler an; reine Mitgliederbuchungen listen Hauptbucher und
- * alle Mitspieler auf.
+ * Vollständige Beschreibung einer Buchung: Hauptbucher (player/owner) plus alle
+ * Mitspieler. Vereinsanlässe (eigene Bezeichnung in shortDesc, z. B.
+ * "Clubmeisterschaften") behalten ihren Titel und hängen die Spieler an.
  */
 function describe(entry: GotCourtsRawEntry): string {
-  const partners = partnerNames(entry);
   const label = clean(entry.shortDesc);
-  const text = clean(entry.text);
   const isEvent = label !== "";
+  const booker = actorName(entry.player ?? entry.owner) || (isEvent ? "" : clean(entry.text));
+  const players = uniqueNames([booker, ...partnerNames(entry)]);
   if (isEvent) {
-    return partners.length > 0 ? `${label} · ${partners.join(", ")}` : label;
+    return players.length > 0 ? `${label} · ${players.join(", ")}` : label;
   }
-  const everyone = [text, ...partners].filter((name) => name !== "");
-  if (everyone.length > 0) return everyone.join(", ");
-  return clean(entry.type) || "Reserviert";
+  if (players.length > 0) return players.join(", ");
+  return clean(entry.text) || clean(entry.type) || "Reserviert";
 }
 
 /** Platznummer aus dem Label ("Platz 1" → 1) für stabile Sortierung. */

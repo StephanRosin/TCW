@@ -111,6 +111,15 @@ export interface GotCourtsPartner {
   shortName?: string;
   label?: string;
 }
+/** Bucher-Objekt (player bzw. owner) – getrennt von den Mitspielern. */
+export interface GotCourtsActor {
+  shortName?: string;
+  fullName?: string;
+  firstname?: string;
+  lastname?: string;
+  first_name?: string;
+  last_name?: string;
+}
 export interface GotCourtsRawEntry {
   courtId: number;
   startTime: number;
@@ -118,6 +127,9 @@ export interface GotCourtsRawEntry {
   text?: string;
   shortDesc?: string;
   type?: string;
+  /** Hauptbucher (Vereinsanlässe: player, Mitgliederbuchungen: owner). */
+  player?: GotCourtsActor;
+  owner?: GotCourtsActor;
   /** Mitspieler der Buchung (ohne Hauptbucher); für die vollständige Namensliste. */
   partners?: GotCourtsPartner[];
 }
