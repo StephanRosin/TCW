@@ -22,6 +22,9 @@ const parser = new XMLParser({
   parseAttributeValue: true,
   parseTagValue: true,
   trimValues: true,
+  // Swisstennis kodiert Umlaute als numerische Entities (z. B. &#246; = ö);
+  // diese müssen dekodiert werden, sonst erscheint "246;" statt "ö".
+  htmlEntities: true,
 });
 
 /** Parst eine Swisstennis-XML-Antwort in die von den Mappern erwartete Objektform. */
