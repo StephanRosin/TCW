@@ -27,6 +27,43 @@
   font-display: swap;
   src: url("/fonts/manrope-800.ttf") format("truetype");
 }
+/* Display-Schriften für Überschriften (variabel, selbst gehostet) */
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/spacegrotesk.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Sora";
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/sora.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Bitter";
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("/fonts/bitter.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Nunito Sans";
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("/fonts/nunitosans.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/inter.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("/fonts/jetbrainsmono.woff2") format("woff2");
+}
 
 :root {
   color-scheme: light;
@@ -67,7 +104,11 @@
   --bg-overlay-top: rgba(15, 26, 74, 0.6);
   --bg-overlay-bottom: rgba(15, 26, 74, 0.65);
 
-  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Schriften: Fliesstext vs. Überschriften (pro Theme überschreibbar) */
+  --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Space Grotesk", "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  font-family: var(--font-body);
   color: var(--text);
 }
 
@@ -98,6 +139,8 @@ html[data-theme="nacht"] {
   --shadow: 0 16px 34px rgba(0, 0, 0, 0.55);
   --bg-overlay-top: rgba(7, 10, 24, 0.82);
   --bg-overlay-bottom: rgba(7, 10, 24, 0.88);
+  --font-body: "Sora", system-ui, -apple-system, sans-serif;
+  --font-display: "Sora", system-ui, -apple-system, sans-serif;
 }
 
 /* ---------- Theme „Sand" (warmer Sandplatz, komplementär) ---------- */
@@ -127,6 +170,9 @@ html[data-theme="sand"] {
   --shadow: 0 14px 30px rgba(120, 70, 40, 0.18);
   --bg-overlay-top: rgba(58, 36, 18, 0.5);
   --bg-overlay-bottom: rgba(58, 36, 18, 0.58);
+  /* warme Slab-Serife für das Sandplatz-Theme */
+  --font-body: "Bitter", Georgia, serif;
+  --font-display: "Bitter", Georgia, serif;
 }
 
 /* ---------- Theme „Wald" (grün, mit Gold-Akzent) ---------- */
@@ -156,6 +202,9 @@ html[data-theme="wald"] {
   --shadow: 0 14px 30px rgba(20, 70, 30, 0.16);
   --bg-overlay-top: rgba(10, 40, 20, 0.58);
   --bg-overlay-bottom: rgba(10, 40, 20, 0.64);
+  /* runde, organische Schrift fürs Wald-Theme */
+  --font-body: "Nunito Sans", system-ui, -apple-system, sans-serif;
+  --font-display: "Nunito Sans", system-ui, -apple-system, sans-serif;
 }
 
 /* ---------- Theme „Schiefer" (neutral/slate, ruhig) ---------- */
@@ -185,6 +234,16 @@ html[data-theme="schiefer"] {
   --shadow: 0 14px 30px rgba(30, 40, 55, 0.16);
   --bg-overlay-top: rgba(22, 26, 33, 0.62);
   --bg-overlay-bottom: rgba(22, 26, 33, 0.68);
+  /* technisch: neutrale Grotesk + Monospace-Überschriften */
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+/* Schriften mit kleinerer x-Höhe (Bitter/Nunito) auf die übrigen Themes
+   angleichen – skaliert die Glyphen, ohne rem/Layout zu verändern. */
+html[data-theme="sand"],
+html[data-theme="wald"] {
+  font-size-adjust: 0.55;
 }
 
 * {
@@ -211,6 +270,17 @@ h2,
 h3 {
   line-height: 1.15;
   margin: 0;
+}
+/* Überschriften in der Display-Schrift (pro Theme via --font-display) */
+h1,
+h2,
+h3,
+.brand__title,
+.card__title,
+.card__title--photo,
+.pm-heading,
+.pm-group__title {
+  font-family: var(--font-display);
 }
 a {
   color: var(--accent);
@@ -378,6 +448,7 @@ main.container {
   box-shadow: 0 0 0 2px #fff;
 }
 
+
 /* ---------- Main navigation tabs (solid blau, sticky) ---------- */
 .tabbar {
   position: sticky;
@@ -396,22 +467,43 @@ main.container {
   display: none;
 }
 .tabbar__btn {
+  position: relative;
   border: 0;
   background: transparent;
   color: #b9c4ea;
-  padding: 0.8rem 1.05rem;
+  padding: 0.8rem 1.05rem calc(0.8rem + 3px);
   font-size: 0.95rem;
   font-weight: 600;
   white-space: nowrap;
-  border-bottom: 3px solid transparent;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: color 0.18s ease;
+}
+/* animierter Unterstrich (wächst aus der Mitte) */
+.tabbar__btn::after {
+  content: "";
+  position: absolute;
+  left: 0.6rem;
+  right: 0.6rem;
+  bottom: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--green-600);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.2s ease;
 }
 .tabbar__btn:hover {
   color: #fff;
 }
+.tabbar__btn:hover::after {
+  transform: scaleX(0.5);
+  opacity: 0.5;
+}
 .tabbar__btn[aria-selected="true"] {
   color: #fff;
-  border-bottom-color: var(--green-600);
+}
+.tabbar__btn[aria-selected="true"]::after {
+  transform: scaleX(1);
+  opacity: 1;
 }
 
 /* ---------- Pills / chips / sub-tabs (einheitlich, blau aktiv) ---------- */
@@ -1471,4 +1563,45 @@ a.pm-name:hover {
 }
 .pm-outcome--open {
   color: var(--text-muted);
+}
+
+/* ---------- Micro-Interactions ---------- */
+.card,
+.pm-match {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.card:hover,
+.pm-match:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+}
+.chip:hover,
+.subtabs__btn:hover {
+  border-color: var(--blue-600);
+  color: var(--blue-800);
+}
+.chip[aria-pressed="true"]:hover,
+.subtabs__btn[aria-selected="true"]:hover {
+  color: #fff;
+}
+.lang-switch__btn,
+.theme-switch__btn {
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+.lang-switch__btn:active,
+.theme-switch__btn:active {
+  transform: scale(0.94);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+  .card:hover,
+  .pm-match:hover {
+    transform: none;
+  }
 }

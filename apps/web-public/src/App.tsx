@@ -116,7 +116,7 @@ function Layout(): JSX.Element {
 
   return (
     <div className="layout">
-      <SiteHeader stand={stand} />
+      <SiteHeader />
       <TabBar items={visibleNavItems(settings)} activeView={view} onSelect={(next) => navigate(next)} />
       <main className="container">
         <ActiveView
@@ -129,7 +129,7 @@ function Layout(): JSX.Element {
           consumePending={consumePending}
         />
       </main>
-      <SiteFooter />
+      <SiteFooter stand={stand} />
     </div>
   );
 }
