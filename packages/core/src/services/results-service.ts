@@ -44,19 +44,19 @@ export function createResultsService(
 
   return {
     async listTeams(year) {
-      const payload = normalize(await client.fetchJson(entryPageUrl(urlPrefix, year)));
+      const payload = normalize(await client.fetchData(entryPageUrl(urlPrefix, year)));
       return { items: mapEntryPageToTeams(payload) };
     },
     async getTeamResults(teamId, year) {
-      const payload = normalize(await client.fetchJson(teamResultsUrl(urlPrefix, teamId, year)));
+      const payload = normalize(await client.fetchData(teamResultsUrl(urlPrefix, teamId, year)));
       return mapTeamResults(payload, normalizeYear(year), { brackets: hasBrackets });
     },
     async getEncountDetail(encountId, year, type) {
-      const payload = normalize(await client.fetchJson(encountResultsUrl(urlPrefix, encountId, year, type)));
+      const payload = normalize(await client.fetchData(encountResultsUrl(urlPrefix, encountId, year, type)));
       return mapEncountDetail(payload, encountId, normalizeYear(year), type, mytennisPath);
     },
     async getDraw(ligueId, promotion, year) {
-      const payload = normalize(await client.fetchJson(drawResultsUrl(urlPrefix, ligueId, promotion, year)));
+      const payload = normalize(await client.fetchData(drawResultsUrl(urlPrefix, ligueId, promotion, year)));
       return mapDrawResults(payload);
     },
   };

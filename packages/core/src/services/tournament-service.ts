@@ -116,7 +116,7 @@ export function createTournamentService(config: AppConfig, database: TcwDatabase
     existingUrls: Map<string, ExistingPlayerUrl>,
     resolvePlayerUrls: boolean,
   ): Promise<EventImport> {
-    const registrationsPayload = await client.fetchJson(publicDisplayEventUrl(eventMeta.eventId));
+    const registrationsPayload = await client.fetchData(publicDisplayEventUrl(eventMeta.eventId));
     const rawRegistrations = mapEventRegistrations(registrationsPayload);
     const registrations = await mapWithLimit(rawRegistrations, URL_RESOLVE_CONCURRENCY, (record) =>
       enrichRegistration(record, existingUrls.get(record.playerKey), resolvePlayerUrls),
@@ -129,7 +129,7 @@ export function createTournamentService(config: AppConfig, database: TcwDatabase
         : eventMeta.mode === "Round-robin"
           ? displayPoolsUrl(eventMeta.eventId)
           : null;
-    const matchesPayload = matchesUrl ? await client.fetchJson(matchesUrl) : null;
+    const matchesPayload = matchesUrl ? await client.fetchData(matchesUrl) : null;
     const matches = matchesPayload
       ? mapEventMatches(matchesPayload, eventMeta.mode, eventMeta.eventName, eventMeta.eventId, isDouble)
       : [];
@@ -149,7 +149,7 @@ export function createTournamentService(config: AppConfig, database: TcwDatabase
   ): Promise<TournamentRefreshResult> {
     const tournamentId = tournamentConfig.swisstennisTournamentId;
     try {
-      const meta = mapTournamentMeta(await client.fetchJson(tournamentDisplayUrl(tournamentId)));
+      const meta = mapTournamentMeta(await client.fetchData(tournamentDisplayUrl(tournamentId)));
       if (meta.events.length === 0) {
         return { tournamentId, events: 0, players: 0, matches: 0 };
       }

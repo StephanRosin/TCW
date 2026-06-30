@@ -5,6 +5,8 @@
  * vorhanden – die zuletzt erfolgreich geladenen Daten zurückgegeben, damit die
  * UI nicht leer bleibt.
  */
+import { parseSwisstennisXml } from "./xml.js";
+
 const USER_AGENT = "TCW-Interclub/1.0";
 
 interface CacheEntry {
@@ -20,14 +22,19 @@ export class SwisstennisClient {
     private readonly timeoutMs: number,
   ) {}
 
-  async fetchJson(url: string): Promise<unknown> {
+  /**
+   * Lädt eine Swisstennis-Antwort (XML) und gibt sie als geparste Objektform
+   * zurück. Bei Fehlern werden – sofern vorhanden – die zuletzt erfolgreich
+   * geladenen Daten zurückgegeben.
+   */
+  async fetchData(url: string): Promise<unknown> {
     const cached = this.cache.get(url);
     const now = Date.now();
     if (cached && now - cached.fetchedAt < this.ttlMs) {
       return cached.payload;
     }
     try {
-      const payload = await this.requestJson(url);
+      const payload = await this.requestData(url);
       this.cache.set(url, { fetchedAt: now, payload });
       return payload;
     } catch (error) {
@@ -38,18 +45,18 @@ export class SwisstennisClient {
     }
   }
 
-  private async requestJson(url: string): Promise<unknown> {
+  private async requestData(url: string): Promise<unknown> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
     try {
       const response = await fetch(url, {
-        headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+        headers: { "User-Agent": USER_AGENT, Accept: "application/xml, text/xml" },
         signal: controller.signal,
       });
       if (!response.ok) {
         throw new Error(`Swisstennis antwortete mit HTTP ${response.status} für ${url}`);
       }
-      return await response.json();
+      return parseSwisstennisXml(await response.text());
     } finally {
       clearTimeout(timeout);
     }

@@ -30,20 +30,20 @@ function servlet(competition: string, year: string | undefined, path: string): s
 }
 
 export function entryPageUrl(competition: string, year: string | undefined): string {
-  return servlet(competition, year, `EntryPage?ClubName=${OWN_CLUB_ID}&outputFormat=JSON`);
+  return servlet(competition, year, `EntryPage?ClubName=${OWN_CLUB_ID}&outputFormat=XML`);
 }
 
 export function clubResultUrl(competition: string, year: string | undefined): string {
-  return servlet(competition, year, `ClubResult?ClubName=${OWN_CLUB_ID}&Lang=de&outputFormat=JSON`);
+  return servlet(competition, year, `ClubResult?ClubName=${OWN_CLUB_ID}&Lang=de&outputFormat=XML`);
 }
 
 /** DrawResults nach EncountId (für Playoff-Metadaten der Spieltermine). */
 export function drawMetaByEncountUrl(competition: string, encountId: number, year: string | undefined): string {
-  return servlet(competition, year, `DrawResults?EncountId=${encountId}&Lang=D&outputFormat=JSON`);
+  return servlet(competition, year, `DrawResults?EncountId=${encountId}&Lang=D&outputFormat=XML`);
 }
 
 export function teamResultsUrl(competition: string, teamId: number, year: string | undefined): string {
-  return servlet(competition, year, `TeamResults?TeamId=${teamId}&Lang=de&outputFormat=JSON`);
+  return servlet(competition, year, `TeamResults?TeamId=${teamId}&Lang=de&outputFormat=XML`);
 }
 
 export function encountResultsUrl(
@@ -53,7 +53,7 @@ export function encountResultsUrl(
   type: ResultType,
 ): string {
   const servletName = type === "tableau" ? "TableauResults" : "EncountResults";
-  return servlet(competition, year, `${servletName}?EncountId=${encountId}&Lang=de&outputFormat=JSON`);
+  return servlet(competition, year, `${servletName}?EncountId=${encountId}&Lang=de&outputFormat=XML`);
 }
 
 export function drawResultsUrl(
@@ -65,6 +65,6 @@ export function drawResultsUrl(
   return servlet(
     competition,
     year,
-    `DrawResults?LigueId=${ligueId}&Promotion=${promotion}&Lang=de&outputFormat=JSON`,
+    `DrawResults?LigueId=${ligueId}&Promotion=${promotion}&Lang=de&outputFormat=XML`,
   );
 }
