@@ -147,8 +147,10 @@ function rrResult(match: RawRrMatch): string {
 }
 
 function rrWinnerSide(match: RawRrMatch, result: string): number {
-  if (match.rrmPlayer1WO === 1) return 2;
-  if (match.rrmPlayer2WO === 1) return 1;
+  // Walkover: das gesetzte WO-Feld markiert den Sieger (Wert = zugesprochene
+  // Sätze, z. B. 2), nicht den Verlierer.
+  if (match.rrmPlayer1WO) return 1;
+  if (match.rrmPlayer2WO) return 2;
   let player1Sets = 0;
   let player2Sets = 0;
   for (let set = 1; set <= 3; set += 1) {

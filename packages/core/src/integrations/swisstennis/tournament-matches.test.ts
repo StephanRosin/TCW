@@ -103,6 +103,47 @@ test("mapEventMatches (Round-robin) liest Resultat aus dem Kommentar und leitet 
   assert.equal(match.scheduledTime, "09:30");
 });
 
+test("mapEventMatches (Round-robin): Walkover – das gesetzte WO-Feld ist der Sieger", () => {
+  const payload = {
+    Iotto: {
+      IoEvent: {
+        ioPoolSet: {
+          IoPool: {
+            polName: "Capriati",
+            ioPlayerPoolSet: {
+              IoPlayerPool: {
+                ioPlayer: {
+                  IoPlayer: {
+                    plyFirstName: "Isabel",
+                    plyName: "Jüngling",
+                    ioRRMatchRrmIdPlayer1Set: {
+                      IoRRMatch: {
+                        rRMatchId: 1,
+                        rrmComment: "WO",
+                        rrmPlayer1WO: 0,
+                        // WO-Feld auf dem Sieger (Wert = zugesprochene Sätze)
+                        rrmPlayer2WO: 2,
+                        ioPlayerRrmIdPlayer2: {
+                          IoPlayer: { plyFirstName: "Jasmin", plyName: "zu Sayn-Wittgenstein" },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+
+  const match = mapEventMatches(payload, "Round-robin", "WS 40+", 1, false)[0]!;
+  assert.equal(match.result, "w.o.");
+  assert.equal(match.player2Name, "Jasmin zu Sayn-Wittgenstein");
+  assert.equal(match.winnerSide, 2);
+});
+
 test("mapEventMatches überspringt Partien mit offenem/bye-Gegner", () => {
   const payload = {
     Iotto: {
