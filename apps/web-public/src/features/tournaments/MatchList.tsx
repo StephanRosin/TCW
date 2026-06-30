@@ -1,7 +1,8 @@
 /**
- * Liste ausgeloster Turnier-Partien: Tableau-Spalte, Datumssortierung
- * (mit Datum zuerst, offene ohne Datum darunter), Gewinnerseite fett,
- * Doppelspieler untereinander.
+ * Liste ausgeloster Turnier-Partien: Tableau-Spalte, Gewinnerseite fett,
+ * Doppelspieler untereinander. Sortierung in drei Gruppen: gespielte Partien
+ * zuerst (neueste oben), dann anstehende mit Datum (nächste zuerst), zuletzt
+ * Partien ohne Datum.
  */
 import { useMemo, type JSX } from "react";
 import type { TournamentMatch } from "@tcw/shared";
@@ -13,17 +14,27 @@ function matchTimestamp(match: TournamentMatch): string {
   return `${match.scheduledDate}T${match.scheduledTime || "00:00"}`;
 }
 
-/** Neueste zuerst (Datum absteigend); Partien ohne Datum stehen darunter. */
-function compareNewestFirst(a: TournamentMatch, b: TournamentMatch): number {
-  const aDated = a.scheduledDate !== "";
-  const bDated = b.scheduledDate !== "";
-  if (aDated && bDated) {
-    return matchTimestamp(b).localeCompare(matchTimestamp(a));
+/** Sortiergruppe: 0 = gespielt, 1 = anstehend (mit Datum), 2 = ohne Datum. */
+function matchGroup(match: TournamentMatch): number {
+  if (match.status === "played") return 0;
+  return match.scheduledDate !== "" ? 1 : 2;
+}
+
+/** Gespielt zuerst (neueste oben), dann anstehend (nächste oben), dann ohne Datum. */
+function compareMatchOrder(a: TournamentMatch, b: TournamentMatch): number {
+  const groupA = matchGroup(a);
+  const groupB = matchGroup(b);
+  if (groupA !== groupB) {
+    return groupA - groupB;
   }
-  if (aDated !== bDated) {
-    return aDated ? -1 : 1;
+  if (groupA === 2) {
+    return 0;
   }
-  return 0;
+  const timestampA = matchTimestamp(a);
+  const timestampB = matchTimestamp(b);
+  return groupA === 0
+    ? timestampB.localeCompare(timestampA)
+    : timestampA.localeCompare(timestampB);
 }
 
 function formatDate(match: TournamentMatch, noDateLabel: string): string {
@@ -49,7 +60,7 @@ function SideCell({ names, isWinner }: { names: string[]; isWinner: boolean }): 
 
 export function MatchList({ matches }: { matches: TournamentMatch[] }): JSX.Element {
   const { t } = useI18n();
-  const sorted = useMemo(() => [...matches].sort(compareNewestFirst), [matches]);
+  const sorted = useMemo(() => [...matches].sort(compareMatchOrder), [matches]);
 
   if (matches.length === 0) {
     return <div className="state">{t("tournaments.noMatches")}</div>;
