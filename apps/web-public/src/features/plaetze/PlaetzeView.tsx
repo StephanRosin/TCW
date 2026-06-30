@@ -7,7 +7,9 @@ import { useEffect, useState, type JSX } from "react";
 import { useI18n } from "../../i18n/I18nProvider.js";
 import { TeamPhotoModal } from "../teams/TeamPhotoModal.js";
 
-const WEBCAM_URL = "http://tcwaidberg.no-ip.org:10554/streaming/channels/2/picture";
+// Same-Origin-Proxy (siehe apps/public-server/src/routes/webcam.ts): umgeht
+// CSP/Mixed-Content und verbirgt den internen Kamera-Host.
+const WEBCAM_URL = "/api/webcam";
 const OCCUPANCY_URL = "https://apps.gotcourts.com/en/terminal/tv/673a6";
 const REFRESH_MS = 10_000;
 

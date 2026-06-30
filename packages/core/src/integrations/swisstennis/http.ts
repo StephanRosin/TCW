@@ -37,7 +37,7 @@ function charsetOf(contentType: string | null): string {
 }
 
 /** TextDecoder für das Charset, mit Fallback auf utf-8 bei unbekanntem Label. */
-function decoderFor(charset: string): TextDecoder {
+function decoderFor(charset: string) {
   try {
     return new TextDecoder(charset);
   } catch {
