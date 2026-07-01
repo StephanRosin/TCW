@@ -66,10 +66,10 @@ function MatchTable({
         <table className="board">
           <thead>
             <tr>
-              <th>{t("common.position")}</th>
+              <th className="numeric">{t("common.position")}</th>
               <th>{homeTeam}</th>
               <th>{awayTeam}</th>
-              <th>{t("matches.result")}</th>
+              <th className="numeric">{t("matches.result")}</th>
             </tr>
           </thead>
           <tbody>

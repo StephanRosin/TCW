@@ -57,7 +57,7 @@ export function TrainingView(): JSX.Element {
                 <table className="board training-grid">
                   <thead>
                     <tr>
-                      <th>{t("training.time")}</th>
+                      <th className="numeric">{t("training.time")}</th>
                       {PUBLIC_TRAINING_COURTS.map((court) => (
                         <th key={court} className="court-col">
                           {t("training.court", { number: court })}

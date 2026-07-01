@@ -947,6 +947,10 @@ table.board tbody tr.is-own td {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* Spaltentitel über Zahlen-Spalten ebenfalls rechtsbündig (unter dem Header). */
+table.board thead th.numeric {
+  text-align: right;
+}
 
 /* Test: keine horizontalen Trennlinien in der Teams-Spielerliste
    (überschreibt die allgemeinere Regel table.board tbody td) */

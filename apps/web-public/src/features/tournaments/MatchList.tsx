@@ -76,7 +76,7 @@ export function MatchList({ matches }: { matches: TournamentMatch[] }): JSX.Elem
             <th>{t("tournaments.round")}</th>
             <th>{t("tournaments.player1")}</th>
             <th>{t("tournaments.player2")}</th>
-            <th>{t("matches.result")}</th>
+            <th className="numeric">{t("matches.result")}</th>
           </tr>
         </thead>
         <tbody>
