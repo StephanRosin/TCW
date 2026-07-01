@@ -663,7 +663,6 @@ main.container {
 .card--photo table.board {
   color: #fff;
 }
-.card--photo table.board tbody tr:nth-child(even) td,
 .card--photo table.board tbody tr.is-own td {
   background: transparent;
 }
@@ -893,8 +892,8 @@ main.container {
   padding: 0.32rem 0.25rem;
   border-radius: var(--radius-sm);
 }
-.courts-row:nth-child(even) {
-  background: var(--surface-2);
+.courts-row + .courts-row {
+  border-top: 1px solid var(--border);
 }
 .courts-row__court {
   font-weight: 800;
@@ -939,9 +938,6 @@ table.board tbody td {
   padding: 0.38rem 0.8rem;
   border-top: 1px solid var(--border);
   vertical-align: top;
-}
-table.board tbody tr:nth-child(even) td {
-  background: var(--surface-2);
 }
 table.board tbody tr.is-own td {
   background: var(--own-row);
@@ -1991,9 +1987,6 @@ html[data-theme="night"] body {
   border-bottom: 1px solid var(--border);
   letter-spacing: 0.12em;
 }
-[data-theme="night"] table.board tbody tr:nth-child(even) td {
-  background: transparent;
-}
 [data-theme="night"] table.board tbody td {
   border-top: 1px solid rgba(255, 255, 255, 0.055);
 }
@@ -2052,9 +2045,6 @@ html[data-theme="night"] body {
   color: var(--ice);
   font-family: var(--font-mono);
   font-size: 0.8rem;
-}
-[data-theme="night"] .courts-row:nth-child(even) {
-  background: rgba(255, 255, 255, 0.035);
 }
 
 /* --- Zustände, Legende, Footer --- */
