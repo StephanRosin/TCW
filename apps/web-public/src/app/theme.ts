@@ -11,17 +11,16 @@ export interface ThemeOption {
 }
 
 export const THEMES: ReadonlyArray<ThemeOption> = [
-  { id: "night", labelKey: "theme.night", dot: "#c8f135" },
   { id: "club", labelKey: "theme.club", dot: "#25348b" },
   { id: "nacht", labelKey: "theme.nacht", dot: "#10142a" },
   { id: "sand", labelKey: "theme.sand", dot: "#b35d34" },
   { id: "wald", labelKey: "theme.wald", dot: "#2a7d3a" },
   { id: "schiefer", labelKey: "theme.schiefer", dot: "#3a4350" },
+  { id: "night", labelKey: "theme.night", dot: "#c8f135" },
 ];
 
 const STORAGE_KEY = "tcw-theme";
-// Redesign-Prototyp: „Night Court" als Standard, damit der neue Look direkt sichtbar ist.
-const DEFAULT_THEME = "night";
+const DEFAULT_THEME = "club";
 
 export function getStoredTheme(): string {
   try {

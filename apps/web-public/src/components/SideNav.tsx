@@ -3,7 +3,7 @@
  * Desktop: feste Leiste links (Brand oben, Navigation, Aktionen unten).
  * Mobil: zusammengeklappt als Kopfzeile mit horizontal scrollender Navigation.
  */
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import { type MainView, type NavItem } from "../app/navigation.js";
 import { useI18n } from "../i18n/I18nProvider.js";
 import { LanguageSwitch } from "./LanguageSwitch.js";
@@ -13,6 +13,7 @@ interface SideNavProps {
   items: ReadonlyArray<NavItem>;
   activeView: MainView;
   onSelect: (view: MainView) => void;
+  extraControl?: ReactNode;
 }
 
 /** Minimalistische Linien-Icons (16×16, Strichstärke 1.7, currentColor). */
@@ -80,7 +81,7 @@ const ICONS: Record<string, JSX.Element> = {
   ),
 };
 
-export function SideNav({ items, activeView, onSelect }: SideNavProps): JSX.Element {
+export function SideNav({ items, activeView, onSelect, extraControl }: SideNavProps): JSX.Element {
   const { t } = useI18n();
   return (
     <aside className="sidenav">
@@ -130,6 +131,7 @@ export function SideNav({ items, activeView, onSelect }: SideNavProps): JSX.Elem
         </a>
         <LanguageSwitch />
         <ThemeSwitch />
+        {extraControl}
       </div>
     </aside>
   );

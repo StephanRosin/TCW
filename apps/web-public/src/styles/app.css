@@ -2071,13 +2071,14 @@ html[data-theme="night"] body {
 .shell__content {
   flex: 1;
   width: 100%;
-  max-width: 80rem;
   padding: 0 clamp(1.2rem, 3.5vw, 3rem) clamp(1.5rem, 3.5vw, 2.5rem);
   color: var(--on-image);
 }
 
 /* --- Seitennavigation --- */
 .sidenav {
+  /* Themenunabhängig: immer dunkles Glas mit heller Schrift, damit die
+     Navigation in allen Farbthemes lesbar bleibt. */
   width: 250px;
   flex-shrink: 0;
   position: sticky;
@@ -2087,10 +2088,10 @@ html[data-theme="night"] body {
   flex-direction: column;
   gap: 1.4rem;
   padding: 1.4rem 1rem 1.2rem;
-  background: rgba(13, 17, 25, 0.72);
+  background: rgba(13, 17, 25, 0.78);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
 }
 .sidenav__brand {
   display: flex;
@@ -2115,7 +2116,7 @@ html[data-theme="night"] body {
   font-weight: 700;
   font-size: 0.98rem;
   letter-spacing: -0.01em;
-  color: var(--ink-900, #fff);
+  color: #eef1f8;
 }
 .sidenav__nav {
   display: flex;
@@ -2130,7 +2131,7 @@ html[data-theme="night"] body {
   gap: 0.7rem;
   border: 0;
   background: transparent;
-  color: var(--ink-500, #8b94ad);
+  color: #98a2bb;
   font-size: 0.92rem;
   font-weight: 600;
   padding: 0.58rem 0.75rem;
@@ -2139,8 +2140,8 @@ html[data-theme="night"] body {
   transition: background 0.15s ease, color 0.15s ease;
 }
 .sidenav__item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--ink-900, #fff);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
 }
 .sidenav__item[aria-selected="true"] {
   background: rgba(200, 241, 53, 0.09);
@@ -2185,32 +2186,42 @@ html[data-theme="night"] body {
   box-shadow: 0 0 18px rgba(200, 241, 53, 0.25);
 }
 .sidenav .lang-switch,
-.sidenav .theme-switch {
+.sidenav .theme-switch,
+.sidenav .layout-switch {
   width: 100%;
   justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.sidenav .lang-switch__btn {
+  color: #c6cddc;
+}
+/* Platzsparend: in der Sidebar nur die Flaggen zeigen */
+.sidenav .lang-switch__label {
+  display: none;
 }
 
 /* --- Editorialer Seitenkopf --- */
 .pagehead {
   padding: clamp(1.6rem, 4vw, 2.6rem) clamp(1.2rem, 3.5vw, 3rem) 1.1rem;
-  max-width: 80rem;
 }
 .pagehead__eyebrow {
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.32em;
-  color: var(--ice, #7dd3fc);
+  color: var(--ice, #a8c4ee);
   margin-bottom: 0.45rem;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
 }
 .pagehead__title {
   font-family: var(--font-display);
   font-size: clamp(2rem, 4.5vw, 2.9rem);
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: var(--ink-900, #fff);
+  color: var(--on-image);
   position: relative;
   display: inline-block;
-  text-shadow: 0 0 30px rgba(200, 241, 53, 0.14);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
 }
 .pagehead__title::after {
   content: "";

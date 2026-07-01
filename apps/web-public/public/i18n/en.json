@@ -180,5 +180,8 @@
   "plaetze.next": "Up next",
   "plaetze.noPlay": "Nobody is playing right now.",
   "plaetze.occupancyError": "Court occupancy could not be loaded.",
-  "plaetze.occupancyUnavailable": "Court occupancy currently unavailable."
+  "plaetze.occupancyUnavailable": "Court occupancy currently unavailable.",
+  "layout.label": "Layout",
+  "layout.classic": "Classic",
+  "layout.studio": "Studio"
 }

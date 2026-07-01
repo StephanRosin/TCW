@@ -180,5 +180,8 @@
   "plaetze.next": "Ensuite",
   "plaetze.noPlay": "Personne ne joue actuellement.",
   "plaetze.occupancyError": "Occupation des courts introuvable.",
-  "plaetze.occupancyUnavailable": "Occupation des courts indisponible pour le moment."
+  "plaetze.occupancyUnavailable": "Occupation des courts indisponible pour le moment.",
+  "layout.label": "Mise en page",
+  "layout.classic": "Classic",
+  "layout.studio": "Studio"
 }
