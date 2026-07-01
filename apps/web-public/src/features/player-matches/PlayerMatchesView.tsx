@@ -133,7 +133,6 @@ export function PlayerMatchesView(): JSX.Element {
 
   return (
     <section className="pm">
-      <h2 className="pm-heading">{t("playerMatches.heading")}</h2>
       <p className="pm-intro">{t("playerMatches.intro")}</p>
 
       <div className="pm-search">
