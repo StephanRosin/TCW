@@ -88,6 +88,12 @@ function flipScore(score: string): string {
 }
 
 /** Sortierschlüssel (ISO YYYY-MM-DD) aus "D.M.YYYY" oder ISO; sonst "". */
+/** ISO-Datum (YYYY-MM-DD) → Schweizer Anzeige (D.M.YYYY, ohne führende Nullen) wie bei IC/TC. */
+export function isoToSwissDate(value: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value.trim());
+  return match ? `${Number(match[3])}.${Number(match[2])}.${match[1]}` : value.trim();
+}
+
 export function toSortKey(date: string): string {
   const value = date.trim();
   if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
@@ -309,14 +315,15 @@ function importTournaments(db: Database.Database, year: string, now: string): nu
     const { code, label } = tournamentCode(String(r.tournament_name ?? ""));
     const side1 = [r.player1_name, r.player1_name_2].filter(Boolean).map(String);
     const side2 = [r.player2_name, r.player2_name_2].filter(Boolean).map(String);
+    // Kein Termin (z. B. CM-Gruppenspiele)? Dann der Zeitpunkt, an dem wir das
+    // Ergebnis zuerst gesehen haben (~ Spieltag). Anzeige im IC/TC-Format.
+    const isoDate = String(r.scheduled_date ?? "") || String(r.result_seen_at ?? "").slice(0, 10);
     return {
       matchUid: `tour:${r.tournament_id}:${r.event_id}:${r.match_key}`,
       competitionCode: code,
       competitionLabel: label,
       discipline: side1.length > 1 ? "double" : "single",
-      // Kein Termin (z. B. CM-Gruppenspiele)? Dann der Zeitpunkt, an dem wir das
-      // Ergebnis zuerst gesehen haben (~ Spieltag).
-      date: String(r.scheduled_date ?? "") || String(r.result_seen_at ?? "").slice(0, 10),
+      date: isoToSwissDate(isoDate),
       side1,
       side2,
       result: String(r.result ?? ""),

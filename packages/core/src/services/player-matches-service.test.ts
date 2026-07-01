@@ -2,7 +2,15 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { playerNameKey } from "@tcw/shared";
 import { openDatabase } from "../db/connection.js";
-import { getPlayerMatches, suggestPlayers, toSortKey } from "./player-matches-service.js";
+import { getPlayerMatches, isoToSwissDate, suggestPlayers, toSortKey } from "./player-matches-service.js";
+
+test("isoToSwissDate wandelt ISO in IC/TC-Format (D.M.YYYY ohne führende Nullen)", () => {
+  assert.equal(isoToSwissDate("2026-06-24"), "24.6.2026");
+  assert.equal(isoToSwissDate("2026-06-24T19:00:00+00:00"), "24.6.2026");
+  assert.equal(isoToSwissDate("2026-05-07"), "7.5.2026");
+  assert.equal(isoToSwissDate("24.6.2026"), "24.6.2026");
+  assert.equal(isoToSwissDate(""), "");
+});
 
 test("toSortKey wandelt deutsches Datum und ISO in sortierbares ISO-Format", () => {
   assert.equal(toSortKey("7.6.2026"), "2026-06-07");
