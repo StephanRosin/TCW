@@ -1,12 +1,12 @@
 /**
  * Kopfbereich mit Logo, Titel, Importstand und Sprachwahl.
  */
-import type { JSX, ReactNode } from "react";
+import type { JSX } from "react";
 import { useI18n } from "../i18n/I18nProvider.js";
 import { LanguageSwitch } from "./LanguageSwitch.js";
 import { ThemeSwitch } from "./ThemeSwitch.js";
 
-export function SiteHeader({ extraControl }: { extraControl?: ReactNode }): JSX.Element {
+export function SiteHeader(): JSX.Element {
   const { t } = useI18n();
 
   return (
@@ -23,7 +23,6 @@ export function SiteHeader({ extraControl }: { extraControl?: ReactNode }): JSX.
           <div className="site-header__controls">
             <LanguageSwitch />
             <ThemeSwitch />
-            {extraControl}
           </div>
         </div>
       </div>

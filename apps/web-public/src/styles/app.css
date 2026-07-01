@@ -2281,17 +2281,45 @@ html[data-theme="night"] body {
   }
 }
 
-/* --- Classic-Header: Schalter wie im Studio (zentriert, Sprache nur Flaggen) --- */
+/* --- Classic-Header: Schalter exakt wie im Studio (218px = Sidebar-Innenbreite,
+   zentriert, Sprache nur Flaggen) --- */
+.site-header__controls {
+  width: 218px;
+}
 .site-header__controls .lang-switch,
-.site-header__controls .theme-switch,
-.site-header__controls .layout-switch {
+.site-header__controls .theme-switch {
   width: 100%;
   justify-content: center;
 }
 .site-header__controls .lang-switch__label {
   display: none;
 }
-.site-header__controls .layout-switch .lang-switch__btn {
+
+/* --- Footer: Impressum links, Layout-Schalter mittig, Stand rechts --- */
+.site-footer__side {
+  flex: 1;
+}
+.site-footer__side--right {
+  justify-content: flex-end;
+}
+.site-footer .layout-switch {
+  width: 218px;
+  flex-shrink: 0;
+  justify-content: center;
+}
+.site-footer .layout-switch .lang-switch__btn {
   flex: 1;
   justify-content: center;
+}
+/* Auf dunklem Footer (Classic: Clubblau) bleibt die Pill wie im Header lesbar */
+.site-footer .lang-switch__btn {
+  color: #e7ecfb;
+}
+.site-footer .lang-switch__btn[aria-pressed="true"] {
+  background: #fff;
+  color: var(--blue-900);
+}
+[data-theme="night"] .site-footer .lang-switch__btn[aria-pressed="true"] {
+  background: var(--ball);
+  color: #10141d;
 }

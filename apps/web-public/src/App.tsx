@@ -145,28 +145,23 @@ function Layout(): JSX.Element {
   if (layout === "classic") {
     return (
       <div className="layout">
-        <SiteHeader extraControl={layoutSwitch} />
+        <SiteHeader />
         <TabBar items={items} activeView={view} onSelect={(next) => navigate(next)} />
         <main className="container">{activeView}</main>
-        <SiteFooter stand={stand} />
+        <SiteFooter stand={stand} extraControl={layoutSwitch} />
       </div>
     );
   }
 
   return (
     <div className="shell">
-      <SideNav
-        items={items}
-        activeView={view}
-        onSelect={(next) => navigate(next)}
-        extraControl={layoutSwitch}
-      />
+      <SideNav items={items} activeView={view} onSelect={(next) => navigate(next)} />
       <div className="shell__main">
         <header className="pagehead">
           <h1 className="pagehead__title">{activeItem ? t(activeItem.labelKey) : ""}</h1>
         </header>
         <main className="shell__content">{activeView}</main>
-        <SiteFooter stand={stand} />
+        <SiteFooter stand={stand} extraControl={layoutSwitch} />
       </div>
     </div>
   );
