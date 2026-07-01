@@ -140,6 +140,7 @@
   "language.en": "English",
   "language.fr": "Français",
   "theme.label": "Farbthema",
+  "theme.night": "Night",
   "theme.club": "Club",
   "theme.nacht": "Nacht",
   "theme.sand": "Sand",
@@ -179,5 +180,8 @@
   "plaetze.next": "Anschliessend",
   "plaetze.noPlay": "Gerade spielt niemand.",
   "plaetze.occupancyError": "Platzbelegung konnte nicht geladen werden.",
-  "plaetze.occupancyUnavailable": "Platzbelegung momentan nicht verfügbar."
+  "plaetze.occupancyUnavailable": "Platzbelegung momentan nicht verfügbar.",
+  "layout.label": "Layout",
+  "layout.classic": "Classic",
+  "layout.studio": "Studio"
 }

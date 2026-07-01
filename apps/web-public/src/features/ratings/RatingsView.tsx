@@ -82,7 +82,7 @@ function ComparePanel(): JSX.Element {
               <th>{t("ratings.compareTitle")}</th>
               <th>{SWISSTENNIS_LABEL}</th>
               <th>{t("ratings.level")}</th>
-              <th>NTRP</th>
+              <th className="numeric">NTRP</th>
             </tr>
           </thead>
           <tbody>

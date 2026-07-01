@@ -9,6 +9,9 @@ import { useResource, type ResourceState } from "./api/useResource.js";
 import { SiteHeader } from "./components/SiteHeader.js";
 import { SiteFooter } from "./components/SiteFooter.js";
 import { TabBar } from "./components/TabBar.js";
+import { SideNav } from "./components/SideNav.js";
+import { LayoutSwitch } from "./components/LayoutSwitch.js";
+import { getStoredLayout, storeLayout, type LayoutMode } from "./app/layout.js";
 import { I18nProvider, useI18n } from "./i18n/I18nProvider.js";
 import { useHashRoute } from "./app/useHashRoute.js";
 import {
@@ -117,22 +120,49 @@ function Layout(): JSX.Element {
   );
   const consumePending = useCallback(() => setPendingEncounter(null), []);
 
+  const [layout, setLayout] = useState<LayoutMode>(() => getStoredLayout());
+  const changeLayout = useCallback((mode: LayoutMode) => {
+    storeLayout(mode);
+    setLayout(mode);
+  }, []);
+  const layoutSwitch = <LayoutSwitch value={layout} onChange={changeLayout} />;
+
+  const items = visibleNavItems(settings);
+  const activeItem = items.find((item) => item.view === view);
+
+  const activeView = (
+    <ActiveView
+      view={view}
+      ratingsSubView={ratingsSubView}
+      matchesState={matchesState}
+      pendingEncounter={pendingEncounter}
+      navigate={navigate}
+      openEncounter={openEncounter}
+      consumePending={consumePending}
+    />
+  );
+
+  if (layout === "classic") {
+    return (
+      <div className="layout">
+        <SiteHeader />
+        <TabBar items={items} activeView={view} onSelect={(next) => navigate(next)} />
+        <main className="container">{activeView}</main>
+        <SiteFooter stand={stand} extraControl={layoutSwitch} />
+      </div>
+    );
+  }
+
   return (
-    <div className="layout">
-      <SiteHeader />
-      <TabBar items={visibleNavItems(settings)} activeView={view} onSelect={(next) => navigate(next)} />
-      <main className="container">
-        <ActiveView
-          view={view}
-          ratingsSubView={ratingsSubView}
-          matchesState={matchesState}
-          pendingEncounter={pendingEncounter}
-          navigate={navigate}
-          openEncounter={openEncounter}
-          consumePending={consumePending}
-        />
-      </main>
-      <SiteFooter stand={stand} />
+    <div className="shell">
+      <SideNav items={items} activeView={view} onSelect={(next) => navigate(next)} />
+      <div className="shell__main">
+        <header className="pagehead">
+          <h1 className="pagehead__title">{activeItem ? t(activeItem.labelKey) : ""}</h1>
+        </header>
+        <main className="shell__content">{activeView}</main>
+        <SiteFooter stand={stand} extraControl={layoutSwitch} />
+      </div>
     </div>
   );
 }

@@ -104,10 +104,10 @@ function ResultsTable({
         <table className="board">
           <thead>
             <tr>
-              <th>{t("results.round")}</th>
+              <th className="numeric">{t("results.round")}</th>
               <th>{t("results.date")}</th>
               <th>{t("results.encounter")}</th>
-              <th>{t("matches.result")}</th>
+              <th className="numeric">{t("matches.result")}</th>
             </tr>
           </thead>
           <tbody>
@@ -149,10 +149,10 @@ function StandingsTable({ standings }: { standings: TeamResultsResponse["standin
         <table className="board">
           <thead>
             <tr>
-              <th>{t("results.rank")}</th>
+              <th className="numeric">{t("results.rank")}</th>
               <th>{t("results.team")}</th>
-              <th>{t("results.points")}</th>
-              <th>{t("results.sets")}</th>
+              <th className="numeric">{t("results.points")}</th>
+              <th className="numeric">{t("results.sets")}</th>
             </tr>
           </thead>
           <tbody>

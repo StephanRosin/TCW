@@ -26,7 +26,7 @@ export function LanguageSwitch(): JSX.Element {
           <span className="lang-switch__flag" aria-hidden="true">
             {FLAGS[code]}
           </span>
-          {t(`language.${code}`)}
+          <span className="lang-switch__label">{t(`language.${code}`)}</span>
         </button>
       ))}
     </div>

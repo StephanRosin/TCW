@@ -125,11 +125,11 @@ function MatchesTable({
           <thead>
             <tr>
               <th>{translate("matches.date")}</th>
-              <th>{translate("matches.time")}</th>
+              <th className="numeric">{translate("matches.time")}</th>
               <th>{translate("matches.league")}</th>
               <th>{translate("matches.homeTeam")}</th>
               <th>{translate("matches.awayTeam")}</th>
-              <th>{translate("matches.result")}</th>
+              <th className="numeric">{translate("matches.result")}</th>
             </tr>
           </thead>
           <tbody>

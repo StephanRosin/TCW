@@ -140,6 +140,7 @@
   "language.en": "English",
   "language.fr": "Français",
   "theme.label": "Thème de couleur",
+  "theme.night": "Night",
   "theme.club": "Club",
   "theme.nacht": "Nuit",
   "theme.sand": "Terre",
@@ -179,5 +180,8 @@
   "plaetze.next": "Ensuite",
   "plaetze.noPlay": "Personne ne joue actuellement.",
   "plaetze.occupancyError": "Occupation des courts introuvable.",
-  "plaetze.occupancyUnavailable": "Occupation des courts indisponible pour le moment."
+  "plaetze.occupancyUnavailable": "Occupation des courts indisponible pour le moment.",
+  "layout.label": "Mise en page",
+  "layout.classic": "Classic",
+  "layout.studio": "Studio"
 }
