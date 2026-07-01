@@ -964,8 +964,8 @@ table.board .player-row td {
   text-align: center;
   font-weight: 700;
   font-size: 0.76rem;
-  color: var(--blue-800);
-  background: rgba(37, 52, 139, 0.1);
+  color: var(--own);
+  background: var(--own-row);
   border-radius: 6px;
   padding: 0.08rem 0.35rem;
 }
@@ -1445,8 +1445,8 @@ table.board .player-row td {
   margin-left: 0.55rem;
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--blue-700);
-  background: rgba(37, 52, 139, 0.1);
+  color: var(--own);
+  background: var(--own-row);
   border-radius: 999px;
   padding: 0.05rem 0.55rem;
   vertical-align: 0.05rem;
@@ -1529,10 +1529,11 @@ table.board .player-row td {
 }
 .tbracket-slot--winner {
   font-weight: 700;
-  background: rgba(37, 52, 139, 0.07);
+  background: var(--own-row);
 }
 .tbracket-slot--match {
   background: #ffe08a;
+  color: #172033;
 }
 .tbracket-open {
   color: #9aa0b3;
@@ -1542,11 +1543,11 @@ table.board .player-row td {
   padding: 0.22rem 0.55rem;
   font-size: 0.72rem;
   text-align: right;
-  color: var(--blue-800);
+  color: var(--own);
   background: rgba(0, 0, 0, 0.035);
 }
 .tbracket-round--champion .tbracket-slot--winner {
-  background: rgba(37, 52, 139, 0.14);
+  background: var(--own-row);
 }
 
 /* ---------- Spielermatches ---------- */
