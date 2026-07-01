@@ -2218,7 +2218,7 @@ html[data-theme="night"] body {
 
 /* --- Editorialer Seitenkopf --- */
 .pagehead {
-  padding: clamp(1.6rem, 4vw, 2.6rem) clamp(1.2rem, 3.5vw, 3rem) 1.1rem;
+  padding: clamp(0.8rem, 1.8vw, 1.2rem) clamp(1.2rem, 3.5vw, 3rem) 0.9rem;
 }
 .pagehead__eyebrow {
   font-size: 0.68rem;
@@ -2230,7 +2230,7 @@ html[data-theme="night"] body {
 }
 .pagehead__title {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 4.5vw, 2.9rem);
+  font-size: clamp(1.6rem, 3.6vw, 2.3rem);
   font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--on-image);
@@ -2292,7 +2292,7 @@ html[data-theme="night"] body {
     display: none;
   }
   .pagehead {
-    padding-top: 1.1rem;
+    padding-top: 0.8rem;
   }
 }
 
