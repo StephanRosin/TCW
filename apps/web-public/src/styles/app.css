@@ -547,7 +547,7 @@ main.container {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  margin-bottom: 1.1rem;
+  margin-bottom: 0.75rem;
 }
 .chip,
 .subtabs__btn {
@@ -625,7 +625,7 @@ main.container {
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr));
-  gap: 1rem;
+  gap: 0.85rem;
 }
 .card {
   background: var(--surface);
@@ -638,7 +638,7 @@ main.container {
   color: var(--text);
 }
 .card__head {
-  padding: 0.85rem 1.1rem;
+  padding: 0.6rem 1.1rem;
   background: linear-gradient(120deg, var(--blue-900), var(--blue-800));
   color: #fff;
   border-bottom: 3px solid var(--green-600);
@@ -956,7 +956,7 @@ table.board thead th.numeric {
    (überschreibt die allgemeinere Regel table.board tbody td) */
 table.board .player-row td {
   border-top: 0;
-  padding: 0.32rem 0.7rem;
+  padding: 0.24rem 0.7rem;
 }
 .player-rank {
   display: inline-block;
@@ -1614,8 +1614,9 @@ table.board .player-row td {
 .pm-suggest__rank {
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--blue-800);
-  background: rgba(37, 52, 139, 0.1);
+  /* Theme-Variablen statt Fixfarbe: auch auf dunklen Themes (Nacht/Night) lesbar. */
+  color: var(--own);
+  background: var(--own-row);
   border-radius: 6px;
   padding: 0.08rem 0.4rem;
 }
@@ -2218,7 +2219,7 @@ html[data-theme="night"] body {
 
 /* --- Editorialer Seitenkopf --- */
 .pagehead {
-  padding: clamp(0.8rem, 1.8vw, 1.2rem) clamp(1.2rem, 3.5vw, 3rem) 0.9rem;
+  padding: clamp(0.5rem, 1.2vw, 0.8rem) clamp(1.2rem, 3.5vw, 3rem) 0.55rem;
 }
 .pagehead__eyebrow {
   font-size: 0.68rem;
@@ -2335,10 +2336,10 @@ html[data-theme="night"] body {
 
 /* --- Freiraum für die fixierte Footer-Leiste --- */
 .layout main.container {
-  padding-bottom: 5rem;
+  padding-bottom: 4.25rem;
 }
 .shell__content {
-  padding-bottom: 5rem;
+  padding-bottom: 4.25rem;
 }
 .sidenav {
   padding-bottom: 4rem;
