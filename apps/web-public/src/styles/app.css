@@ -1084,17 +1084,35 @@ table.board .player-row td {
 
 /* ---------- Footer ---------- */
 .site-footer {
+  /* Fixiert am unteren Rand: dadurch in Classic UND Studio exakt an derselben
+     Stelle, unabhängig von Bildschirmbreite und Inhaltshöhe. */
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
   background: var(--blue-900);
   color: #aebbe6;
-  padding-block: 1.4rem;
+  padding-block: 0.55rem;
   font-size: 0.85rem;
+  box-shadow: 0 -2px 14px rgba(0, 0, 0, 0.25);
 }
 .site-footer__inner {
   display: flex;
   align-items: center;
+  /* Impressum links, Schalter mittig, Stand rechts. Die Leiste ist fixiert,
+     dadurch bleibt der Schalter beim Layout-Wechsel exakt an derselben Stelle. */
   justify-content: space-between;
   gap: 1rem;
+  padding-inline: 1.5rem;
   flex-wrap: wrap;
+}
+.site-footer__side {
+  flex: 1;
+  display: inline-flex;
+}
+.site-footer__side--right {
+  justify-content: flex-end;
 }
 
 /* ---------- Trainingsplan-Grid ---------- */
@@ -2044,7 +2062,9 @@ html[data-theme="night"] body {
   color: var(--ink-500);
 }
 [data-theme="night"] .site-footer {
-  background: transparent;
+  background: rgba(11, 14, 20, 0.86);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--border);
   color: var(--ink-400);
 }
@@ -2295,13 +2315,7 @@ html[data-theme="night"] body {
   display: none;
 }
 
-/* --- Footer: Impressum links, Layout-Schalter mittig, Stand rechts --- */
-.site-footer__side {
-  flex: 1;
-}
-.site-footer__side--right {
-  justify-content: flex-end;
-}
+/* --- Footer: linksbündig, feste Abstände; Schalter mit fester Breite --- */
 .site-footer .layout-switch {
   width: 218px;
   flex-shrink: 0;
@@ -2322,4 +2336,36 @@ html[data-theme="night"] body {
 [data-theme="night"] .site-footer .lang-switch__btn[aria-pressed="true"] {
   background: var(--ball);
   color: #10141d;
+}
+
+/* --- Freiraum für die fixierte Footer-Leiste --- */
+.layout main.container {
+  padding-bottom: 5rem;
+}
+.shell__content {
+  padding-bottom: 5rem;
+}
+.sidenav {
+  padding-bottom: 4rem;
+}
+
+/* --- Mobil: fixierte Leiste wäre zu aufdringlich -> zurück in den Seitenfluss --- */
+@media (max-width: 940px) {
+  .site-footer {
+    position: static;
+    box-shadow: none;
+    padding-block: 0.9rem;
+  }
+  .site-footer__inner {
+    justify-content: space-between;
+    gap: 0.9rem;
+    padding-inline: 1rem;
+  }
+  .layout main.container,
+  .shell__content {
+    padding-bottom: 1.5rem;
+  }
+  .sidenav {
+    padding-bottom: 0.75rem;
+  }
 }

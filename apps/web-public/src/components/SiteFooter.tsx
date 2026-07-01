@@ -11,7 +11,7 @@ export function SiteFooter({ stand, extraControl }: { stand: string; extraContro
   const standLabel = stand ? t("app.stand", { value: stand }) : t("app.defaultStand");
   return (
     <footer className="site-footer">
-      <div className="container site-footer__inner">
+      <div className="site-footer__inner">
         <span className="site-footer__side">{t("footer.imprint")}</span>
         {extraControl}
         <span className="stand-badge site-footer__side site-footer__side--right">{standLabel}</span>
