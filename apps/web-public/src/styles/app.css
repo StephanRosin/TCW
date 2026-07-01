@@ -2240,17 +2240,6 @@ html[data-theme="night"] body {
   display: inline-block;
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
 }
-.pagehead__title::after {
-  content: "";
-  position: absolute;
-  left: 2px;
-  bottom: -0.42rem;
-  width: 3.2rem;
-  height: 4px;
-  border-radius: 4px;
-  background: var(--ball, #c8f135);
-  box-shadow: 0 0 16px rgba(200, 241, 53, 0.7);
-}
 
 /* Footer im Content-Strom */
 .shell__main .site-footer {
