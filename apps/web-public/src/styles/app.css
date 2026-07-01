@@ -2126,9 +2126,10 @@ html[data-theme="night"] body {
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
 }
 .sidenav__eyebrow {
-  font-size: 0.62rem;
+  font-size: 0.78rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.24em;
   color: var(--ice, #7dd3fc);
 }
 .sidenav__title {
