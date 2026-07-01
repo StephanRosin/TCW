@@ -2280,3 +2280,18 @@ html[data-theme="night"] body {
     padding-top: 1.1rem;
   }
 }
+
+/* --- Classic-Header: Schalter wie im Studio (zentriert, Sprache nur Flaggen) --- */
+.site-header__controls .lang-switch,
+.site-header__controls .theme-switch,
+.site-header__controls .layout-switch {
+  width: 100%;
+  justify-content: center;
+}
+.site-header__controls .lang-switch__label {
+  display: none;
+}
+.site-header__controls .layout-switch .lang-switch__btn {
+  flex: 1;
+  justify-content: center;
+}
