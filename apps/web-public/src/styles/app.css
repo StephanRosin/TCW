@@ -92,6 +92,8 @@
   --on-image: #eaf0fb;
   --accent: var(--blue-700);
   --own: var(--blue-800);
+  /* Deutliche Tönung der eigenen Club-Zeilen in Tabellen (pro Theme). */
+  --own-row: rgba(37, 52, 139, 0.16);
 
   --radius-sm: 8px;
   --radius: 14px;
@@ -134,7 +136,8 @@ html[data-theme="nacht"] {
   --text-muted: #a7b0cf;
   --on-image: #eaf0fb;
   --accent: #8499ff;
-  --own: #3f54c0;
+  --own: #8499ff;
+  --own-row: rgba(132, 153, 255, 0.18);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow: 0 16px 34px rgba(0, 0, 0, 0.55);
   --bg-overlay-top: rgba(7, 10, 24, 0.82);
@@ -165,6 +168,7 @@ html[data-theme="sand"] {
   --text-muted: #7d6c50;
   --on-image: #fdf3e0;
   --accent: #a3502c;
+  --own-row: rgba(179, 93, 52, 0.16);
   --own: #b35d34;
   --shadow-sm: 0 1px 2px rgba(120, 70, 40, 0.1);
   --shadow: 0 14px 30px rgba(120, 70, 40, 0.18);
@@ -197,6 +201,7 @@ html[data-theme="wald"] {
   --text-muted: #51664f;
   --on-image: #eafbe9;
   --accent: #1f7a4a;
+  --own-row: rgba(42, 125, 58, 0.17);
   --own: #2a7d3a;
   --shadow-sm: 0 1px 2px rgba(20, 70, 30, 0.1);
   --shadow: 0 14px 30px rgba(20, 70, 30, 0.16);
@@ -229,6 +234,7 @@ html[data-theme="schiefer"] {
   --text-muted: #646c7a;
   --on-image: #eef1f6;
   --accent: #43618f;
+  --own-row: rgba(67, 97, 143, 0.18);
   --own: #3a4350;
   --shadow-sm: 0 1px 2px rgba(30, 40, 55, 0.1);
   --shadow: 0 14px 30px rgba(30, 40, 55, 0.16);
@@ -938,7 +944,7 @@ table.board tbody tr:nth-child(even) td {
   background: var(--surface-2);
 }
 table.board tbody tr.is-own td {
-  background: rgba(37, 52, 139, 0.08);
+  background: var(--own-row);
 }
 .numeric {
   text-align: right;
@@ -1026,7 +1032,6 @@ table.board .player-row td {
   margin-top: 1.25rem;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--green-600);
   border-radius: var(--radius);
   padding: 1rem 1.2rem;
   box-shadow: var(--shadow);
@@ -1255,7 +1260,6 @@ table.board .player-row td {
   background: linear-gradient(120deg, var(--blue-900), var(--blue-800));
   color: #fff;
   border-radius: var(--radius);
-  border-left: 4px solid var(--green-600);
   padding: 1rem 1.2rem;
   margin: 0.9rem 0 1.3rem;
   box-shadow: var(--shadow);
@@ -1529,7 +1533,6 @@ table.board .player-row td {
 }
 .tbracket-slot--match {
   background: #ffe08a;
-  box-shadow: inset 3px 0 0 #e0a500;
 }
 .tbracket-open {
   color: #9aa0b3;
@@ -1819,6 +1822,7 @@ html[data-theme="night"] {
   --on-image: #e9edf5;
   --accent: var(--ball);
   --own: var(--ball);
+  --own-row: rgba(200, 241, 53, 0.1);
 
   --ice: #7dd3fc;
 
@@ -1995,10 +1999,6 @@ html[data-theme="night"] body {
 }
 [data-theme="night"] table.board tbody tr:hover td {
   background: rgba(200, 241, 53, 0.045);
-}
-[data-theme="night"] table.board tbody tr.is-own td {
-  background: rgba(200, 241, 53, 0.07);
-  box-shadow: inset 3px 0 0 var(--ball);
 }
 [data-theme="night"] .numeric,
 [data-theme="night"] .match-result,
