@@ -104,6 +104,75 @@ export interface EventImport {
   bracket: TournamentBracket | null;
 }
 
+/** Bestehende Match-Zeile (für den änderungsbewussten Abgleich). */
+interface ExistingMatchRow {
+  match_key: string;
+  event_id: number;
+  tournament_name: string | null;
+  event_name: string | null;
+  mode: string | null;
+  pool_name: string | null;
+  round_name: string | null;
+  scheduled_date: string | null;
+  scheduled_time: string | null;
+  court: string | null;
+  player1_name: string | null;
+  player1_name_2: string | null;
+  player2_name: string | null;
+  player2_name_2: string | null;
+  result: string | null;
+  status: string | null;
+  winner_side: number | null;
+  sort_order: number | null;
+  result_seen_at: string | null;
+}
+
+const MATCH_TEXT_FIELDS = [
+  "tournament_name",
+  "event_name",
+  "mode",
+  "pool_name",
+  "round_name",
+  "scheduled_date",
+  "scheduled_time",
+  "court",
+  "player1_name",
+  "player1_name_2",
+  "player2_name",
+  "player2_name_2",
+  "result",
+  "status",
+] as const;
+
+/** Ob sich ein inhaltliches Feld gegenüber dem gespeicherten Stand geändert hat. */
+function matchChanged(previous: ExistingMatchRow, next: Record<string, unknown>): boolean {
+  for (const field of MATCH_TEXT_FIELDS) {
+    if (String(previous[field] ?? "") !== String(next[field] ?? "")) return true;
+  }
+  return (
+    Number(previous.winner_side ?? 0) !== Number(next.winner_side ?? 0) ||
+    Number(previous.sort_order ?? 0) !== Number(next.sort_order ?? 0)
+  );
+}
+
+/**
+ * Zeitpunkt des ersten Ergebnisses (~ Spieltag). Einmal gesetzt, bleibt er
+ * erhalten. Für Partien, die bereits mit Ergebnis in der DB lagen, bevor wir
+ * dies verfolgt haben, bleibt er leer (kein erfundenes Datum).
+ */
+function computeResultSeen(
+  previous: ExistingMatchRow | undefined,
+  result: string,
+  importedAt: string,
+): string | null {
+  const previousSeen = previous?.result_seen_at ?? null;
+  if (previousSeen) return previousSeen;
+  if (result.trim() === "") return null;
+  if (!previous) return importedAt; // neue Partie, kommt bereits mit Ergebnis → gerade gespielt
+  const hadResult = String(previous.result ?? "").trim() !== "";
+  return hadResult ? null : importedAt; // vorbestehendes Ergebnis: unbekannt; sonst frischer Übergang
+}
+
 /** Ersetzt alle importierten Daten eines Turniers atomar (alte bleiben bei Fehler erhalten). */
 export function replaceTournamentData(
   database: TcwDatabase,
@@ -113,7 +182,6 @@ export function replaceTournamentData(
   importedAt: string,
 ): void {
   const deletePlayers = database.prepare("DELETE FROM tournament_players WHERE tournament_id = ?");
-  const deleteMatches = database.prepare("DELETE FROM tournament_matches WHERE tournament_id = ?");
   const deleteExtras = database.prepare("DELETE FROM tournament_event_extras WHERE tournament_id = ?");
   const deleteEvents = database.prepare("DELETE FROM tournament_events WHERE tournament_id = ?");
   const insertExtras = database.prepare(
@@ -128,16 +196,41 @@ export function replaceTournamentData(
     `INSERT OR IGNORE INTO tournament_players (tournament_id, event_id, player_key, player_name, player_name_2, license_number, license_number_2, player_url, player_url_2, confirmed, ranking, ranking_2, registered_on, note, sort_order)
      VALUES (@tournament_id, @event_id, @player_key, @player_name, @player_name_2, @license_number, @license_number_2, @player_url, @player_url_2, @confirmed, @ranking, @ranking_2, @registered_on, @note, @sort_order_player)`,
   );
+  const selectExistingMatches = database.prepare(
+    `SELECT match_key, event_id, tournament_name, event_name, mode, pool_name, round_name,
+            scheduled_date, scheduled_time, court, player1_name, player1_name_2, player2_name,
+            player2_name_2, result, status, winner_side, sort_order, result_seen_at
+     FROM tournament_matches WHERE tournament_id = ?`,
+  );
   const insertMatch = database.prepare(
-    `INSERT OR IGNORE INTO tournament_matches (tournament_id, event_id, match_key, tournament_name, event_name, mode, pool_name, round_name, scheduled_date, scheduled_time, court, player1_name, player1_name_2, player2_name, player2_name_2, result, status, winner_side, sort_order, updated_at)
-     VALUES (@tournament_id, @event_id, @match_key, @tournament_name, @event_name, @mode, @pool_name, @round_name, @scheduled_date, @scheduled_time, @court, @player1_name, @player1_name_2, @player2_name, @player2_name_2, @result, @status, @winner_side, @sort_order, @updated_at)`,
+    `INSERT INTO tournament_matches (tournament_id, event_id, match_key, tournament_name, event_name, mode, pool_name, round_name, scheduled_date, scheduled_time, court, player1_name, player1_name_2, player2_name, player2_name_2, result, status, winner_side, sort_order, updated_at, result_seen_at)
+     VALUES (@tournament_id, @event_id, @match_key, @tournament_name, @event_name, @mode, @pool_name, @round_name, @scheduled_date, @scheduled_time, @court, @player1_name, @player1_name_2, @player2_name, @player2_name_2, @result, @status, @winner_side, @sort_order, @updated_at, @result_seen_at)`,
+  );
+  const updateMatch = database.prepare(
+    `UPDATE tournament_matches SET tournament_name=@tournament_name, event_name=@event_name, mode=@mode,
+            pool_name=@pool_name, round_name=@round_name, scheduled_date=@scheduled_date,
+            scheduled_time=@scheduled_time, court=@court, player1_name=@player1_name,
+            player1_name_2=@player1_name_2, player2_name=@player2_name, player2_name_2=@player2_name_2,
+            result=@result, status=@status, winner_side=@winner_side, sort_order=@sort_order,
+            updated_at=@updated_at, result_seen_at=@result_seen_at
+     WHERE tournament_id=@tournament_id AND event_id=@event_id AND match_key=@match_key`,
+  );
+  const deleteMatch = database.prepare(
+    "DELETE FROM tournament_matches WHERE tournament_id = ? AND event_id = ? AND match_key = ?",
   );
 
   const run = database.transaction(() => {
     deletePlayers.run(tournamentId);
-    deleteMatches.run(tournamentId);
     deleteExtras.run(tournamentId);
     deleteEvents.run(tournamentId);
+
+    // Matches werden änderungsbewusst abgeglichen (kein blindes Löschen), damit
+    // updated_at und result_seen_at nur bei echten Änderungen wandern.
+    const existingMatches = new Map<string, ExistingMatchRow>();
+    for (const row of selectExistingMatches.all(tournamentId) as ExistingMatchRow[]) {
+      existingMatches.set(row.match_key, row);
+    }
+    const incomingKeys = new Set<string>();
 
     for (const event of events) {
       insertEvent.run({
@@ -170,7 +263,9 @@ export function replaceTournamentData(
         });
       }
       event.matches.forEach((match, index) => {
-        insertMatch.run({
+        incomingKeys.add(match.matchKey);
+        const previous = existingMatches.get(match.matchKey);
+        const params = {
           tournament_id: tournamentId,
           event_id: event.meta.eventId,
           match_key: match.matchKey,
@@ -191,7 +286,14 @@ export function replaceTournamentData(
           winner_side: match.winnerSide,
           sort_order: index,
           updated_at: importedAt,
-        });
+          result_seen_at: computeResultSeen(previous, match.result, importedAt),
+        };
+        if (!previous) {
+          insertMatch.run(params);
+        } else if (matchChanged(previous, params) || (previous.result_seen_at ?? null) !== params.result_seen_at) {
+          updateMatch.run(params);
+        }
+        // unverändert: nichts schreiben (updated_at/result_seen_at bleiben erhalten)
       });
       insertExtras.run({
         tournament_id: tournamentId,
@@ -199,6 +301,13 @@ export function replaceTournamentData(
         pools_json: JSON.stringify(event.pools),
         bracket_json: event.bracket ? JSON.stringify(event.bracket) : null,
       });
+    }
+
+    // Nicht mehr gelieferte Matches entfernen.
+    for (const [key, row] of existingMatches) {
+      if (!incomingKeys.has(key)) {
+        deleteMatch.run(tournamentId, row.event_id, key);
+      }
     }
 
     database

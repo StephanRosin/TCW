@@ -298,6 +298,7 @@ function importTournaments(db: Database.Database, year: string, now: string): nu
     .prepare(
       `SELECT tm.tournament_id, tm.event_id, tm.match_key, tm.player1_name, tm.player1_name_2,
               tm.player2_name, tm.player2_name_2, tm.result, tm.winner_side, tm.scheduled_date,
+              tm.result_seen_at,
               t.name AS tournament_name, t.swisstennis_tournament_id AS st_id
        FROM tournament_matches tm
        JOIN tournaments t ON t.swisstennis_tournament_id = tm.tournament_id
@@ -313,7 +314,9 @@ function importTournaments(db: Database.Database, year: string, now: string): nu
       competitionCode: code,
       competitionLabel: label,
       discipline: side1.length > 1 ? "double" : "single",
-      date: String(r.scheduled_date ?? ""),
+      // Kein Termin (z. B. CM-Gruppenspiele)? Dann der Zeitpunkt, an dem wir das
+      // Ergebnis zuerst gesehen haben (~ Spieltag).
+      date: String(r.scheduled_date ?? "") || String(r.result_seen_at ?? "").slice(0, 10),
       side1,
       side2,
       result: String(r.result ?? ""),

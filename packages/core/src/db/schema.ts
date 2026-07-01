@@ -176,6 +176,10 @@ CREATE TABLE IF NOT EXISTS tournament_matches (
   winner_side INTEGER NOT NULL DEFAULT 0,
   sort_order INTEGER NOT NULL DEFAULT 0,
   updated_at TEXT NOT NULL,
+  -- Zeitpunkt, an dem zum ersten Mal ein Ergebnis erschien (~ Spieltag), als
+  -- Datums-Ersatz für Partien ohne Termin (z. B. CM-Gruppenspiele). Einmal
+  -- gesetzt, danach unverändert.
+  result_seen_at TEXT,
   PRIMARY KEY (tournament_id, event_id, match_key)
 );
 

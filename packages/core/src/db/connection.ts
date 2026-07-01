@@ -11,6 +11,14 @@ import { SCHEMA_SQL } from "./schema.js";
 
 export type TcwDatabase = Database.Database;
 
+/** Ergänzt eine Spalte idempotent (bestehende DBs erhalten neue Felder). */
+function ensureColumn(database: TcwDatabase, table: string, column: string, definition: string): void {
+  const columns = database.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  if (!columns.some((entry) => entry.name === column)) {
+    database.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+}
+
 export interface DatabaseOptions {
   /** Pfad zur SQLite-Datei. */
   filePath: string;
@@ -31,6 +39,8 @@ export function openDatabase(options: DatabaseOptions): TcwDatabase {
   database.pragma("foreign_keys = ON");
   if (!options.readonly) {
     database.exec(SCHEMA_SQL);
+    // Nachträglich ergänzte Spalten (bestehende Datenbanken).
+    ensureColumn(database, "tournament_matches", "result_seen_at", "TEXT");
   }
   return database;
 }
