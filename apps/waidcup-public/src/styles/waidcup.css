@@ -84,17 +84,22 @@
   margin-bottom: 1rem;
 }
 
-/* --- Kiosk (Grossbildschirm): eigenständige dunkle Vollbild-Ansicht --- */
+/* --- Kiosk (Grossbildschirm): skaliert vollstaendig mit der Fenstergroesse ---
+   Feste 100vh-Flaeche ohne Scrollen: die Zeilen teilen sich die Hoehe per Flex,
+   alle Schriften skalieren mit min(vw, vh) - schrumpft Breite ODER Hoehe,
+   schrumpft der Text mit; auf grossen TVs waechst alles proportional. */
 .kiosk {
-  min-height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 2vh;
-  padding: 2.5vh 3vw;
+  gap: 1.5vh;
+  padding: 2vh 3vw;
   background: linear-gradient(180deg, #0d1119 0%, #0b0e14 60%, #090b10 100%);
   color: #e9edf5;
 }
 .kiosk__head {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -106,16 +111,16 @@
   gap: 0.8rem;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(1rem, 1.8vw, 1.5rem);
+  font-size: min(1.8vw, 3.2vh);
 }
 .kiosk__brand img {
-  width: clamp(40px, 4vw, 64px);
+  width: min(4vw, 7vh);
   height: auto;
 }
 .kiosk__title {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(1.4rem, 3vw, 2.6rem);
+  font-size: min(3vw, 5vh);
   letter-spacing: -0.02em;
 }
 .kiosk__clock {
@@ -124,57 +129,83 @@
 .kiosk__time {
   display: block;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: clamp(1.6rem, 3.4vw, 3rem);
+  font-size: min(3.4vw, 6vh);
   font-weight: 700;
   line-height: 1;
 }
 .kiosk__date {
   color: #8b94ad;
-  font-size: clamp(0.8rem, 1.3vw, 1.1rem);
+  font-size: min(1.3vw, 2.4vh);
 }
 .kiosk__empty {
   flex: 1;
   display: grid;
   place-items: center;
   color: #8b94ad;
-  font-size: clamp(1.3rem, 2.6vw, 2.2rem);
+  font-size: min(2.6vw, 4.5vh);
 }
 
-/* Zeilen im Kiosk: grossformatig, dunkles Glas, gut aus Distanz lesbar */
+/* Hauptliste: fuellt den Restplatz, Zeilen teilen sich die Hoehe gleichmaessig */
 .kiosk > .live-board {
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   background: rgba(21, 26, 38, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: none;
   margin-bottom: 0;
 }
+.kiosk > .live-board .live-board__list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
 .kiosk .live-board__row {
-  grid-template-columns: clamp(8rem, 12vw, 12rem) clamp(6rem, 9vw, 9rem) 1fr auto;
-  padding: 1.6vh 1.6rem;
+  grid-template-columns: minmax(min-content, 12vw) minmax(min-content, 8vw) 1fr auto;
+  padding: 0 1.6rem;
   color: #e9edf5;
+  overflow: hidden;
+}
+.kiosk > .live-board .live-board__row {
+  flex: 1 1 0;
+  min-height: 0;
 }
 .kiosk .live-board__row + .live-board__row {
   border-top-color: rgba(255, 255, 255, 0.1);
 }
+.kiosk .live-board__players {
+  min-width: 0;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .kiosk .live-board__court {
-  font-size: clamp(1.3rem, 2.4vw, 2.2rem);
+  font-size: min(2.4vw, 4.4vh);
   color: #c8f135;
 }
 .kiosk .live-board__when {
-  font-size: clamp(1.2rem, 2.2vw, 2rem);
+  font-size: min(2.2vw, 4vh);
 }
 .kiosk .live-board__side {
-  font-size: clamp(1.2rem, 2.2vw, 2rem);
+  font-size: min(2.2vw, 4vh);
+}
+.kiosk .live-board__vs {
+  font-size: min(1.1vw, 2vh);
 }
 .kiosk .live-board__event {
-  font-size: clamp(1.2rem, 2.2vw, 2rem);
+  font-size: min(2.2vw, 4vh);
   color: #8b94ad;
 }
 
-/* Als-Nächstes-Leiste unten im Kiosk: gleiche Spalten, kompakter */
+/* Als-Naechstes-Leiste unten: begrenzter Anteil, gleiche Spalten, kompakter */
 .kiosk__upcoming {
+  /* Deterministisch in vh: Titel + max. 6 Zeilen à 4.6vh — kann nie überlaufen. */
+  flex: 0 0 auto;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
-  padding-top: 1.4vh;
+  padding-top: 1.2vh;
 }
 .kiosk__upcoming-title {
   font-family: var(--font-display);
@@ -182,7 +213,7 @@
   color: #8b94ad;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  font-size: clamp(0.75rem, 1.1vw, 1rem);
+  font-size: min(1.1vw, 2vh);
   margin-bottom: 0.6vh;
 }
 .kiosk__upcoming .live-board {
@@ -192,13 +223,14 @@
   margin-bottom: 0;
 }
 .kiosk__upcoming .live-board__row {
-  padding: 0.7vh 1.6rem;
+  height: 4.6vh;
+  padding: 0 1.6rem;
 }
 .kiosk__upcoming .live-board__court,
 .kiosk__upcoming .live-board__when,
 .kiosk__upcoming .live-board__side,
 .kiosk__upcoming .live-board__event {
-  font-size: clamp(0.95rem, 1.6vw, 1.4rem);
+  font-size: min(1.6vw, 2.8vh);
 }
 .kiosk__upcoming .live-board__court {
   color: #c8f135;
@@ -212,9 +244,9 @@
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.08);
   border-radius: 50%;
-  width: clamp(2.6rem, 3.4vw, 3.4rem);
-  height: clamp(2.6rem, 3.4vw, 3.4rem);
-  font-size: clamp(1.1rem, 1.6vw, 1.5rem);
+  width: min(3.4vw, 6vh);
+  height: min(3.4vw, 6vh);
+  font-size: min(1.6vw, 2.8vh);
   line-height: 1;
   cursor: pointer;
 }
