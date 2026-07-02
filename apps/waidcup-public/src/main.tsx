@@ -1,11 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.js";
+import { getStoredTheme } from "@tcw/tournament-ui";
 import "@tcw/shared/styles/app.css";
 import "./styles/waidcup.css";
 
-// Die Waidcup-Seite läuft fest im Classic/Club-Look (kein Theme-Schalter).
-document.documentElement.dataset.theme = "club";
+// Gespeichertes Farbthema früh anwenden (Default: Club) – wie auf der Hauptseite.
+document.documentElement.dataset.theme = getStoredTheme();
 
 const container = document.getElementById("root");
 if (!container) {

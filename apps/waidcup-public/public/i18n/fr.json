@@ -38,5 +38,13 @@
   "live.openKiosk": "Ouvrir le kiosque",
   "live.since": "depuis {value}",
   "live.noCourt": "Court libre",
-  "live.loadError": "Impossible de charger le tableau live."
+  "live.loadError": "Impossible de charger le tableau live.",
+  "app.flyer": "Flyer Waidcup (PDF)",
+  "theme.label": "Thème de couleur",
+  "theme.club": "Club",
+  "theme.nacht": "Nuit",
+  "theme.sand": "Terre",
+  "theme.wald": "Forêt",
+  "theme.schiefer": "Ardoise",
+  "theme.night": "Night"
 }

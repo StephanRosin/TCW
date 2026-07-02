@@ -3,7 +3,7 @@
  * Spielbetriebsseite (gleiche CSS-Klassen aus @tcw/shared/styles/app.css).
  */
 import type { JSX } from "react";
-import { LanguageSwitch, useI18n } from "@tcw/tournament-ui";
+import { LanguageSwitch, ThemeSwitch, useI18n } from "@tcw/tournament-ui";
 import { NAV_ITEMS, type MainView } from "../app/navigation.js";
 
 export function SiteHeader(): JSX.Element {
@@ -20,8 +20,18 @@ export function SiteHeader(): JSX.Element {
             </div>
           </div>
           <div className="site-header__controls">
+            <a
+              className="waidcup-flyer"
+              href="/waidcup-flyer-2026.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              title={t("app.flyer")}
+            >
+              <img src="/waidcup-logo.png" alt={t("app.flyer")} />
+            </a>
             <div className="site-header__switches">
               <LanguageSwitch />
+              <ThemeSwitch />
             </div>
           </div>
         </div>

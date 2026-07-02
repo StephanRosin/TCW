@@ -7,6 +7,8 @@ export { useResource, type ResourceState } from "./useResource.js";
 export { useHashRoute } from "./useHashRoute.js";
 export { DataView } from "./DataView.js";
 export { LanguageSwitch } from "./LanguageSwitch.js";
+export { ThemeSwitch } from "./ThemeSwitch.js";
+export { THEMES, applyTheme, getStoredTheme } from "./theme.js";
 export { TournamentBracket } from "./TournamentBracket.js";
 export { MatchList } from "./MatchList.js";
 export { compareTournamentMatches, type MatchListOrder } from "./matchOrder.js";

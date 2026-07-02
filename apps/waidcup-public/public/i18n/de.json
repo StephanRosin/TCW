@@ -38,5 +38,13 @@
   "live.openKiosk": "Kiosk öffnen",
   "live.since": "seit {value}",
   "live.noCourt": "Platz offen",
-  "live.loadError": "Live-Board konnte nicht geladen werden."
+  "live.loadError": "Live-Board konnte nicht geladen werden.",
+  "app.flyer": "Waidcup-Flyer (PDF)",
+  "theme.label": "Farbthema",
+  "theme.club": "Club",
+  "theme.nacht": "Nacht",
+  "theme.sand": "Sand",
+  "theme.wald": "Wald",
+  "theme.schiefer": "Schiefer",
+  "theme.night": "Night"
 }

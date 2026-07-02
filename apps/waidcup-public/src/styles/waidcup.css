@@ -225,3 +225,28 @@
 .kiosk .live-upcoming__event {
   color: #8b94ad;
 }
+
+/* --- Waidcup-Logo im Header: kleine Plakette, verlinkt auf den Flyer (PDF) --- */
+.waidcup-flyer {
+  align-self: center;
+  display: inline-flex;
+  padding: 0.3rem 0.55rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.waidcup-flyer:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.3);
+}
+.waidcup-flyer img {
+  height: 52px;
+  width: auto;
+  display: block;
+}
+@media (max-width: 760px) {
+  .waidcup-flyer {
+    display: none;
+  }
+}
