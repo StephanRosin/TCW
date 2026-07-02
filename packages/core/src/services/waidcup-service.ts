@@ -117,18 +117,17 @@ export function getWaidcupLive(
     .map(toLiveMatch)
     .sort((a, b) => courtSortKey(a.court) - courtSortKey(b.court));
 
-  // „Als Nächstes": pro Platz genau die eine, zeitlich nächste Partie;
-  // Anzeige nach Platz sortiert.
+  // „Als Nächstes": pro Platz genau die eine, zeitlich nächste Partie – nur
+  // vom heutigen Tag (Folgetage gehören nicht aufs Live-Board). Nach Platz
+  // sortiert.
   const futureByTime = rows
     .filter(
       (row) =>
         (row.court ?? "").trim() !== "" &&
-        (row.scheduled_date > today ||
-          (row.scheduled_date === today && row.scheduled_time > nowTime)),
+        row.scheduled_date === today &&
+        row.scheduled_time > nowTime,
     )
-    .sort((a, b) =>
-      `${a.scheduled_date}T${a.scheduled_time}`.localeCompare(`${b.scheduled_date}T${b.scheduled_time}`),
-    );
+    .sort((a, b) => a.scheduled_time.localeCompare(b.scheduled_time));
   const nextPerCourt = new Map<string, LiveRow>();
   for (const row of futureByTime) {
     const court = (row.court ?? "").trim();

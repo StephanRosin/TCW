@@ -51,7 +51,9 @@ test("getWaidcupLive: heute + Startzeit erreicht = live (nach Platz sortiert), Z
     { key: "live-p2", date: "2026-07-04", time: "13:30", court: "Platz 2" },
     { key: "up-later-today", date: "2026-07-04", time: "16:00", court: "Platz 1" },
     { key: "up-soon-today", date: "2026-07-04", time: "15:00", court: "Platz 3" },
-    { key: "up-tomorrow", date: "2026-07-05", time: "09:00", court: "Platz 1" },
+    { key: "up-tomorrow-p1", date: "2026-07-05", time: "09:00", court: "Platz 1" },
+    // Platz 7 hat NUR morgen eine Partie – darf nicht in „Als Nächstes"
+    { key: "up-tomorrow-only", date: "2026-07-05", time: "09:00", court: "Platz 7" },
     { key: "no-schedule" }, // ohne Termin: weder live noch upcoming
     // Platzhalter ("Sieger aus ..." = leere Namen): darf nirgends erscheinen
     { key: "placeholder", date: "2026-07-05", time: "10:00", court: "Platz 2", p1: "", p2: "" },
@@ -60,8 +62,9 @@ test("getWaidcupLive: heute + Startzeit erreicht = live (nach Platz sortiert), Z
   const board = getWaidcupLive(db, TID, NOW);
   // Live: Platz 2 vor Platz 10 (natürliche Sortierung, nicht alphabetisch)
   assert.deepEqual(board.now.map((m) => m.court), ["Platz 2", "Platz 10"]);
-  // Upcoming: pro Platz nur die zeitlich nächste Partie, nach Platz sortiert
-  // (Platz 1 hat zwei künftige – nur die frühere um 16:00 erscheint)
+  // Upcoming: nur heutige Partien, pro Platz die zeitlich nächste, nach Platz
+  // sortiert. Platz 1 hat heute 16:00 (+ morgen 09:00 → verworfen), Platz 7 hat
+  // NUR morgen → erscheint gar nicht.
   assert.deepEqual(
     board.upcoming.map((m) => `${m.court} ${m.scheduledDate} ${m.scheduledTime}`),
     ["Platz 1 2026-07-04 16:00", "Platz 3 2026-07-04 15:00"],
