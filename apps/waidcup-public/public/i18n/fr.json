@@ -48,6 +48,5 @@
   "theme.night": "Night",
   "kiosk.toDark": "Mode sombre",
   "kiosk.toLight": "Mode clair",
-  "app.contactDirector": "Contacter le directeur",
-  "app.contactMessage": "Bonjour, j'ai une question concernant le Waidcup"
+  "app.contactDirector": "Contacter le directeur"
 }

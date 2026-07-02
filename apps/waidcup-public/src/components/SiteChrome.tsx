@@ -24,7 +24,7 @@ export function SiteHeader(): JSX.Element {
           <div className="site-header__controls">
             <a
               className="header-cta header-cta--whatsapp"
-              href={`https://wa.me/${DIRECTOR_PHONE}?text=${encodeURIComponent(t("app.contactMessage"))}`}
+              href={`https://wa.me/${DIRECTOR_PHONE}`}
               target="_blank"
               rel="noopener noreferrer"
             >
