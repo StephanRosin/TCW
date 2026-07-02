@@ -48,5 +48,6 @@
   "theme.night": "Night",
   "kiosk.toDark": "Dark mode",
   "kiosk.toLight": "Light mode",
-  "app.contactDirector": "Contact director"
+  "app.contactDirector": "Contact director",
+  "app.contactMessage": "Hello Stephan, I have a question about the Waidcup"
 }
