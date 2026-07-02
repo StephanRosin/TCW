@@ -30,35 +30,46 @@ interface SeedMatch {
 }
 
 const EVENTS = [
-  { eventId: 1, eventName: "MS A", discipline: "MS" },
-  { eventId: 2, eventName: "WS A", discipline: "WS" },
-  { eventId: 3, eventName: "DM A", discipline: "DM" },
+  { eventId: 1, eventName: "MS A R1/R5", discipline: "MS" },
+  { eventId: 2, eventName: "WS A R1/R5", discipline: "WS" },
+  { eventId: 3, eventName: "MS A R5/R9", discipline: "MS" },
+  { eventId: 4, eventName: "WS A R5/R9", discipline: "WS" },
+  { eventId: 5, eventName: "DM A R1/R5", discipline: "DM" },
 ];
 
 const MATCHES: SeedMatch[] = [
   // Bereits gespielt (heute, vor einigen Stunden)
-  { eventId: 1, eventName: "MS A", key: "t:ms:1", court: "Platz 1", offsetHours: -4, side1: ["Rauch Markus (R4)"], side2: ["Aepli Daniel (R4)"], result: "6:4 3:6 10:7" },
-  { eventId: 2, eventName: "WS A", key: "t:ws:1", court: "Platz 2", offsetHours: -3, side1: ["Weiss Xenia (R5)"], side2: ["Rasetti Nadia (R5)"], result: "6:2 6:3" },
-  { eventId: 1, eventName: "MS A", key: "t:ms:2", court: "Platz 3", offsetHours: -2, side1: ["Yuen Denis (R5)"], side2: ["Várszegi Márk (R5)"], result: "7:5 6:4" },
+  { eventId: 1, eventName: "MS A R1/R5", key: "t:ms1:1", court: "Platz 1", offsetHours: -4, side1: ["Rauch Markus (R4)"], side2: ["Aepli Daniel (R4)"], result: "6:4 3:6 10:7" },
+  { eventId: 2, eventName: "WS A R1/R5", key: "t:ws1:1", court: "Platz 2", offsetHours: -3, side1: ["Weiss Xenia (R5)"], side2: ["Rasetti Nadia (R5)"], result: "6:2 6:3" },
+  { eventId: 3, eventName: "MS A R5/R9", key: "t:ms5:1", court: "Platz 3", offsetHours: -2, side1: ["Kalayci Cem (R7)"], side2: ["Issler Stefan (R7)"], result: "7:5 6:4" },
+  { eventId: 4, eventName: "WS A R5/R9", key: "t:ws5:1", court: "Platz 4", offsetHours: -2, side1: ["Mellini Karin (R7)"], side2: ["Ganz Karin (R7)"], result: "6:1 4:6 10:8" },
+  { eventId: 5, eventName: "DM A R1/R5", key: "t:dm:1", court: "Platz 5", offsetHours: -3, side1: ["Yuen Denis (R5)", "Rasetti Nadia (R5)"], side2: ["Rauch Markus (R4)", "Beck Claudia (R4)"], result: "6:3 6:4" },
   // Läuft gerade (Start zur letzten bzw. vorletzten vollen Stunde, ohne Resultat)
-  { eventId: 1, eventName: "MS A", key: "t:ms:3", court: "Platz 1", offsetHours: 0, side1: ["Groenveld Quinten (R5)"], side2: ["Persico Christian (R3)"] },
-  { eventId: 2, eventName: "WS A", key: "t:ws:2", court: "Platz 2", offsetHours: 0, side1: ["Roth Lorena (R5)"], side2: ["Schnuck Maria (R5)"] },
-  { eventId: 3, eventName: "DM A", key: "t:dm:1", court: "Platz 4", offsetHours: -1, side1: ["Yuen Denis (R5)", "Rasetti Nadia (R5)"], side2: ["Kolbe Daniel (R8)", "Mellini Karin (R7)"] },
-  { eventId: 2, eventName: "WS A", key: "t:ws:3", court: "Platz 5", offsetHours: 0, side1: ["Kucera Talissa (R5)"], side2: ["Kramer Sophia (R6)"] },
-  // Als Nächstes: das jeweils folgende Match – auch mal erst in 2–3 Stunden
-  { eventId: 1, eventName: "MS A", key: "t:ms:4", court: "Platz 1", offsetHours: 2, side1: ["Franchini Gianluca (R2)"], side2: ["Biella Andrea (R3)"] },
-  { eventId: 2, eventName: "WS A", key: "t:ws:4", court: "Platz 3", offsetHours: 1, side1: ["Wüst Martina (R5)"], side2: ["Beck Claudia (R4)"] },
-  { eventId: 3, eventName: "DM A", key: "t:dm:2", court: "Platz 6", offsetHours: 3, side1: ["Rauch Markus (R4)", "Weiss Xenia (R5)"], side2: ["Aepli Daniel (R4)", "Roth Lorena (R5)"] },
-  // ... und weitere Partien über den Nachmittag verteilt (längeres Testfenster)
-  { eventId: 1, eventName: "MS A", key: "t:ms:6", court: "Platz 2", offsetHours: 4, side1: ["Kalayci Cem (R7)"], side2: ["Pedretti Christoph (R7)"] },
-  { eventId: 2, eventName: "WS A", key: "t:ws:6", court: "Platz 4", offsetHours: 4, side1: ["Mellini Karin (R7)"], side2: ["Hansjosten Victoria (R8)"] },
-  { eventId: 1, eventName: "MS A", key: "t:ms:7", court: "Platz 5", offsetHours: 5, side1: ["Issler Stefan (R7)"], side2: ["Hofer Roli (R6)"] },
-  { eventId: 3, eventName: "DM A", key: "t:dm:3", court: "Platz 3", offsetHours: 5, side1: ["Yuen Denis (R5)", "Bütikofer Anne (R5)"], side2: ["Persico Christian (R3)", "Ganz Karin (R7)"] },
-  { eventId: 2, eventName: "WS A", key: "t:ws:7", court: "Platz 1", offsetHours: 6, side1: ["Beck Claudia (R4)"], side2: ["Kucera Talissa (R5)"] },
-  // Morgen: eine Partie mit bekannten Spielern, eine noch offene (leere Namen,
+  { eventId: 1, eventName: "MS A R1/R5", key: "t:ms1:2", court: "Platz 1", offsetHours: 0, side1: ["Groenveld Quinten (R5)"], side2: ["Persico Christian (R3)"] },
+  { eventId: 2, eventName: "WS A R1/R5", key: "t:ws1:2", court: "Platz 2", offsetHours: 0, side1: ["Roth Lorena (R5)"], side2: ["Schnuck Maria (R5)"] },
+  { eventId: 3, eventName: "MS A R5/R9", key: "t:ms5:2", court: "Platz 3", offsetHours: -1, side1: ["Pedretti Christoph (R7)"], side2: ["Hofer Roli (R6)"] },
+  { eventId: 4, eventName: "WS A R5/R9", key: "t:ws5:2", court: "Platz 5", offsetHours: 0, side1: ["Kucera Talissa (R5)"], side2: ["Kramer Sophia (R6)"] },
+  { eventId: 5, eventName: "DM A R1/R5", key: "t:dm:2", court: "Platz 4", offsetHours: -1, side1: ["Yuen Denis (R5)", "Rasetti Nadia (R5)"], side2: ["Kolbe Daniel (R8)", "Mellini Karin (R7)"] },
+  { eventId: 1, eventName: "MS A R1/R5", key: "t:ms1:3", court: "Platz 6", offsetHours: 0, side1: ["Biella Andrea (R3)"], side2: ["Ruttmann Robert (R4)"] },
+  // Als Nächstes: über den Nachmittag verteilt (auch mal erst in 2–3 Stunden)
+  { eventId: 2, eventName: "WS A R1/R5", key: "t:ws1:3", court: "Platz 3", offsetHours: 1, side1: ["Wüst Martina (R5)"], side2: ["Beck Claudia (R4)"] },
+  { eventId: 1, eventName: "MS A R1/R5", key: "t:ms1:4", court: "Platz 1", offsetHours: 2, side1: ["Franchini Gianluca (R2)"], side2: ["Rusconi Matteo (R3)"] },
+  { eventId: 3, eventName: "MS A R5/R9", key: "t:ms5:3", court: "Platz 2", offsetHours: 2, side1: ["Siczek Tomasz (R9)"], side2: ["Wiederkehr Marius (R9)"] },
+  { eventId: 5, eventName: "DM A R1/R5", key: "t:dm:3", court: "Platz 6", offsetHours: 3, side1: ["Rauch Markus (R4)", "Weiss Xenia (R5)"], side2: ["Aepli Daniel (R4)", "Roth Lorena (R5)"] },
+  { eventId: 4, eventName: "WS A R5/R9", key: "t:ws5:3", court: "Platz 4", offsetHours: 3, side1: ["Hansjosten Victoria (R8)"], side2: ["Jüngling Isabel (R8)"] },
+  { eventId: 3, eventName: "MS A R5/R9", key: "t:ms5:4", court: "Platz 2", offsetHours: 4, side1: ["Kalayci Cem (R7)"], side2: ["Pedretti Christoph (R7)"] },
+  { eventId: 4, eventName: "WS A R5/R9", key: "t:ws5:4", court: "Platz 4", offsetHours: 4, side1: ["Mellini Karin (R7)"], side2: ["Hansjosten Victoria (R8)"] },
+  { eventId: 2, eventName: "WS A R1/R5", key: "t:ws1:4", court: "Platz 5", offsetHours: 4, side1: ["Bütikofer Anne (R5)"], side2: ["Weiss Xenia (R5)"] },
+  { eventId: 3, eventName: "MS A R5/R9", key: "t:ms5:5", court: "Platz 5", offsetHours: 5, side1: ["Issler Stefan (R7)"], side2: ["Hofer Roli (R6)"] },
+  { eventId: 5, eventName: "DM A R1/R5", key: "t:dm:4", court: "Platz 3", offsetHours: 5, side1: ["Yuen Denis (R5)", "Bütikofer Anne (R5)"], side2: ["Persico Christian (R3)", "Ganz Karin (R7)"] },
+  { eventId: 1, eventName: "MS A R1/R5", key: "t:ms1:5", court: "Platz 6", offsetHours: 5, side1: ["Aepli Daniel (R4)"], side2: ["Groenveld Quinten (R5)"] },
+  { eventId: 2, eventName: "WS A R1/R5", key: "t:ws1:5", court: "Platz 1", offsetHours: 6, side1: ["Beck Claudia (R4)"], side2: ["Kucera Talissa (R5)"] },
+  { eventId: 4, eventName: "WS A R5/R9", key: "t:ws5:5", court: "Platz 6", offsetHours: 6, side1: ["Ganz Karin (R7)"], side2: ["Kramer Sophia (R6)"] },
+  // Morgen: Partien mit bekannten Spielern plus eine noch offene (leere Namen,
   // wie bei echten "Sieger aus ..."-Slots) – letztere darf nirgends erscheinen.
-  { eventId: 2, eventName: "WS A", key: "t:ws:5", court: "Platz 1", offsetHours: 23, side1: ["Weiss Xenia (R5)"], side2: ["Wüst Martina (R5)"] },
-  { eventId: 1, eventName: "MS A", key: "t:ms:5", court: "Platz 2", offsetHours: 22, side1: [""], side2: [""] },
+  { eventId: 2, eventName: "WS A R1/R5", key: "t:ws1:6", court: "Platz 1", offsetHours: 23, side1: ["Weiss Xenia (R5)"], side2: ["Wüst Martina (R5)"] },
+  { eventId: 3, eventName: "MS A R5/R9", key: "t:ms5:6", court: "Platz 3", offsetHours: 24, side1: ["Wiederkehr Marius (R9)"], side2: ["Korsch Thomas (R7)"] },
+  { eventId: 1, eventName: "MS A R1/R5", key: "t:ms1:6", court: "Platz 2", offsetHours: 22, side1: [""], side2: [""] },
 ];
 
 function pad2(value: number): string {
