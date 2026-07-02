@@ -291,3 +291,18 @@
 .kiosk--light .kiosk__upcoming .live-board__event {
   color: #57627b;
 }
+
+/* --- Spielleiter-Kontakt (WhatsApp) im Header --- */
+.header-cta--whatsapp {
+  gap: 0.5rem;
+  background: #25d366;
+}
+.header-cta--whatsapp:hover {
+  background: #1ebe5b;
+}
+.header-cta__icon {
+  height: 1.5em;
+  width: auto;
+  display: block;
+  border-radius: 4px;
+}

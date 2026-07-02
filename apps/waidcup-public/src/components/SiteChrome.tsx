@@ -4,6 +4,8 @@
  */
 import type { JSX } from "react";
 import { LanguageSwitch, ThemeSwitch, useI18n } from "@tcw/tournament-ui";
+
+const DIRECTOR_PHONE = "41798500326";
 import { NAV_ITEMS, type MainView } from "../app/navigation.js";
 
 export function SiteHeader(): JSX.Element {
@@ -20,6 +22,15 @@ export function SiteHeader(): JSX.Element {
             </div>
           </div>
           <div className="site-header__controls">
+            <a
+              className="header-cta header-cta--whatsapp"
+              href={`https://wa.me/${DIRECTOR_PHONE}?text=${encodeURIComponent(t("app.contactMessage"))}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img className="header-cta__icon" src="/whatsapp.png" alt="" aria-hidden="true" />
+              {t("app.contactDirector")}
+            </a>
             <div className="site-header__switches">
               <LanguageSwitch />
               <ThemeSwitch />
