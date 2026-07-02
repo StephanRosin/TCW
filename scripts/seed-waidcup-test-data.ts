@@ -6,8 +6,10 @@
  * Legt ein klar erkennbares Test-Turnier an (active = 0 → taucht weder im
  * echten Import noch im Turniere-Tab der Hauptseite auf) und füllt Matches
  * mit Zeiten RELATIV zum Ausführungszeitpunkt: einige gespielt, einige laufen
- * gerade, einige stehen an. Beliebig oft wiederholbar (löscht zuvor alle
- * Zeilen des Test-Turniers).
+ * gerade, einige stehen an. Derselbe Tagesplan wird zusätzlich für die
+ * nächsten 5 Tage dupliziert (identische Partien, Datum verschoben), damit
+ * über mehrere Tage getestet werden kann. Beliebig oft wiederholbar (löscht
+ * zuvor alle Zeilen des Test-Turniers).
  *
  * Die Waidcup-Website gegen diese Daten testen:
  *   WAIDCUP_TOURNAMENT_ID=999001 npm run dev:waidcup
@@ -16,6 +18,8 @@ import { loadConfig, openDatabase } from "@tcw/core";
 
 export const TEST_TOURNAMENT_ID = 999001;
 const TEST_NAME = "Waidcup (Testdaten)";
+/** Der Tagesplan wird für so viele Folgetage identisch wiederholt. */
+const EXTRA_DAYS = 5;
 
 interface SeedMatch {
   eventId: number;
@@ -126,15 +130,16 @@ function main(): void {
          @result, @status, @winnerSide, 0, @now
        )`,
     );
+    for (let day = 0; day <= EXTRA_DAYS; day++) {
     for (const match of MATCHES) {
-      const { date, time } = schedule(match.offsetHours);
+      const { date, time } = schedule(match.offsetHours + day * 24);
       insertMatch.run({
         tid: TEST_TOURNAMENT_ID,
         tname: TEST_NAME,
         now,
         eventId: match.eventId,
         eventName: match.eventName,
-        key: match.key,
+        key: day === 0 ? match.key : `${match.key}:d${day}`,
         roundName: "Testrunde",
         date,
         time,
@@ -148,11 +153,13 @@ function main(): void {
         winnerSide: match.result ? 1 : 0,
       });
     }
+    }
   });
   run();
   database.close();
 
-  console.log(`Testdaten angelegt: Turnier ${TEST_TOURNAMENT_ID} („${TEST_NAME}"), ${MATCHES.length} Matches.`);
+  const total = MATCHES.length * (EXTRA_DAYS + 1);
+  console.log(`Testdaten angelegt: Turnier ${TEST_TOURNAMENT_ID} („${TEST_NAME}"), ${total} Matches über ${EXTRA_DAYS + 1} Tage.`);
   console.log(`Testen mit: WAIDCUP_TOURNAMENT_ID=${TEST_TOURNAMENT_ID} npm run dev:waidcup`);
 }
 
