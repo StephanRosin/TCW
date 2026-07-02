@@ -5,7 +5,6 @@ import type { SiteSettings } from "@tcw/shared";
 
 export const MAIN_VIEWS = [
   "teams",
-  "ticker",
   "training",
   "matches",
   "results",
@@ -15,6 +14,7 @@ export const MAIN_VIEWS = [
   "tournaments",
   "agenda",
   "plaetze",
+  "ticker",
 ] as const;
 
 export type MainView = (typeof MAIN_VIEWS)[number];
@@ -28,7 +28,6 @@ export interface NavItem {
 
 export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "teams", labelKey: "nav.teams" },
-  { view: "ticker", labelKey: "nav.ticker" },
   { view: "training", labelKey: "nav.training" },
   { view: "matches", labelKey: "nav.matches" },
   { view: "results", labelKey: "nav.results" },
@@ -38,6 +37,7 @@ export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "tournaments", labelKey: "nav.tournaments" },
   { view: "agenda", labelKey: "nav.agenda" },
   { view: "plaetze", labelKey: "nav.plaetze" },
+  { view: "ticker", labelKey: "nav.ticker" },
 ];
 
 /** Ob eine Ansicht laut Einstellungen sichtbar ist (Training/Spieltermine schaltbar). */

@@ -3,26 +3,34 @@
  * neueste zuerst. Siegerseite fett, Doppelpartner untereinander.
  */
 import type { JSX } from "react";
-import type { TickerMatch } from "@tcw/shared";
+import type { PlayerMatchParticipant } from "@tcw/shared";
 import { publicApi } from "../../api/client.js";
 import { useResource } from "../../api/useResource.js";
 import { DataView } from "../../components/DataView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 
-function SideCell({ names, isWinner }: { names: string[]; isWinner: boolean }): JSX.Element {
+function SideCell({
+  players,
+  isWinner,
+}: {
+  players: PlayerMatchParticipant[];
+  isWinner: boolean;
+}): JSX.Element {
   return (
     <div className={isWinner ? "match-side match-side--winner" : "match-side"}>
-      {names.map((name, index) => (
+      {players.map((player, index) => (
         <div key={index} className="match-player">
-          {name}
+          {player.url ? (
+            <a href={player.url} target="_blank" rel="noopener noreferrer">
+              {player.name}
+            </a>
+          ) : (
+            player.name
+          )}
         </div>
       ))}
     </div>
   );
-}
-
-function tickerKey(match: TickerMatch, index: number): string {
-  return `${match.date}-${match.side1.join("/")}-${match.side2.join("/")}-${index}`;
 }
 
 export function TickerView(): JSX.Element {
@@ -49,14 +57,14 @@ export function TickerView(): JSX.Element {
                 </thead>
                 <tbody>
                   {data.matches.map((match, index) => (
-                    <tr key={tickerKey(match, index)}>
+                    <tr key={`${match.date}-${index}`}>
                       <td>{match.date || t("common.none")}</td>
                       <td>{match.competition}</td>
                       <td>
-                        <SideCell names={match.side1} isWinner={match.winnerSide === 1} />
+                        <SideCell players={match.side1} isWinner={match.winnerSide === 1} />
                       </td>
                       <td>
-                        <SideCell names={match.side2} isWinner={match.winnerSide === 2} />
+                        <SideCell players={match.side2} isWinner={match.winnerSide === 2} />
                       </td>
                       <td className="numeric">{match.result || t("common.none")}</td>
                     </tr>

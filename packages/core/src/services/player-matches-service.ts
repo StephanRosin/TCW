@@ -545,16 +545,24 @@ export function getTickerMatches(db: Database.Database, limit = 30): TickerMatch
     )
     .all(Number(year), limit) as Array<PlayerMatchRow & { match_uid: string }>;
 
-  const sideNames = (first: string, second: string): string[] =>
-    [first, second].filter((name) => name.trim() !== "");
+  const side = (
+    first: string,
+    firstUrl: string | null,
+    second: string,
+    secondUrl: string | null,
+  ): PlayerMatchParticipant[] =>
+    [
+      { name: first, url: firstUrl },
+      { name: second, url: secondUrl },
+    ].filter((player) => player.name.trim() !== "");
 
   return rows.map((row) => ({
     date: row.match_date,
     competitionCode: row.competition_code,
     competition: row.competition_label,
     discipline: row.discipline,
-    side1: sideNames(row.s1p1_name, row.s1p2_name),
-    side2: sideNames(row.s2p1_name, row.s2p2_name),
+    side1: side(row.s1p1_name, row.s1p1_url, row.s1p2_name, row.s1p2_url),
+    side2: side(row.s2p1_name, row.s2p1_url, row.s2p2_name, row.s2p2_url),
     result: row.result,
     winnerSide: row.winner_side,
     matchUrl: row.match_url,

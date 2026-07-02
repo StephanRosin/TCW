@@ -467,9 +467,9 @@ export interface TickerMatch {
   competitionCode: string;
   competition: string;
   discipline: "single" | "double";
-  /** Spielernamen (inkl. Klassierung) je Seite; Doppel = zwei Einträge. */
-  side1: string[];
-  side2: string[];
+  /** Spieler (inkl. Klassierung, mit Profil-URL) je Seite; Doppel = zwei Einträge. */
+  side1: PlayerMatchParticipant[];
+  side2: PlayerMatchParticipant[];
   result: string;
   /** 0 = unbekannt, 1/2 = Siegerseite. */
   winnerSide: number;

@@ -92,7 +92,7 @@ test("getTickerMatches liefert die neuesten Matches zuerst und respektiert das L
 
   const all = getTickerMatches(db);
   assert.deepEqual(all.map((m) => m.date), ["3.6.2026", "2.6.2026", "1.6.2026"]);
-  assert.deepEqual(all[0]!.side1, ["A Eins"]);
+  assert.deepEqual(all[0]!.side1, [{ name: "A Eins", url: null }]);
   assert.equal(all[0]!.winnerSide, 1);
 
   const limited = getTickerMatches(db, 2);
