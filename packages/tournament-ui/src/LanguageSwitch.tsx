@@ -9,6 +9,7 @@ const FLAGS: Record<Language, string> = {
   de: "🇩🇪",
   en: "🇬🇧",
   fr: "🇫🇷",
+  it: "🇮🇹",
 };
 
 export function LanguageSwitch(): JSX.Element {

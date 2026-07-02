@@ -16,7 +16,7 @@ export const OWN_CLUB_ID = 1298;
 /** Offizielle Schreibweise des Verbands. Nie "Swiss Tennis". */
 export const SWISSTENNIS_LABEL = "Swisstennis";
 
-export const SUPPORTED_LANGUAGES = ["de", "en", "fr"] as const;
+export const SUPPORTED_LANGUAGES = ["de", "en", "fr", "it"] as const;
 export type Language = (typeof SUPPORTED_LANGUAGES)[number];
 export const DEFAULT_LANGUAGE: Language = "de";
 export const LANGUAGE_STORAGE_KEY = "tcw_language";
