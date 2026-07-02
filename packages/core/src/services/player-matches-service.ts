@@ -300,7 +300,17 @@ function tournamentCode(name: string): { code: string; label: string } {
   return { code: "tournament", label: name };
 }
 
-function importTournaments(db: Database.Database, year: string, now: string): number {
+export function importTournaments(db: Database.Database, year: string, now: string): number {
+  // Inaktive Turniere (z. B. Testdaten) gehoeren nicht in den Ticker bzw. die
+  // Spielermatches - auch frueher importierte Zeilen wieder entfernen.
+  db.prepare(
+    `DELETE FROM player_matches
+     WHERE EXISTS (
+       SELECT 1 FROM tournaments t
+       WHERE t.active = 0
+         AND player_matches.match_uid LIKE 'tour:' || t.swisstennis_tournament_id || ':%'
+     )`,
+  ).run();
   const rows = db
     .prepare(
       `SELECT tm.tournament_id, tm.event_id, tm.match_key, tm.player1_name, tm.player1_name_2,
@@ -309,7 +319,7 @@ function importTournaments(db: Database.Database, year: string, now: string): nu
               t.name AS tournament_name, t.swisstennis_tournament_id AS st_id
        FROM tournament_matches tm
        JOIN tournaments t ON t.swisstennis_tournament_id = tm.tournament_id
-       WHERE TRIM(tm.result)<>''`,
+       WHERE TRIM(tm.result)<>'' AND t.active = 1`,
     )
     .all() as Array<Record<string, string | number | null>>;
   const records: MatchRecord[] = rows.map((r) => {

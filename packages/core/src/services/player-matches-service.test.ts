@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { playerNameKey } from "@tcw/shared";
 import { openDatabase } from "../db/connection.js";
-import { getPlayerMatches, getTickerMatches, isoToSwissDate, suggestPlayers, toSortKey } from "./player-matches-service.js";
+import { getPlayerMatches, getTickerMatches, importTournaments, isoToSwissDate, suggestPlayers, toSortKey } from "./player-matches-service.js";
 
 test("isoToSwissDate wandelt ISO in IC/TC-Format (D.M.YYYY ohne führende Nullen)", () => {
   assert.equal(isoToSwissDate("2026-06-24"), "24.6.2026");
@@ -97,5 +97,43 @@ test("getTickerMatches liefert die neuesten Matches zuerst und respektiert das L
 
   const limited = getTickerMatches(db, 2);
   assert.equal(limited.length, 2);
+  db.close();
+});
+
+test("importTournaments ignoriert inaktive Turniere und entfernt deren Altbestand", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  const insertTournament = db.prepare(
+    "INSERT INTO tournaments (name, swisstennis_tournament_id, active) VALUES (?, ?, ?)",
+  );
+  insertTournament.run("Waidcup 2026", 158138, 1);
+  insertTournament.run("Waidcup TEST", 999001, 0);
+
+  const insertMatch = db.prepare(
+    `INSERT INTO tournament_matches (
+       tournament_id, event_id, match_key, tournament_name, event_name, mode,
+       player1_name, player2_name, result, status, winner_side, updated_at
+     ) VALUES (@tid, 1, 'm1', @tname, 'MS A R1/R5', 'tree', 'Echt Emil', 'Real Rita', '6:1 6:2', 'played', 1, '2026-07-01T10:00:00Z')`,
+  );
+  insertMatch.run({ tid: 158138, tname: "Waidcup 2026" });
+  insertMatch.run({ tid: 999001, tname: "Waidcup TEST" });
+
+  // Altbestand: Dummy-Match aus dem Testturnier wurde frueher schon importiert.
+  db.prepare(
+    `INSERT INTO player_matches (
+       match_uid, year, competition_code, competition_label, discipline, match_date, sort_key,
+       s1p1_name, s1p1_key, s2p1_name, s2p1_key, result, winner_side, updated_at
+     ) VALUES ('tour:999001:1:m1', 2026, 'waidcup', 'Waidcup', 'single', '1.7.2026', '2026-07-01',
+       'Dummy Doris', 'dorisdummy', 'Fake Fred', 'fakefred', '6:0 6:0', 1, '2026-07-01T10:00:00Z')`,
+  ).run();
+
+  importTournaments(db, "2026", "2026-07-02T12:00:00Z");
+
+  const ticker = getTickerMatches(db);
+  assert.equal(ticker.length, 1);
+  assert.equal(ticker[0]!.side1[0]!.name, "Echt Emil");
+  const stale = db
+    .prepare("SELECT COUNT(*) AS n FROM player_matches WHERE match_uid LIKE 'tour:999001:%'")
+    .get() as { n: number };
+  assert.equal(stale.n, 0);
   db.close();
 });
