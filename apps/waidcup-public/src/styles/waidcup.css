@@ -58,6 +58,12 @@
 .live-board__side {
   font-weight: 700;
 }
+/* Doppel: beide Paarungen untereinander statt in einer (zu langen) Zeile */
+.live-board__players--stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15em;
+}
 .live-board__vs {
   font-size: 0.75rem;
   font-weight: 600;
@@ -187,37 +193,38 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Gestapelte Doppel: jede Paarung als eigene Zeile mit eigenem Ellipsis;
+   enge Zeilenhoehe, damit 6 Doppel gleichzeitig in die Hauptliste passen */
+.kiosk .live-board__players--stacked {
+  flex-wrap: nowrap;
+  gap: 0.1em;
+}
+.kiosk .live-board__players--stacked .live-board__side {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.15;
+}
+/* Einheitliche Schriftgroesse fuer alle Zeilen (Einzel wie Doppel);
+   klein genug, dass auch 6 zweizeilige Doppel gleichzeitig in die
+   Hauptliste passen (Worst Case, per Screenshot verifiziert) */
 .kiosk .live-board__court {
-  font-size: min(2.4vw, 4.4vh);
+  font-size: min(1.7vw, 2.7vh);
   color: #c8f135;
 }
-.kiosk .live-board__when {
-  font-size: min(2.2vw, 4vh);
-}
-.kiosk .live-board__side {
-  font-size: min(2.2vw, 4vh);
+.kiosk .live-board__when,
+.kiosk .live-board__side,
+.kiosk .live-board__event {
+  font-size: min(1.7vw, 2.7vh);
 }
 .kiosk .live-board__vs {
-  font-size: min(1.1vw, 2vh);
-}
-.kiosk .live-board__event {
-  font-size: min(2.2vw, 4vh);
-  color: #8b94ad;
-}
-
-/* Doppelpartien: 4 Namen statt 2 brauchen mehr Platz - kleinere Schrift
-   verhindert das Abschneiden mit Ellipsis, bleibt aber aus Distanz lesbar. */
-.kiosk .live-board__row--double .live-board__side,
-.kiosk .live-board__row--double .live-board__vs {
-  font-size: min(1.5vw, 2.7vh);
-}
-.kiosk .live-board__row--double .live-board__event {
-  font-size: min(1.7vw, 3vh);
+  font-size: min(0.95vw, 1.5vh);
 }
 
 /* Als-Naechstes-Leiste unten: begrenzter Anteil, gleiche Spalten, kompakter */
 .kiosk__upcoming {
-  /* Deterministisch in vh: Titel + max. 6 Zeilen à 4.6vh — kann nie überlaufen. */
+  /* Feste Zeilen-Mindesthoehe in vh; Doppel wachsen auf zwei Textzeilen.
+     Worst Case (6 Doppel oben + 6 Doppel unten) ist per Screenshot geprueft. */
   flex: 0 0 auto;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   padding-top: 1.2vh;
@@ -238,18 +245,14 @@
   margin-bottom: 0;
 }
 .kiosk__upcoming .live-board__row {
-  height: 4.6vh;
-  padding: 0 1.6rem;
+  min-height: 4.2vh;
+  padding: 0.3vh 1.6rem;
 }
 .kiosk__upcoming .live-board__court,
 .kiosk__upcoming .live-board__when,
 .kiosk__upcoming .live-board__side,
 .kiosk__upcoming .live-board__event {
-  font-size: min(1.6vw, 2.8vh);
-}
-.kiosk__upcoming .live-board__row--double .live-board__side,
-.kiosk__upcoming .live-board__row--double .live-board__event {
-  font-size: min(1.15vw, 2vh);
+  font-size: min(1.2vw, 1.9vh);
 }
 .kiosk__upcoming .live-board__court {
   color: #c8f135;

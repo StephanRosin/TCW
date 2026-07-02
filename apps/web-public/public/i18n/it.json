@@ -42,7 +42,7 @@
   "teams.groupWord": "Gruppo",
   "teams.results": "Risultati",
   "teams.groupTitle": "Apri partite del gruppo e classifica",
-  "teams.goal": "Obiettivo della squadra: {value}",
+  "teams.goal": "Obiettivo: {value}",
   "teams.trainingDay": "Giorno di allenamento: {value}",
   "teams.captain": "Cap.",
   "teams.viceCaptain": "Vice cap.",
