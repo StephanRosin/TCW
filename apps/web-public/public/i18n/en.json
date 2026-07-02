@@ -187,5 +187,6 @@
   "nav.ticker": "Ticker",
   "ticker.competition": "Competition",
   "ticker.empty": "No matches played yet.",
-  "ticker.loadError": "Ticker could not be loaded."
+  "ticker.loadError": "Ticker could not be loaded.",
+  "nav.cmReservation": "CM booking"
 }

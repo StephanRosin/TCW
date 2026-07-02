@@ -24,6 +24,14 @@ export function SiteHeader(): JSX.Element {
           <div className="site-header__controls">
             <a
               className="header-cta"
+              href="https://tcw-cm.sterostxc.ch/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("nav.cmReservation")} <span aria-hidden="true">↗</span>
+            </a>
+            <a
+              className="header-cta"
               href="https://tcwaidberg.ch/helfereinsatz"
               target="_blank"
               rel="noopener noreferrer"

@@ -187,5 +187,6 @@
   "nav.ticker": "Ticker",
   "ticker.competition": "Compétition",
   "ticker.empty": "Aucun match joué pour le moment.",
-  "ticker.loadError": "Ticker introuvable."
+  "ticker.loadError": "Ticker introuvable.",
+  "nav.cmReservation": "Réservation CM"
 }

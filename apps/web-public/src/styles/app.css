@@ -427,6 +427,7 @@ main.container {
 .header-cta {
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
   padding-inline: 1.1rem;
   border-radius: 14px;
   background: var(--green-600);
@@ -2193,6 +2194,7 @@ html[data-theme="night"] body {
 .sidenav__cta {
   display: block;
   text-align: center;
+  white-space: nowrap;
   padding: 0.5rem 0.8rem;
   border-radius: 999px;
   border: 1px solid rgba(200, 241, 53, 0.55);
