@@ -1,0 +1,99 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { openDatabase, type TcwDatabase } from "../db/connection.js";
+import { getWaidcupLive, getWaidcupMatches } from "./waidcup-service.js";
+
+const TID = 999001;
+// Fester Bezugszeitpunkt für deterministische Tests: 2026-07-04, 14:30 lokal.
+const NOW = new Date(2026, 6, 4, 14, 30, 0);
+
+interface SeedMatch {
+  key: string;
+  event?: string;
+  court?: string;
+  date?: string;
+  time?: string;
+  status?: "open" | "played";
+  result?: string;
+  p1?: string;
+  p2?: string;
+}
+
+function seed(db: TcwDatabase, matches: SeedMatch[]): void {
+  const insert = db.prepare(
+    `INSERT INTO tournament_matches (
+       tournament_id, event_id, match_key, tournament_name, event_name, mode,
+       pool_name, round_name, scheduled_date, scheduled_time, court,
+       player1_name, player1_name_2, player2_name, player2_name_2,
+       result, status, winner_side, sort_order, updated_at
+     ) VALUES (?, 1, ?, 'Waidcup (Test)', ?, 'Draw', '', '', ?, ?, ?, ?, '', ?, '', ?, ?, 0, 0, 'x')`,
+  );
+  for (const m of matches) {
+    insert.run(
+      TID,
+      m.key,
+      m.event ?? "MS A",
+      m.date ?? "",
+      m.time ?? "",
+      m.court ?? "",
+      m.p1 ?? "Spieler Eins (R5)",
+      m.p2 ?? "Spieler Zwei (R6)",
+      m.result ?? "",
+      m.status ?? "open",
+    );
+  }
+}
+
+test("getWaidcupLive: heute + Startzeit erreicht = live (nach Platz sortiert), Zukunft = upcoming (nach Zeit)", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  seed(db, [
+    { key: "live-p10", date: "2026-07-04", time: "14:00", court: "Platz 10" },
+    { key: "live-p2", date: "2026-07-04", time: "13:30", court: "Platz 2" },
+    { key: "up-later-today", date: "2026-07-04", time: "16:00", court: "Platz 1" },
+    { key: "up-soon-today", date: "2026-07-04", time: "15:00", court: "Platz 3" },
+    { key: "up-tomorrow", date: "2026-07-05", time: "09:00", court: "Platz 1" },
+    { key: "no-schedule" }, // ohne Termin: weder live noch upcoming
+  ]);
+
+  const board = getWaidcupLive(db, TID, NOW);
+  // Live: Platz 2 vor Platz 10 (natürliche Sortierung, nicht alphabetisch)
+  assert.deepEqual(board.now.map((m) => m.court), ["Platz 2", "Platz 10"]);
+  // Upcoming: heute 15:00, heute 16:00, morgen 09:00
+  assert.deepEqual(
+    board.upcoming.map((m) => `${m.scheduledDate} ${m.scheduledTime}`),
+    ["2026-07-04 15:00", "2026-07-04 16:00", "2026-07-05 09:00"],
+  );
+  db.close();
+});
+
+test("getWaidcupLive: Resultat erfasst → Partie verschwindet aus live; gestrige offene Partien erscheinen nicht", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  seed(db, [
+    { key: "finished", date: "2026-07-04", time: "13:00", court: "Platz 1", status: "played", result: "6:2 6:3" },
+    { key: "stale-yesterday", date: "2026-07-03", time: "18:00", court: "Platz 4" },
+    { key: "really-live", date: "2026-07-04", time: "14:15", court: "Platz 5" },
+  ]);
+
+  const board = getWaidcupLive(db, TID, NOW);
+  assert.deepEqual(board.now.map((m) => m.court), ["Platz 5"]);
+  assert.equal(board.upcoming.length, 0);
+  db.close();
+});
+
+test("getWaidcupMatches: liefert nur Matches des konfigurierten Turniers", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  db.exec(
+    `INSERT INTO tournament_events (tournament_id, event_id, tournament_name, event_name, discipline, source_descr, sort_order, updated_at)
+     VALUES (${TID}, 1, 'Waidcup (Test)', 'MS A', 'MS', NULL, 0, 'x'), (12345, 1, 'Anderes', 'WS A', 'WS', NULL, 0, 'x')`,
+  );
+  seed(db, [{ key: "m1", date: "2026-07-04", time: "10:00", status: "played", result: "6:0 6:0" }]);
+  db.exec(
+    `INSERT INTO tournament_matches (tournament_id, event_id, match_key, tournament_name, event_name, mode, pool_name, round_name, scheduled_date, scheduled_time, court, player1_name, player2_name, result, status, winner_side, sort_order, updated_at)
+     VALUES (12345, 1, 'fremd', 'Anderes', 'WS A', 'Draw', '', '', '', '', '', 'X', 'Y', '', 'open', 0, 0, 'x')`,
+  );
+
+  const matches = getWaidcupMatches(db, TID);
+  assert.equal(matches.length, 1);
+  assert.equal(matches[0]!.matchKey, "m1");
+  db.close();
+});

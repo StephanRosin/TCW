@@ -10,10 +10,13 @@
   "workspaces": [
     "packages/shared",
     "packages/core",
+    "packages/tournament-ui",
     "apps/public-server",
     "apps/admin-server",
     "apps/web-public",
-    "apps/web-admin"
+    "apps/web-admin",
+    "apps/waidcup-server",
+    "apps/waidcup-public"
   ],
   "scripts": {
     "migrate": "tsx scripts/migrate.ts",
@@ -26,10 +29,14 @@
     "dev:admin-api": "npm -w @tcw/admin-server run dev",
     "dev:public-web": "npm -w @tcw/web-public run dev",
     "dev:admin-web": "npm -w @tcw/web-admin run dev",
-    "build": "npm -w @tcw/web-public run build && npm -w @tcw/web-admin run build",
-    "typecheck": "tsc -b packages/shared packages/core",
+    "build": "npm -w @tcw/web-public run build && npm -w @tcw/web-admin run build && npm -w @tcw/waidcup-public run build",
+    "typecheck": "tsc -b packages/shared packages/core && tsc -p packages/tournament-ui",
     "lint": "eslint .",
-    "test": "npm -w @tcw/core run test"
+    "test": "npm -w @tcw/core run test && npm -w @tcw/tournament-ui run test",
+    "dev:waidcup": "concurrently -n waidcup-api,waidcup-web -c cyan,white \"npm:dev:waidcup-api\" \"npm:dev:waidcup-web\"",
+    "dev:waidcup-api": "npm -w @tcw/waidcup-server run dev",
+    "dev:waidcup-web": "npm -w @tcw/waidcup-public run dev",
+    "seed:waidcup-test": "tsx scripts/seed-waidcup-test-data.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

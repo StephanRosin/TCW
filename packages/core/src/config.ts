@@ -90,6 +90,10 @@ export interface AppConfig {
   gotcourtsPassword: string;
   gotcourtsClubId: number;
   gotcourtsTimeoutMs: number;
+  /** Waidcup-Website: Port und angezeigtes Turnier (Test-ID einsetzbar). */
+  waidcupPort: number;
+  waidcupHost: string;
+  waidcupTournamentId: number;
 }
 
 export function loadConfig(): AppConfig {
@@ -117,5 +121,8 @@ export function loadConfig(): AppConfig {
     gotcourtsPassword: process.env.GC_PASSWORD ?? "",
     gotcourtsClubId: readNumber("GC_CLUB_ID", 193),
     gotcourtsTimeoutMs: readNumber("GC_TIMEOUT_SECONDS", 20) * 1000,
+    waidcupPort: readNumber("IC_WAIDCUP_PORT", 8096),
+    waidcupHost: process.env.IC_WAIDCUP_HOST?.trim() || "0.0.0.0",
+    waidcupTournamentId: readNumber("WAIDCUP_TOURNAMENT_ID", 158138),
   };
 }

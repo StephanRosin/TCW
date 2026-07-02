@@ -337,68 +337,77 @@ function sideNames(name: string, name2: string | null): string[] {
   return [name, name2 ?? ""].map((value) => value.trim()).filter((value) => value !== "");
 }
 
+/**
+ * Lädt alle Events eines Turniers inkl. Anmeldungen, Matches, Pools und
+ * Tableau (aufbereitet für die öffentliche Anzeige) sowie den jüngsten
+ * Import-Zeitpunkt.
+ */
+export function loadTournamentEvents(
+  database: TcwDatabase,
+  tournamentId: number,
+): { events: TournamentEventView[]; updatedAt: string } {
+  const eventRows = database
+    .prepare(
+      `SELECT event_id, event_name, discipline, sort_order, updated_at
+       FROM tournament_events WHERE tournament_id = ? ORDER BY sort_order ASC`,
+    )
+    .all(tournamentId) as Array<{
+    event_id: number;
+    event_name: string;
+    discipline: string;
+    sort_order: number;
+    updated_at: string;
+  }>;
+
+  let latestUpdate = "";
+  const events: TournamentEventView[] = eventRows.map((eventRow) => {
+    latestUpdate = eventRow.updated_at > latestUpdate ? eventRow.updated_at : latestUpdate;
+    const players = database
+      .prepare(
+        `SELECT player_key, player_name, player_name_2, ranking, ranking_2, player_url, player_url_2, confirmed, registered_on, note
+         FROM tournament_players WHERE tournament_id = ? AND event_id = ? ORDER BY sort_order ASC`,
+      )
+      .all(tournamentId, eventRow.event_id) as Array<Record<string, unknown>>;
+    const matches = database
+      .prepare(
+        `SELECT * FROM tournament_matches WHERE tournament_id = ? AND event_id = ? ORDER BY sort_order ASC`,
+      )
+      .all(tournamentId, eventRow.event_id) as Array<Record<string, unknown>>;
+    const extras = database
+      .prepare(
+        `SELECT pools_json, bracket_json FROM tournament_event_extras
+         WHERE tournament_id = ? AND event_id = ?`,
+      )
+      .get(tournamentId, eventRow.event_id) as
+      | { pools_json?: string; bracket_json?: string | null }
+      | undefined;
+
+    return {
+      eventId: eventRow.event_id,
+      eventName: eventRow.event_name,
+      discipline: (eventRow.discipline || disciplineOf(eventRow.event_name)) as Discipline | "",
+      sortOrder: eventRow.sort_order,
+      players: players.map(toRegistrationPlayer),
+      matches: matches.map(toTournamentMatch),
+      pools: parsePools(extras?.pools_json),
+      bracket: parseBracket(extras?.bracket_json),
+    };
+  });
+
+  return { events, updatedAt: latestUpdate };
+}
+
 export function getPublicTournaments(database: TcwDatabase): TournamentsResponse {
   const configs = readTournamentConfigs(database, true);
   const tournaments: TournamentView[] = configs.map((config) => {
     const tournamentId = config.swisstennisTournamentId;
-    const eventRows = database
-      .prepare(
-        `SELECT event_id, event_name, discipline, sort_order, updated_at
-         FROM tournament_events WHERE tournament_id = ? ORDER BY sort_order ASC`,
-      )
-      .all(tournamentId) as Array<{
-      event_id: number;
-      event_name: string;
-      discipline: string;
-      sort_order: number;
-      updated_at: string;
-    }>;
-
-    let latestUpdate = "";
-    let showsMatches = false;
-    const events: TournamentEventView[] = eventRows.map((eventRow) => {
-      latestUpdate = eventRow.updated_at > latestUpdate ? eventRow.updated_at : latestUpdate;
-      const players = database
-        .prepare(
-          `SELECT player_key, player_name, player_name_2, ranking, ranking_2, player_url, player_url_2, confirmed, registered_on, note
-           FROM tournament_players WHERE tournament_id = ? AND event_id = ? ORDER BY sort_order ASC`,
-        )
-        .all(tournamentId, eventRow.event_id) as Array<Record<string, unknown>>;
-      const matches = database
-        .prepare(
-          `SELECT * FROM tournament_matches WHERE tournament_id = ? AND event_id = ? ORDER BY sort_order ASC`,
-        )
-        .all(tournamentId, eventRow.event_id) as Array<Record<string, unknown>>;
-      if (matches.length > 0) {
-        showsMatches = true;
-      }
-      const extras = database
-        .prepare(
-          `SELECT pools_json, bracket_json FROM tournament_event_extras
-           WHERE tournament_id = ? AND event_id = ?`,
-        )
-        .get(tournamentId, eventRow.event_id) as
-        | { pools_json?: string; bracket_json?: string | null }
-        | undefined;
-
-      return {
-        eventId: eventRow.event_id,
-        eventName: eventRow.event_name,
-        discipline: (eventRow.discipline || disciplineOf(eventRow.event_name)) as Discipline | "",
-        sortOrder: eventRow.sort_order,
-        players: players.map(toRegistrationPlayer),
-        matches: matches.map(toTournamentMatch),
-        pools: parsePools(extras?.pools_json),
-        bracket: parseBracket(extras?.bracket_json),
-      };
-    });
-
+    const { events, updatedAt } = loadTournamentEvents(database, tournamentId);
     return {
       id: tournamentId,
       name: config.name,
       registrationUrl: config.registrationUrl,
-      updatedAt: latestUpdate,
-      showsMatches,
+      updatedAt,
+      showsMatches: events.some((event) => event.matches.length > 0),
       events,
     };
   });

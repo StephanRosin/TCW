@@ -12,6 +12,7 @@ export * from "./integrations/gotcourts/client.js";
 export * from "./integrations/gotcourts/service.js";
 export * from "./services/tournament-store.js";
 export * from "./services/tournament-service.js";
+export * from "./services/waidcup-service.js";
 export * from "./services/matches-import-service.js";
 export * from "./services/player-matches-service.js";
 export * from "./services/agenda-service.js";

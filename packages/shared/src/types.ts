@@ -479,3 +479,23 @@ export interface TickerMatch {
 export interface TickerResponse {
   matches: TickerMatch[];
 }
+
+/** Eine Partie in der Waidcup-Live-Anzeige („Wer spielt gerade"). */
+export interface WaidcupLiveMatch {
+  court: string;
+  eventName: string;
+  side1Names: string[];
+  side2Names: string[];
+  /** "YYYY-MM-DD" (für „Als Nächstes" über Tagesgrenzen). */
+  scheduledDate: string;
+  /** "HH:MM". */
+  scheduledTime: string;
+}
+
+/** Live-Board des Waidcups: laufende und nächste Partien. */
+export interface WaidcupLiveResponse {
+  /** Läuft jetzt (heute terminiert, Startzeit erreicht, noch ohne Resultat); nach Platz sortiert. */
+  now: WaidcupLiveMatch[];
+  /** Als Nächstes (Termin in der Zukunft); nach Zeitpunkt sortiert. */
+  upcoming: WaidcupLiveMatch[];
+}

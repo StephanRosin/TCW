@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./i18n/*": "./src/i18n/*"
+    "./i18n/*": "./src/i18n/*",
+    "./styles/*": "./src/styles/*"
   },
   "types": "./src/index.ts"
 }

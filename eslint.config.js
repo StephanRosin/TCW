@@ -24,7 +24,12 @@ export default tseslint.config(
     },
   },
   {
-    files: ["apps/web-public/**/*.{ts,tsx}", "apps/web-admin/**/*.{ts,tsx}"],
+    files: [
+      "apps/web-public/**/*.{ts,tsx}",
+      "apps/web-admin/**/*.{ts,tsx}",
+      "apps/waidcup-public/**/*.{ts,tsx}",
+      "packages/tournament-ui/**/*.{ts,tsx}",
+    ],
     languageOptions: { globals: { ...globals.browser } },
     plugins: { "react-hooks": reactHooks },
     rules: {

@@ -20,6 +20,8 @@ import type { FastifyBaseLogger } from "fastify";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
+// Turniere alle 30 Minuten: hält Waidcup-Live-Board und Resultate aktuell.
+const TOURNAMENT_INTERVAL_MS = 30 * 60 * 1000;
 const INITIAL_DELAY_MS = 5_000;
 const MATCHES_JITTER_MS = 5 * 60 * 1000;
 const TOURNAMENT_JITTER_MS = 10 * 60 * 1000;
@@ -98,7 +100,7 @@ export function startBackgroundJobs(
         logger.error({ error }, "Turnier-Polling fehlgeschlagen – bestehende Daten bleiben erhalten.");
       }
     },
-    HOUR_MS,
+    TOURNAMENT_INTERVAL_MS,
     TOURNAMENT_JITTER_MS,
   );
 
