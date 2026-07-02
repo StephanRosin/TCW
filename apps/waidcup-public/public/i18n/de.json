@@ -49,6 +49,8 @@
   "theme.night": "Night",
   "kiosk.toDark": "Dunkles Design",
   "kiosk.toLight": "Helles Design",
+  "kiosk.animationsOff": "Animationen ausschalten",
+  "kiosk.animationsOn": "Animationen einschalten",
   "kiosk.colCourt": "Platz",
   "kiosk.colTime": "Uhrzeit",
   "kiosk.colMatch": "Matchup",

@@ -49,6 +49,8 @@
   "theme.night": "Night",
   "kiosk.toDark": "Design scuro",
   "kiosk.toLight": "Design chiaro",
+  "kiosk.animationsOff": "Disattiva le animazioni",
+  "kiosk.animationsOn": "Attiva le animazioni",
   "kiosk.colCourt": "Campo",
   "kiosk.colTime": "Ora",
   "kiosk.colMatch": "Partita",

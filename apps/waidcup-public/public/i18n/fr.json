@@ -49,6 +49,8 @@
   "theme.night": "Night",
   "kiosk.toDark": "Mode sombre",
   "kiosk.toLight": "Mode clair",
+  "kiosk.animationsOff": "Désactiver les animations",
+  "kiosk.animationsOn": "Activer les animations",
   "kiosk.colCourt": "Court",
   "kiosk.colTime": "Heure",
   "kiosk.colMatch": "Match",

@@ -11,6 +11,7 @@ import { LiveMatchRows } from "./../live/LiveBoard.js";
 
 const REFRESH_MS = 60_000;
 const MODE_KEY = "waidcup-kiosk-mode";
+const ANIMATION_KEY = "waidcup-kiosk-animation";
 
 type KioskMode = "light" | "dark";
 
@@ -19,6 +20,14 @@ function storedMode(): KioskMode {
     return localStorage.getItem(MODE_KEY) === "dark" ? "dark" : "light";
   } catch {
     return "light";
+  }
+}
+
+function storedAnimation(): boolean {
+  try {
+    return localStorage.getItem(ANIMATION_KEY) !== "off";
+  } catch {
+    return true;
   }
 }
 
@@ -36,6 +45,7 @@ export function KioskView(): JSX.Element {
   const [board, setBoard] = useState<WaidcupLiveResponse | null>(null);
   const [now, setNow] = useState(() => new Date());
   const [mode, setMode] = useState<KioskMode>(() => storedMode());
+  const [animated, setAnimated] = useState<boolean>(() => storedAnimation());
 
   const toggleMode = (): void => {
     const next: KioskMode = mode === "light" ? "dark" : "light";
@@ -45,6 +55,16 @@ export function KioskView(): JSX.Element {
       /* localStorage nicht verfügbar */
     }
     setMode(next);
+  };
+
+  const toggleAnimation = (): void => {
+    const next = !animated;
+    try {
+      localStorage.setItem(ANIMATION_KEY, next ? "on" : "off");
+    } catch {
+      /* localStorage nicht verfügbar */
+    }
+    setAnimated(next);
   };
 
   useEffect(() => {
@@ -69,7 +89,7 @@ export function KioskView(): JSX.Element {
   }, []);
 
   return (
-    <div className={`kiosk kiosk--${mode}`}>
+    <div className={`kiosk kiosk--${mode}${animated ? "" : " kiosk--no-anim"}`}>
       <header className="kiosk__head">
         <div className="kiosk__brand">
           <img src="/logo-tcw.png" alt="TC Waidberg" />
@@ -77,6 +97,15 @@ export function KioskView(): JSX.Element {
         </div>
         <div className="kiosk__title">🎾 {t("live.nowTitle")}</div>
         <div className="kiosk__meta">
+          <button
+            type="button"
+            className="kiosk__mode"
+            onClick={toggleAnimation}
+            title={animated ? t("kiosk.animationsOff") : t("kiosk.animationsOn")}
+            aria-label={animated ? t("kiosk.animationsOff") : t("kiosk.animationsOn")}
+          >
+            {animated ? "⏸" : "▶"}
+          </button>
           <button
             type="button"
             className="kiosk__mode"

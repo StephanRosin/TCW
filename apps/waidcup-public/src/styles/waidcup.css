@@ -308,6 +308,13 @@
   animation-delay: -0.9s;
 }
 
+/* Animationen per Kiosk-Schalter abschaltbar: die Baelle stehen dann
+   mittig in ihrer Grundposition (wie bei "Als Naechstes"). */
+.kiosk.kiosk--no-anim .court-ball,
+.kiosk.kiosk--no-anim .court-ball__seams {
+  animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .court-ball,
   .court-ball__seams {
