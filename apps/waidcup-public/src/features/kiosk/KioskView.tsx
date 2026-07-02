@@ -31,6 +31,23 @@ function storedAnimation(): boolean {
   }
 }
 
+function PauseIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 16 16" className="kiosk__mode-icon" aria-hidden="true">
+      <rect x="3" y="2.5" width="3.6" height="11" rx="1" />
+      <rect x="9.4" y="2.5" width="3.6" height="11" rx="1" />
+    </svg>
+  );
+}
+
+function PlayIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 16 16" className="kiosk__mode-icon" aria-hidden="true">
+      <path d="M4.5 2.5 13 8l-8.5 5.5z" />
+    </svg>
+  );
+}
+
 function clockLabel(date: Date): string {
   const pad = (value: number): string => String(value).padStart(2, "0");
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -104,7 +121,7 @@ export function KioskView(): JSX.Element {
             title={animated ? t("kiosk.animationsOff") : t("kiosk.animationsOn")}
             aria-label={animated ? t("kiosk.animationsOff") : t("kiosk.animationsOn")}
           >
-            {animated ? "⏸" : "▶"}
+            {animated ? <PauseIcon /> : <PlayIcon />}
           </button>
           <button
             type="button"

@@ -361,8 +361,10 @@
   color: #8b94ad;
 }
 
-/* --- Kiosk-Modus-Umschalter (hell/dunkel) --- */
+/* --- Kiosk-Schalter (Animation an/aus, hell/dunkel) --- */
 .kiosk__mode {
+  display: inline-grid;
+  place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.08);
   border-radius: 50%;
@@ -371,6 +373,14 @@
   font-size: min(1.6vw, 2.8vh);
   line-height: 1;
   cursor: pointer;
+  /* Explizite Symbolfarbe: Buttons erben keine Textfarbe vom Umfeld */
+  color: #e9edf5;
+}
+.kiosk__mode-icon {
+  width: 48%;
+  height: 48%;
+  fill: currentColor;
+  display: block;
 }
 
 /* --- Helle Kiosk-Variante: für Aussenbereich/Sonnenlicht (Default) --- */
@@ -386,6 +396,7 @@
 .kiosk--light .kiosk__mode {
   border-color: rgba(23, 32, 51, 0.25);
   background: #fff;
+  color: #172033;
 }
 .kiosk--light > .live-board {
   background: #fff;
