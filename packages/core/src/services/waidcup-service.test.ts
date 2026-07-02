@@ -91,6 +91,22 @@ test("getWaidcupLive: Resultat erfasst → Partie verschwindet aus live; gestrig
   db.close();
 });
 
+test("getWaidcupLive: Partie ohne Resultat faellt nach der Zeitobergrenze aus live", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  // NOW = 14:30, Obergrenze 2h → Fenster ab 12:30.
+  seed(db, [
+    { key: "stale-no-result", date: "2026-07-04", time: "12:00", court: "Platz 8" }, // 2.5h her → raus
+    { key: "still-live", date: "2026-07-04", time: "13:00", court: "Platz 9" }, // 1.5h her → live
+  ]);
+
+  const board = getWaidcupLive(db, TID, NOW);
+  assert.deepEqual(
+    board.now.map((m) => `${m.court} ${m.scheduledTime}`),
+    ["Platz 9 13:00"],
+  );
+  db.close();
+});
+
 test("getWaidcupMatches: liefert nur Matches des konfigurierten Turniers", () => {
   const db = openDatabase({ filePath: ":memory:" });
   db.exec(

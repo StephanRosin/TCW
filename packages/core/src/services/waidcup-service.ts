@@ -2,10 +2,12 @@
  * Lesedienst der Waidcup-Website: Events/Tableaux, Matchliste und das
  * Live-Board („Wer spielt gerade") aus den lokal importierten Turnierdaten.
  *
- * Live-Definition ohne künstliche Spieldauer: Eine Partie „läuft", wenn sie
- * heute terminiert ist, die Startzeit erreicht ist und noch kein Resultat
- * erfasst wurde (`status = 'open'`). Sobald ein Ergebnis eingetragen wird,
- * springt `status` auf `'played'` und die Partie verschwindet automatisch.
+ * Live-Definition: Eine Partie „läuft", wenn sie heute terminiert ist, die
+ * Startzeit erreicht ist, sie höchstens `MAX_LIVE_MATCH_HOURS` zurückliegt und
+ * noch kein Resultat erfasst wurde (`status = 'open'`). Sobald ein Ergebnis
+ * eingetragen wird, springt `status` auf `'played'` und die Partie verschwindet
+ * automatisch. Die Zeitobergrenze verhindert, dass eine Partie ohne erfasstes
+ * Resultat den ganzen Abend als „laufend" hängen bleibt.
  */
 import type {
   TournamentEventView,
@@ -43,6 +45,13 @@ interface LiveRow {
   player2_name: string;
   player2_name_2: string | null;
 }
+
+/**
+ * Maximale Zeitspanne (Stunden), die eine Partie ab Startzeit als „laufend"
+ * gilt. Verhindert, dass eine Partie ohne erfasstes Resultat den ganzen Abend
+ * als „laufend" hängen bleibt.
+ */
+const MAX_LIVE_MATCH_HOURS = 2;
 
 function pad2(value: number): string {
   return String(value).padStart(2, "0");
@@ -98,6 +107,16 @@ export function getWaidcupLive(
   const today = localDate(now);
   const nowTime = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 
+  // Untergrenze für „laufend": Partien, deren Startzeit länger als
+  // MAX_LIVE_MATCH_HOURS zurückliegt, gelten nicht mehr als live (schützt vor
+  // Partien, deren Resultat nie erfasst wurde). Liegt das Fenster vor
+  // Mitternacht, greift für heutige Partien „00:00".
+  const windowStart = new Date(now.getTime() - MAX_LIVE_MATCH_HOURS * 3_600_000);
+  const earliestLiveTime =
+    localDate(windowStart) === today
+      ? `${pad2(windowStart.getHours())}:${pad2(windowStart.getMinutes())}`
+      : "00:00";
+
   // „Jetzt auf dem Platz": pro Platz nur die zuletzt gestartete Partie – ist
   // das Resultat der vorherigen noch nicht erfasst, verdrängt die neuere sie.
   const startedByTimeDesc = rows
@@ -105,7 +124,8 @@ export function getWaidcupLive(
       (row) =>
         (row.court ?? "").trim() !== "" &&
         row.scheduled_date === today &&
-        row.scheduled_time <= nowTime,
+        row.scheduled_time <= nowTime &&
+        row.scheduled_time >= earliestLiveTime,
     )
     .sort((a, b) => b.scheduled_time.localeCompare(a.scheduled_time));
   const latestPerCourt = new Map<string, LiveRow>();
