@@ -202,7 +202,8 @@
   font-size: clamp(1.2rem, 2.2vw, 2rem);
 }
 .kiosk .live-now__meta {
-  font-size: clamp(0.85rem, 1.3vw, 1.2rem);
+  /* Gleiche Groesse wie der Rest der Zeile, aus Distanz lesbar. */
+  font-size: clamp(1.2rem, 2.2vw, 2rem);
   color: #8b94ad;
 }
 
