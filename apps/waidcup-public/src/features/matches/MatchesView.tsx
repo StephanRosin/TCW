@@ -7,6 +7,7 @@ import { useMemo, useState, type JSX } from "react";
 import type { TournamentMatch } from "@tcw/shared";
 import { DataView, MatchList, useI18n, useResource } from "@tcw/tournament-ui";
 import { waidcupApi } from "../../api/client.js";
+import { compareWaidcupEvents } from "../../lib/events.js";
 
 const ALL_EVENTS = 0;
 
@@ -27,7 +28,9 @@ function MatchesPanel({ matches }: { matches: TournamentMatch[] }): JSX.Element 
     for (const match of matches) {
       if (!byId.has(match.eventId)) byId.set(match.eventId, match.eventName);
     }
-    return [...byId.entries()].map(([id, name]) => ({ id, name }));
+    return [...byId.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => compareWaidcupEvents(a.name, b.name));
   }, [matches]);
 
   const filtered = useMemo(() => {
