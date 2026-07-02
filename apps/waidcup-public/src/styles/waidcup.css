@@ -123,6 +123,11 @@
   font-size: min(3vw, 5vh);
   letter-spacing: -0.02em;
 }
+.kiosk__meta {
+  display: flex;
+  align-items: center;
+  gap: 1.2vw;
+}
 .kiosk__clock {
   text-align: right;
 }
@@ -200,6 +205,16 @@
   color: #8b94ad;
 }
 
+/* Doppelpartien: 4 Namen statt 2 brauchen mehr Platz - kleinere Schrift
+   verhindert das Abschneiden mit Ellipsis, bleibt aber aus Distanz lesbar. */
+.kiosk .live-board__row--double .live-board__side,
+.kiosk .live-board__row--double .live-board__vs {
+  font-size: min(1.5vw, 2.7vh);
+}
+.kiosk .live-board__row--double .live-board__event {
+  font-size: min(1.7vw, 3vh);
+}
+
 /* Als-Naechstes-Leiste unten: begrenzter Anteil, gleiche Spalten, kompakter */
 .kiosk__upcoming {
   /* Deterministisch in vh: Titel + max. 6 Zeilen à 4.6vh — kann nie überlaufen. */
@@ -231,6 +246,10 @@
 .kiosk__upcoming .live-board__side,
 .kiosk__upcoming .live-board__event {
   font-size: min(1.6vw, 2.8vh);
+}
+.kiosk__upcoming .live-board__row--double .live-board__side,
+.kiosk__upcoming .live-board__row--double .live-board__event {
+  font-size: min(1.15vw, 2vh);
 }
 .kiosk__upcoming .live-board__court {
   color: #c8f135;
@@ -310,7 +329,9 @@
   width: auto;
   display: block;
 }
-.header-cta__label {
+/* .header-cta .x statt nur .x: schlaegt die generische ".header-cta span"-Regel
+   aus app.css (font-size: 0.85em), die sonst die Schriftgroesse hier ueberschreibt */
+.header-cta .header-cta__label {
   /* Gleiche Display-Schrift wie der Seitentitel ("Waidcup 2026") */
   font-family: var(--font-display);
   font-size: 1.3rem;

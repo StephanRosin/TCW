@@ -76,19 +76,21 @@ export function KioskView(): JSX.Element {
           <span>{t("app.title")}</span>
         </div>
         <div className="kiosk__title">🎾 {t("live.nowTitle")}</div>
-        <div className="kiosk__clock">
-          <span className="kiosk__time">{clockLabel(now)}</span>
-          <span className="kiosk__date">{dateLabel(now)}</span>
+        <div className="kiosk__meta">
+          <button
+            type="button"
+            className="kiosk__mode"
+            onClick={toggleMode}
+            title={mode === "light" ? t("kiosk.toDark") : t("kiosk.toLight")}
+            aria-label={mode === "light" ? t("kiosk.toDark") : t("kiosk.toLight")}
+          >
+            {mode === "light" ? "🌙" : "☀️"}
+          </button>
+          <div className="kiosk__clock">
+            <span className="kiosk__time">{clockLabel(now)}</span>
+            <span className="kiosk__date">{dateLabel(now)}</span>
+          </div>
         </div>
-        <button
-          type="button"
-          className="kiosk__mode"
-          onClick={toggleMode}
-          title={mode === "light" ? t("kiosk.toDark") : t("kiosk.toLight")}
-          aria-label={mode === "light" ? t("kiosk.toDark") : t("kiosk.toLight")}
-        >
-          {mode === "light" ? "🌙" : "☀️"}
-        </button>
       </header>
 
       {board === null ? (

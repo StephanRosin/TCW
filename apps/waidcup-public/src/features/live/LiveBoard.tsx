@@ -29,8 +29,10 @@ export function LiveMatchRows({ matches }: { matches: WaidcupLiveMatch[] }): JSX
           const when = isTodayLocal(match.scheduledDate)
             ? match.scheduledTime
             : `${shortDate(match.scheduledDate)} ${match.scheduledTime}`;
+          const isDouble = match.side1Names.length > 1 || match.side2Names.length > 1;
+          const rowClass = isDouble ? "live-board__row live-board__row--double" : "live-board__row";
           return (
-            <li className="live-board__row" key={`${match.court}-${match.scheduledTime}-${index}`}>
+            <li className={rowClass} key={`${match.court}-${match.scheduledTime}-${index}`}>
               <span className="live-board__court">{match.court || t("live.noCourt")}</span>
               <span className="live-board__when">{when}</span>
               <span className="live-board__players">
