@@ -32,7 +32,11 @@ function CourtLabel({ court, asBall }: { court: string; asBall: boolean }): JSX.
       </span>
     );
   }
-  return <>{court || t("live.noCourt")}</>;
+  if (court === "") {
+    return <>{t("live.noCourt")}</>;
+  }
+  // „Platz 1" → uebersetztes Label mit Nummer; ohne Nummer den Rohwert zeigen.
+  return <>{number !== undefined ? t("live.court", { number }) : court}</>;
 }
 
 export function LiveMatchRows({

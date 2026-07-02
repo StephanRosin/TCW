@@ -39,6 +39,7 @@
   "live.openKiosk": "Apri chiosco",
   "live.since": "dalle {value}",
   "live.noCourt": "Campo libero",
+  "live.court": "Campo {number}",
   "live.loadError": "Impossibile caricare il tabellone live.",
   "theme.label": "Tema colore",
   "theme.club": "Club",

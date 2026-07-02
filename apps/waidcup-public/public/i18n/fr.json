@@ -39,6 +39,7 @@
   "live.openKiosk": "Ouvrir le kiosque",
   "live.since": "depuis {value}",
   "live.noCourt": "Court libre",
+  "live.court": "Court {number}",
   "live.loadError": "Impossible de charger le tableau live.",
   "theme.label": "Thème de couleur",
   "theme.club": "Club",

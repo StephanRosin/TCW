@@ -39,6 +39,7 @@
   "live.openKiosk": "Open kiosk",
   "live.since": "since {value}",
   "live.noCourt": "Court open",
+  "live.court": "Court {number}",
   "live.loadError": "Live board could not be loaded.",
   "theme.label": "Colour theme",
   "theme.club": "Club",

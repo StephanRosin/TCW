@@ -39,6 +39,7 @@
   "live.openKiosk": "Kiosk öffnen",
   "live.since": "seit {value}",
   "live.noCourt": "Platz offen",
+  "live.court": "Platz {number}",
   "live.loadError": "Live-Board konnte nicht geladen werden.",
   "theme.label": "Farbthema",
   "theme.club": "Club",
