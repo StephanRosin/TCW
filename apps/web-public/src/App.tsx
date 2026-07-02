@@ -33,6 +33,7 @@ import { PlayerMatchesView } from "./features/player-matches/PlayerMatchesView.j
 import { TournamentsView } from "./features/tournaments/TournamentsView.js";
 import { AgendaView } from "./features/agenda/AgendaView.js";
 import { PlaetzeView } from "./features/plaetze/PlaetzeView.js";
+import { ImpressumPage } from "./pages/ImpressumPage.js";
 import type { EncountRef } from "./features/results/EncountDetail.js";
 
 interface ViewState {
@@ -90,6 +91,8 @@ function ActiveView(state: ViewState): JSX.Element {
       return <AgendaView />;
     case "plaetze":
       return <PlaetzeView />;
+    case "impressum":
+      return <ImpressumPage />;
     default:
       return <TeamsView />;
   }

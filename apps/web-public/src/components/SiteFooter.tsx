@@ -12,7 +12,11 @@ export function SiteFooter({ stand, extraControl }: { stand: string; extraContro
   return (
     <footer className="site-footer">
       <div className="site-footer__inner">
-        <span className="site-footer__side">{t("footer.imprint")}</span>
+        <span className="site-footer__side">
+          <a href="#impressum" style={{ color: "inherit", textDecoration: "none" }}>
+            {t("footer.imprint")}
+          </a>
+        </span>
         {extraControl}
         <span className="stand-badge site-footer__side site-footer__side--right">{standLabel}</span>
       </div>

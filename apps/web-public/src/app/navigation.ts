@@ -15,6 +15,7 @@ export const MAIN_VIEWS = [
   "agenda",
   "plaetze",
   "ticker",
+  "impressum",
 ] as const;
 
 export type MainView = (typeof MAIN_VIEWS)[number];
