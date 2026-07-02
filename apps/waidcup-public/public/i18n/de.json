@@ -35,7 +35,7 @@
   "live.nowTitle": "Jetzt auf dem Platz",
   "live.upcomingTitle": "Als Nächstes",
   "live.empty": "Heute keine Partien terminiert.",
-  "live.nobodyPlaying": "Gerade spielt niemand.",
+  "live.nobodyPlaying": "Aktuell keine laufenden Matches",
   "live.openKiosk": "Kiosk öffnen",
   "live.since": "seit {value}",
   "live.noCourt": "Platz offen",

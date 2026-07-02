@@ -35,7 +35,7 @@
   "live.nowTitle": "Sur le court",
   "live.upcomingTitle": "Ensuite",
   "live.empty": "Aucun match programmé aujourd'hui.",
-  "live.nobodyPlaying": "Personne ne joue actuellement.",
+  "live.nobodyPlaying": "Aucun match en cours actuellement",
   "live.openKiosk": "Ouvrir le kiosque",
   "live.since": "depuis {value}",
   "live.noCourt": "Court libre",

@@ -35,7 +35,7 @@
   "live.nowTitle": "Ora in campo",
   "live.upcomingTitle": "A seguire",
   "live.empty": "Nessuna partita in programma oggi.",
-  "live.nobodyPlaying": "Al momento nessuno sta giocando.",
+  "live.nobodyPlaying": "Al momento nessun match in corso",
   "live.openKiosk": "Apri chiosco",
   "live.since": "dalle {value}",
   "live.noCourt": "Campo libero",
