@@ -45,5 +45,7 @@
   "theme.sand": "Sand",
   "theme.wald": "Wald",
   "theme.schiefer": "Schiefer",
-  "theme.night": "Night"
+  "theme.night": "Night",
+  "kiosk.toDark": "Dunkles Design",
+  "kiosk.toLight": "Helles Design"
 }

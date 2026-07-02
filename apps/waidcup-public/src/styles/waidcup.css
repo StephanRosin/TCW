@@ -12,8 +12,9 @@
   flex-wrap: wrap;
 }
 
-/* Laufende Partien als Zeilen: eine pro Platz, volle Breite */
-.live-now-wrap {
+/* Live-Board: identische Spalten für "Jetzt auf dem Platz" und "Als Nächstes"
+   (Platz – Uhrzeit – Matchup – Kategorie) */
+.live-board {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -21,97 +22,58 @@
   overflow: hidden;
   margin-bottom: 1.4rem;
 }
-.live-now {
+.live-board__list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.live-now__row {
+.live-board__row {
   display: grid;
-  grid-template-columns: 6.5rem 1fr auto;
+  grid-template-columns: 6rem 6rem 1fr auto;
   align-items: center;
   gap: 1rem;
   padding: 0.65rem 1rem;
   color: var(--text);
 }
-.live-now__row + .live-now__row {
+.live-board__row + .live-board__row {
   border-top: 1px solid var(--border);
 }
-.live-now__court {
+.live-board__court {
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 1.05rem;
   color: var(--own);
 }
-.live-now__players {
+.live-board__when {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.live-board__players {
   display: flex;
   align-items: baseline;
   gap: 0.55rem;
   flex-wrap: wrap;
 }
-.live-now__side {
+.live-board__side {
   font-weight: 700;
 }
-.live-now__meta {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-.live-tile__vs {
+.live-board__vs {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
 }
-@media (max-width: 640px) {
-  .live-now__row {
-    grid-template-columns: 5rem 1fr;
-  }
-  .live-now__meta {
-    display: none;
-  }
-}
-
-/* --- Als Nächstes --- */
-.live-upcoming-wrap {
-  padding: 0.35rem 0.6rem;
-}
-.live-upcoming {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.live-upcoming__row {
-  display: grid;
-  grid-template-columns: 6.5rem 6rem 1fr auto;
-  align-items: baseline;
-  gap: 0.7rem;
-  padding: 0.42rem 0.3rem;
-}
-.live-upcoming__row + .live-upcoming__row {
-  border-top: 1px solid var(--border);
-}
-.live-upcoming__when {
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-}
-.live-upcoming__court {
-  color: var(--text-muted);
-  font-weight: 600;
-}
-.live-upcoming__players {
-  overflow-wrap: anywhere;
-}
-.live-upcoming__event {
-  font-size: 0.78rem;
+.live-board__event {
+  font-size: 0.8rem;
   color: var(--text-muted);
   white-space: nowrap;
 }
-@media (max-width: 700px) {
-  .live-upcoming__row {
-    grid-template-columns: 5.2rem 1fr;
+@media (max-width: 640px) {
+  .live-board__row {
+    grid-template-columns: 4.6rem 3.6rem 1fr;
   }
-  .live-upcoming__event {
+  .live-board__event {
     display: none;
   }
 }
@@ -179,35 +141,37 @@
 }
 
 /* Zeilen im Kiosk: grossformatig, dunkles Glas, gut aus Distanz lesbar */
-.kiosk .live-now-wrap {
+.kiosk > .live-board {
   flex: 1;
   background: rgba(21, 26, 38, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: none;
   margin-bottom: 0;
 }
-.kiosk .live-now__row {
-  grid-template-columns: clamp(8rem, 12vw, 12rem) 1fr auto;
+.kiosk .live-board__row {
+  grid-template-columns: clamp(8rem, 12vw, 12rem) clamp(6rem, 9vw, 9rem) 1fr auto;
   padding: 1.6vh 1.6rem;
   color: #e9edf5;
 }
-.kiosk .live-now__row + .live-now__row {
+.kiosk .live-board__row + .live-board__row {
   border-top-color: rgba(255, 255, 255, 0.1);
 }
-.kiosk .live-now__court {
+.kiosk .live-board__court {
   font-size: clamp(1.3rem, 2.4vw, 2.2rem);
   color: #c8f135;
 }
-.kiosk .live-now__side {
+.kiosk .live-board__when {
   font-size: clamp(1.2rem, 2.2vw, 2rem);
 }
-.kiosk .live-now__meta {
-  /* Gleiche Groesse wie der Rest der Zeile, aus Distanz lesbar. */
+.kiosk .live-board__side {
+  font-size: clamp(1.2rem, 2.2vw, 2rem);
+}
+.kiosk .live-board__event {
   font-size: clamp(1.2rem, 2.2vw, 2rem);
   color: #8b94ad;
 }
 
-/* Als-Nächstes-Leiste unten im Kiosk */
+/* Als-Nächstes-Leiste unten im Kiosk: gleiche Spalten, kompakter */
 .kiosk__upcoming {
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   padding-top: 1.4vh;
@@ -221,14 +185,77 @@
   font-size: clamp(0.75rem, 1.1vw, 1rem);
   margin-bottom: 0.6vh;
 }
-.kiosk .live-upcoming__row {
-  grid-template-columns: 7rem 7rem 1fr auto;
-  font-size: clamp(0.9rem, 1.5vw, 1.3rem);
+.kiosk__upcoming .live-board {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  margin-bottom: 0;
 }
-.kiosk .live-upcoming__row + .live-upcoming__row {
-  border-top-color: rgba(255, 255, 255, 0.08);
+.kiosk__upcoming .live-board__row {
+  padding: 0.7vh 1.6rem;
 }
-.kiosk .live-upcoming__court,
-.kiosk .live-upcoming__event {
+.kiosk__upcoming .live-board__court,
+.kiosk__upcoming .live-board__when,
+.kiosk__upcoming .live-board__side,
+.kiosk__upcoming .live-board__event {
+  font-size: clamp(0.95rem, 1.6vw, 1.4rem);
+}
+.kiosk__upcoming .live-board__court {
+  color: #c8f135;
+}
+.kiosk__upcoming .live-board__event {
   color: #8b94ad;
+}
+
+/* --- Kiosk-Modus-Umschalter (hell/dunkel) --- */
+.kiosk__mode {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  width: clamp(2.6rem, 3.4vw, 3.4rem);
+  height: clamp(2.6rem, 3.4vw, 3.4rem);
+  font-size: clamp(1.1rem, 1.6vw, 1.5rem);
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* --- Helle Kiosk-Variante: für Aussenbereich/Sonnenlicht (Default) --- */
+.kiosk--light {
+  background: #eef1f6;
+  color: #172033;
+}
+.kiosk--light .kiosk__date,
+.kiosk--light .kiosk__empty,
+.kiosk--light .kiosk__upcoming-title {
+  color: #57627b;
+}
+.kiosk--light .kiosk__mode {
+  border-color: rgba(23, 32, 51, 0.25);
+  background: #fff;
+}
+.kiosk--light > .live-board {
+  background: #fff;
+  border: 1px solid #d5dbea;
+}
+.kiosk--light .live-board__row {
+  color: #172033;
+}
+.kiosk--light .live-board__row + .live-board__row {
+  border-top-color: #e2e7f2;
+}
+.kiosk--light .live-board__court {
+  color: #3d7a27;
+}
+.kiosk--light .live-board__vs,
+.kiosk--light .live-board__event {
+  color: #57627b;
+}
+.kiosk--light .kiosk__upcoming {
+  border-top-color: rgba(23, 32, 51, 0.15);
+}
+.kiosk--light .kiosk__upcoming .live-board__court {
+  color: #3d7a27;
+}
+.kiosk--light .kiosk__upcoming .live-board__event {
+  color: #57627b;
 }

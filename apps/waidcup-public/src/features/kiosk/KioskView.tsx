@@ -7,9 +7,20 @@ import { useEffect, useState, type JSX } from "react";
 import type { WaidcupLiveResponse } from "@tcw/shared";
 import { useI18n } from "@tcw/tournament-ui";
 import { waidcupApi } from "../../api/client.js";
-import { isTodayLocal, LiveCourtRows, UpcomingList } from "./../live/LiveBoard.js";
+import { LiveMatchRows } from "./../live/LiveBoard.js";
 
 const REFRESH_MS = 60_000;
+const MODE_KEY = "waidcup-kiosk-mode";
+
+type KioskMode = "light" | "dark";
+
+function storedMode(): KioskMode {
+  try {
+    return localStorage.getItem(MODE_KEY) === "dark" ? "dark" : "light";
+  } catch {
+    return "light";
+  }
+}
 
 function clockLabel(date: Date): string {
   const pad = (value: number): string => String(value).padStart(2, "0");
@@ -24,6 +35,17 @@ export function KioskView(): JSX.Element {
   const { t } = useI18n();
   const [board, setBoard] = useState<WaidcupLiveResponse | null>(null);
   const [now, setNow] = useState(() => new Date());
+  const [mode, setMode] = useState<KioskMode>(() => storedMode());
+
+  const toggleMode = (): void => {
+    const next: KioskMode = mode === "light" ? "dark" : "light";
+    try {
+      localStorage.setItem(MODE_KEY, next);
+    } catch {
+      /* localStorage nicht verfügbar */
+    }
+    setMode(next);
+  };
 
   useEffect(() => {
     let active = true;
@@ -47,7 +69,7 @@ export function KioskView(): JSX.Element {
   }, []);
 
   return (
-    <div className="kiosk">
+    <div className={`kiosk kiosk--${mode}`}>
       <header className="kiosk__head">
         <div className="kiosk__brand">
           <img src="/logo-tcw.png" alt="TC Waidberg" />
@@ -58,6 +80,15 @@ export function KioskView(): JSX.Element {
           <span className="kiosk__time">{clockLabel(now)}</span>
           <span className="kiosk__date">{dateLabel(now)}</span>
         </div>
+        <button
+          type="button"
+          className="kiosk__mode"
+          onClick={toggleMode}
+          title={mode === "light" ? t("kiosk.toDark") : t("kiosk.toLight")}
+          aria-label={mode === "light" ? t("kiosk.toDark") : t("kiosk.toLight")}
+        >
+          {mode === "light" ? "🌙" : "☀️"}
+        </button>
       </header>
 
       {board === null ? (
@@ -65,13 +96,13 @@ export function KioskView(): JSX.Element {
       ) : board.now.length === 0 ? (
         <div className="kiosk__empty">{t("live.nobodyPlaying")}</div>
       ) : (
-        <LiveCourtRows matches={board.now} />
+        <LiveMatchRows matches={board.now} />
       )}
 
       {board !== null && board.upcoming.length > 0 ? (
         <footer className="kiosk__upcoming">
           <div className="kiosk__upcoming-title">{t("live.upcomingTitle")}</div>
-          <UpcomingList matches={board.upcoming.slice(0, 6)} isToday={isTodayLocal} />
+          <LiveMatchRows matches={board.upcoming.slice(0, 6)} />
         </footer>
       ) : null}
     </div>

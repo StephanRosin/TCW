@@ -45,5 +45,7 @@
   "theme.sand": "Clay",
   "theme.wald": "Forest",
   "theme.schiefer": "Slate",
-  "theme.night": "Night"
+  "theme.night": "Night",
+  "kiosk.toDark": "Dark mode",
+  "kiosk.toLight": "Light mode"
 }

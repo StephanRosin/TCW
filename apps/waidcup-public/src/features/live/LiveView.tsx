@@ -6,7 +6,7 @@ import type { JSX } from "react";
 import { DataView, useI18n, useResource } from "@tcw/tournament-ui";
 import { waidcupApi } from "../../api/client.js";
 import { KIOSK_HASH } from "../../app/navigation.js";
-import { isTodayLocal, LiveCourtRows, UpcomingList } from "./LiveBoard.js";
+import { LiveMatchRows } from "./LiveBoard.js";
 
 export function LiveView(): JSX.Element {
   const { t } = useI18n();
@@ -29,14 +29,12 @@ export function LiveView(): JSX.Element {
               {data.now.length === 0 ? (
                 <div className="state">{t("live.nobodyPlaying")}</div>
               ) : (
-                <LiveCourtRows matches={data.now} />
+                <LiveMatchRows matches={data.now} />
               )}
               {data.upcoming.length > 0 ? (
                 <>
                   <h3 className="results-subtitle">{t("live.upcomingTitle")}</h3>
-                  <div className="table-wrap live-upcoming-wrap">
-                    <UpcomingList matches={data.upcoming} isToday={isTodayLocal} />
-                  </div>
+                  <LiveMatchRows matches={data.upcoming} />
                 </>
               ) : null}
             </>
