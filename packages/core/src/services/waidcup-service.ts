@@ -106,6 +106,8 @@ export function getWaidcupLive(
     .map(toLiveMatch)
     .sort((a, b) => courtSortKey(a.court) - courtSortKey(b.court));
 
+  // Auswahl: die zeitlich nächsten Partien (gedeckelt); Anzeige: nach Platz
+  // sortiert, innerhalb eines Platzes die frühere zuerst.
   const upcoming = rows
     .filter(
       (row) =>
@@ -116,7 +118,12 @@ export function getWaidcupLive(
       `${a.scheduled_date}T${a.scheduled_time}`.localeCompare(`${b.scheduled_date}T${b.scheduled_time}`),
     )
     .slice(0, UPCOMING_LIMIT)
-    .map(toLiveMatch);
+    .map(toLiveMatch)
+    .sort(
+      (a, b) =>
+        courtSortKey(a.court) - courtSortKey(b.court) ||
+        `${a.scheduledDate}T${a.scheduledTime}`.localeCompare(`${b.scheduledDate}T${b.scheduledTime}`),
+    );
 
   return { now: live, upcoming };
 }
