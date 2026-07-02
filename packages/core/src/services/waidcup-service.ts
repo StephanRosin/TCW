@@ -16,9 +16,6 @@ import type {
 import type { TcwDatabase } from "../db/connection.js";
 import { loadTournamentEvents } from "./tournament-store.js";
 
-/** Obergrenze für „Als Nächstes", damit das Board übersichtlich bleibt. */
-const UPCOMING_LIMIT = 12;
-
 /** Alle Events des Waidcups inkl. Tableau/Pools (für die Turnierbaum-Seite). */
 export function getWaidcupBrackets(database: TcwDatabase, tournamentId: number): TournamentEventView[] {
   return loadTournamentEvents(database, tournamentId).events;
@@ -106,24 +103,26 @@ export function getWaidcupLive(
     .map(toLiveMatch)
     .sort((a, b) => courtSortKey(a.court) - courtSortKey(b.court));
 
-  // Auswahl: die zeitlich nächsten Partien (gedeckelt); Anzeige: nach Platz
-  // sortiert, innerhalb eines Platzes die frühere zuerst.
-  const upcoming = rows
+  // „Als Nächstes": pro Platz genau die eine, zeitlich nächste Partie;
+  // Anzeige nach Platz sortiert.
+  const futureByTime = rows
     .filter(
       (row) =>
-        row.scheduled_date > today ||
-        (row.scheduled_date === today && row.scheduled_time > nowTime),
+        (row.court ?? "").trim() !== "" &&
+        (row.scheduled_date > today ||
+          (row.scheduled_date === today && row.scheduled_time > nowTime)),
     )
     .sort((a, b) =>
       `${a.scheduled_date}T${a.scheduled_time}`.localeCompare(`${b.scheduled_date}T${b.scheduled_time}`),
-    )
-    .slice(0, UPCOMING_LIMIT)
-    .map(toLiveMatch)
-    .sort(
-      (a, b) =>
-        courtSortKey(a.court) - courtSortKey(b.court) ||
-        `${a.scheduledDate}T${a.scheduledTime}`.localeCompare(`${b.scheduledDate}T${b.scheduledTime}`),
     );
+  const nextPerCourt = new Map<string, LiveRow>();
+  for (const row of futureByTime) {
+    const court = (row.court ?? "").trim();
+    if (!nextPerCourt.has(court)) nextPerCourt.set(court, row);
+  }
+  const upcoming = [...nextPerCourt.values()]
+    .map(toLiveMatch)
+    .sort((a, b) => courtSortKey(a.court) - courtSortKey(b.court));
 
   return { now: live, upcoming };
 }

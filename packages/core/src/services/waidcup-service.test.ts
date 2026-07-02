@@ -60,10 +60,11 @@ test("getWaidcupLive: heute + Startzeit erreicht = live (nach Platz sortiert), Z
   const board = getWaidcupLive(db, TID, NOW);
   // Live: Platz 2 vor Platz 10 (natürliche Sortierung, nicht alphabetisch)
   assert.deepEqual(board.now.map((m) => m.court), ["Platz 2", "Platz 10"]);
-  // Upcoming: nach Platz sortiert (innerhalb eines Platzes die frühere zuerst)
+  // Upcoming: pro Platz nur die zeitlich nächste Partie, nach Platz sortiert
+  // (Platz 1 hat zwei künftige – nur die frühere um 16:00 erscheint)
   assert.deepEqual(
     board.upcoming.map((m) => `${m.court} ${m.scheduledDate} ${m.scheduledTime}`),
-    ["Platz 1 2026-07-04 16:00", "Platz 1 2026-07-05 09:00", "Platz 3 2026-07-04 15:00"],
+    ["Platz 1 2026-07-04 16:00", "Platz 3 2026-07-04 15:00"],
   );
   db.close();
 });
