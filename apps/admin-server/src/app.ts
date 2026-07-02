@@ -18,6 +18,7 @@ import {
   createTournamentService,
   loadConfig,
   openDatabase,
+  SERVER_LOGGER_OPTIONS,
   ValidationError,
   type AppConfig,
 } from "@tcw/core";
@@ -29,7 +30,7 @@ import { startBackgroundJobs } from "./jobs.js";
 const WEB_DIST_DIR = resolve(loadConfig().repoRoot, "apps/web-admin/dist");
 
 export async function buildAdminApp(config: AppConfig = loadConfig()): Promise<FastifyInstance> {
-  const app = Fastify({ logger: true, bodyLimit: 2 * 1024 * 1024 });
+  const app = Fastify({ logger: { ...SERVER_LOGGER_OPTIONS }, bodyLimit: 2 * 1024 * 1024 });
   const database = openDatabase({ filePath: config.dbFilePath, readonly: false });
   const tournamentService = createTournamentService(config, database);
   const matchesImporter = createMatchesImporter(config, database);

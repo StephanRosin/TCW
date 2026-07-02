@@ -10,7 +10,7 @@ import { resolve } from "node:path";
 import Fastify, { type FastifyInstance } from "fastify";
 import fastifyStatic from "@fastify/static";
 import rateLimit from "@fastify/rate-limit";
-import { loadConfig, openDatabase, PUBLIC_SECURITY_HEADERS, type AppConfig } from "@tcw/core";
+import { loadConfig, openDatabase, PUBLIC_SECURITY_HEADERS, SERVER_LOGGER_OPTIONS, type AppConfig } from "@tcw/core";
 import type { HealthResponse } from "@tcw/shared";
 import { registerPublicCoreRoutes } from "./routes/public-api.js";
 import { registerIcResultRoutes } from "./routes/ic-results.js";
@@ -20,7 +20,7 @@ import { registerCourtsRoute } from "./routes/courts.js";
 const WEB_DIST_DIR = resolve(loadConfig().repoRoot, "apps/web-public/dist");
 
 export async function buildPublicApp(config: AppConfig = loadConfig()): Promise<FastifyInstance> {
-  const app = Fastify({ logger: true });
+  const app = Fastify({ logger: { ...SERVER_LOGGER_OPTIONS } });
   const database = openDatabase({ filePath: config.dbFilePath, readonly: true });
 
   // Begrenzt u. a. die Verstärkung externer Swisstennis-Abrufe pro Client.

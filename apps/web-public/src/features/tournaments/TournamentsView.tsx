@@ -195,7 +195,9 @@ export function TournamentsView(): JSX.Element {
           const active =
             data.tournaments.find((tournament) => tournament.id === activeTournamentId) ??
             data.tournaments[0]!;
-          const registrationUrl = safeExternalUrl(active.registrationUrl) || active.registrationUrl;
+          // Nur die validierte URL verwenden - kein Fallback auf den Rohwert,
+          // der den Sanitizer (safeExternalUrl) aushebeln wuerde.
+          const registrationUrl = safeExternalUrl(active.registrationUrl);
           return (
             <>
               <div className="tournament-tabs-row">
@@ -213,9 +215,11 @@ export function TournamentsView(): JSX.Element {
                     </button>
                   ))}
                 </div>
-                <a className="link-btn" href={registrationUrl} target="_blank" rel="noopener noreferrer">
-                  {active.showsMatches ? t("tournaments.swisstennisLink") : t("tournaments.register")}
-                </a>
+                {registrationUrl ? (
+                  <a className="link-btn" href={registrationUrl} target="_blank" rel="noopener noreferrer">
+                    {active.showsMatches ? t("tournaments.swisstennisLink") : t("tournaments.register")}
+                  </a>
+                ) : null}
               </div>
               <TournamentPanel key={active.id} tournament={active} />
             </>

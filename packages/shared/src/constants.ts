@@ -74,4 +74,9 @@ export type PlayoffType = "promotion" | "relegation" | "";
 export type TournamentMatchStatus = "open" | "played";
 
 /** Erlaubte Ziel-Hosts für externe Links aus Nutzdaten. */
-export const ALLOWED_EXTERNAL_HOSTS = ["mytennis.ch", "www.mytennis.ch"] as const;
+export const ALLOWED_EXTERNAL_HOSTS = [
+  "mytennis.ch",
+  "www.mytennis.ch",
+  "tcwaidberg.ch",
+  "www.tcwaidberg.ch",
+] as const;

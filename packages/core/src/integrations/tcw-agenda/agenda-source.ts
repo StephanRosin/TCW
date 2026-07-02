@@ -6,6 +6,8 @@
  * stabile Datensätze normalisiert. Die Datums-/Zeitformatierung folgt exakt
  * der Darstellung auf der Vereinsseite.
  */
+import { safeExternalUrl } from "@tcw/shared";
+
 const AGENDA_URL = "https://tcwaidberg.ch/agenda";
 const EVENTS_MARKER = "var eventsData = ";
 
@@ -140,7 +142,9 @@ export function normalizeAgendaEvents(raw: RawAgendaEvent[], today: string): Age
         dateLabel: buildDateLabel(start, end, isFullDay),
         registrationLabel: buildRegistrationLabel(event.subscriptionAvailable, event.subscriptionEndDate, today),
         category: categoryTitle(event.category),
-        detailUrl: detailsPath ? `https://tcwaidberg.ch${detailsPath}` : "",
+        // Gegen Userinfo-Redirects (z. B. "@evil.com") abgesichert: nur URLs
+        // auf der erlaubten Vereinsdomain werden durchgelassen.
+        detailUrl: detailsPath ? safeExternalUrl(`https://tcwaidberg.ch${detailsPath}`) : "",
       };
     });
 }

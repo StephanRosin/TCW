@@ -17,6 +17,7 @@ import {
   loadConfig,
   openDatabase,
   PUBLIC_SECURITY_HEADERS,
+  SERVER_LOGGER_OPTIONS,
   type AppConfig,
 } from "@tcw/core";
 import type { HealthResponse } from "@tcw/shared";
@@ -24,7 +25,7 @@ import type { HealthResponse } from "@tcw/shared";
 const WEB_DIST_DIR = resolve(loadConfig().repoRoot, "apps/waidcup-public/dist");
 
 export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise<FastifyInstance> {
-  const app = Fastify({ logger: true });
+  const app = Fastify({ logger: { ...SERVER_LOGGER_OPTIONS } });
   const database = openDatabase({ filePath: config.dbFilePath, readonly: true });
   const tournamentId = config.waidcupTournamentId;
 
