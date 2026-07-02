@@ -2,6 +2,8 @@
 
 Status: **geplant, noch nicht umgesetzt.** Dieses Dokument ist der vollständige Umsetzungs-Prompt für eine spätere Session — kein Code wurde im Rahmen dieser Planung geschrieben.
 
+> **Wichtige Klarstellung:** Dies ist **keine** neue Ansicht/kein neuer Tab innerhalb der bestehenden `apps/web-public`-Seite. Es entsteht eine **komplett separate, eigenständige Website** mit eigener URL/eigenem Port und eigenem Deployment (eigener Fastify-Prozess `waidcup-server` + eigenes Frontend `waidcup-public`, siehe „Architektur"). Die bestehende Seite (`apps/web-public` / `apps/public-server`) wird dabei **nicht verändert**, ausser den zwei explizit genannten Verschiebungen (CSS nach `packages/shared`, Turnierbaum-/Matchlisten-Komponenten nach `packages/tournament-ui` — jeweils mit angepasstem Importpfad, ohne Verhaltensänderung). Einzige Änderung an einem bestehenden *Prozess* ist das Job-Intervall in `apps/admin-server`.
+
 ## Ziel
 
 Eine neue, eigenständige Website für den Waidcup (Swisstennis-Turnier-ID `158138`, bereits als Zeile in der `tournaments`-Tabelle vorhanden), optisch identisch zum Classic-Modus der bestehenden TCW-Spielbetrieb-Seite (`apps/web-public`). Sie zeigt:
