@@ -29,25 +29,15 @@ export function LiveMatchRows({ matches }: { matches: WaidcupLiveMatch[] }): JSX
           const when = isTodayLocal(match.scheduledDate)
             ? match.scheduledTime
             : `${shortDate(match.scheduledDate)} ${match.scheduledTime}`;
-          const isDouble = match.side1Names.length > 1 || match.side2Names.length > 1;
           return (
             <li className="live-board__row" key={`${match.court}-${match.scheduledTime}-${index}`}>
               <span className="live-board__court">{match.court || t("live.noCourt")}</span>
               <span className="live-board__when">{when}</span>
-              {isDouble ? (
-                <span className="live-board__players live-board__players--stacked">
-                  <span className="live-board__side">{match.side1Names.join(" / ")}</span>
-                  <span className="live-board__side">
-                    <span className="live-board__vs">vs</span> {match.side2Names.join(" / ")}
-                  </span>
-                </span>
-              ) : (
-                <span className="live-board__players">
-                  <span className="live-board__side">{match.side1Names.join(" / ")}</span>
-                  <span className="live-board__vs">vs</span>
-                  <span className="live-board__side">{match.side2Names.join(" / ")}</span>
-                </span>
-              )}
+              <span className="live-board__players">
+                <span className="live-board__side">{match.side1Names.join(" / ")}</span>
+                <span className="live-board__vs">vs</span>
+                <span className="live-board__side">{match.side2Names.join(" / ")}</span>
+              </span>
               <span className="live-board__event">{match.eventName}</span>
             </li>
           );
