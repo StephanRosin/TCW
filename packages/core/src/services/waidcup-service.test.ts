@@ -75,10 +75,15 @@ test("getWaidcupLive: Resultat erfasst → Partie verschwindet aus live; gestrig
     { key: "finished", date: "2026-07-04", time: "13:00", court: "Platz 1", status: "played", result: "6:2 6:3" },
     { key: "stale-yesterday", date: "2026-07-03", time: "18:00", court: "Platz 4" },
     { key: "really-live", date: "2026-07-04", time: "14:15", court: "Platz 5" },
+    // Vorherige Partie ohne erfasstes Resultat: die neuere verdrängt sie
+    { key: "superseded", date: "2026-07-04", time: "12:00", court: "Platz 5" },
   ]);
 
   const board = getWaidcupLive(db, TID, NOW);
-  assert.deepEqual(board.now.map((m) => m.court), ["Platz 5"]);
+  assert.deepEqual(
+    board.now.map((m) => `${m.court} ${m.scheduledTime}`),
+    ["Platz 5 14:15"],
+  );
   assert.equal(board.upcoming.length, 0);
   db.close();
 });

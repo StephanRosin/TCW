@@ -295,7 +295,8 @@
 /* --- Spielleiter-Kontakt (WhatsApp) im Header: WhatsApp-Gruen mit weissem
    transparentem Glyph (klassischer WhatsApp-Look) --- */
 .header-cta.header-cta--whatsapp {
-  gap: 0.55rem;
+  gap: 0.65rem;
+  padding-inline: 1.5rem;
   background: #25d366;
   border: 0;
   color: #fff;
@@ -310,7 +311,16 @@
   display: block;
 }
 .header-cta__label {
-  font-family: var(--font-body);
-  font-size: 1.05rem;
+  /* Gleiche Display-Schrift wie der Seitentitel ("Waidcup 2026") */
+  font-family: var(--font-display);
+  font-size: 1.3rem;
   font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* --- Header-Switches: in jedem Theme klar erkennbar (wie IC-Classic) --- */
+.site-header__switches .lang-switch,
+.site-header__switches .theme-switch {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.28);
 }

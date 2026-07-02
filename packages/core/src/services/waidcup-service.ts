@@ -98,8 +98,22 @@ export function getWaidcupLive(
   const today = localDate(now);
   const nowTime = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 
-  const live = rows
-    .filter((row) => row.scheduled_date === today && row.scheduled_time <= nowTime)
+  // „Jetzt auf dem Platz": pro Platz nur die zuletzt gestartete Partie – ist
+  // das Resultat der vorherigen noch nicht erfasst, verdrängt die neuere sie.
+  const startedByTimeDesc = rows
+    .filter(
+      (row) =>
+        (row.court ?? "").trim() !== "" &&
+        row.scheduled_date === today &&
+        row.scheduled_time <= nowTime,
+    )
+    .sort((a, b) => b.scheduled_time.localeCompare(a.scheduled_time));
+  const latestPerCourt = new Map<string, LiveRow>();
+  for (const row of startedByTimeDesc) {
+    const court = (row.court ?? "").trim();
+    if (!latestPerCourt.has(court)) latestPerCourt.set(court, row);
+  }
+  const live = [...latestPerCourt.values()]
     .map(toLiveMatch)
     .sort((a, b) => courtSortKey(a.court) - courtSortKey(b.court));
 
