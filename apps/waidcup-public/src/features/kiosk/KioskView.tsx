@@ -98,13 +98,13 @@ export function KioskView(): JSX.Element {
       ) : board.now.length === 0 ? (
         <div className="kiosk__empty">{t("live.nobodyPlaying")}</div>
       ) : (
-        <LiveMatchRows matches={board.now} />
+        <LiveMatchRows matches={board.now} ballCourts header />
       )}
 
       {board !== null && board.upcoming.length > 0 ? (
         <footer className="kiosk__upcoming">
           <div className="kiosk__upcoming-title">{t("live.upcomingTitle")}</div>
-          <LiveMatchRows matches={board.upcoming.slice(0, 6)} />
+          <LiveMatchRows matches={board.upcoming.slice(0, 6)} ballCourts />
         </footer>
       ) : null}
     </div>

@@ -1,7 +1,8 @@
 /**
  * Gemeinsame Zeilenliste des Live-Boards („Jetzt auf dem Platz" und
  * „Als Nächstes"): identische Spalten Platz – Uhrzeit – Matchup – Kategorie.
- * Wird von der Live-Seite und vom Kiosk (grossformatig) verwendet.
+ * Wird von der Live-Seite und vom Kiosk (grossformatig, mit Spaltenköpfen
+ * und Tennisball-Badges statt "Platz N") verwendet.
  */
 import type { JSX } from "react";
 import type { WaidcupLiveMatch } from "@tcw/shared";
@@ -20,10 +21,40 @@ function isTodayLocal(iso: string): boolean {
   return iso === `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
-export function LiveMatchRows({ matches }: { matches: WaidcupLiveMatch[] }): JSX.Element {
+function CourtLabel({ court, asBall }: { court: string; asBall: boolean }): JSX.Element {
+  const { t } = useI18n();
+  const number = court.match(/\d+/)?.[0];
+  if (asBall && number !== undefined) {
+    return (
+      <span className="court-ball" title={court}>
+        <span className="court-ball__seams" aria-hidden="true" />
+        <span className="court-ball__num">{number}</span>
+      </span>
+    );
+  }
+  return <>{court || t("live.noCourt")}</>;
+}
+
+export function LiveMatchRows({
+  matches,
+  ballCourts = false,
+  header = false,
+}: {
+  matches: WaidcupLiveMatch[];
+  ballCourts?: boolean;
+  header?: boolean;
+}): JSX.Element {
   const { t } = useI18n();
   return (
     <div className="live-board">
+      {header ? (
+        <div className="live-board__row live-board__row--head">
+          <span>{t("kiosk.colCourt")}</span>
+          <span>{t("kiosk.colTime")}</span>
+          <span>{t("kiosk.colMatch")}</span>
+          <span>{t("kiosk.colEvent")}</span>
+        </div>
+      ) : null}
       <ul className="live-board__list">
         {matches.map((match, index) => {
           const when = isTodayLocal(match.scheduledDate)
@@ -31,7 +62,9 @@ export function LiveMatchRows({ matches }: { matches: WaidcupLiveMatch[] }): JSX
             : `${shortDate(match.scheduledDate)} ${match.scheduledTime}`;
           return (
             <li className="live-board__row" key={`${match.court}-${match.scheduledTime}-${index}`}>
-              <span className="live-board__court">{match.court || t("live.noCourt")}</span>
+              <span className="live-board__court">
+                <CourtLabel court={match.court} asBall={ballCourts} />
+              </span>
               <span className="live-board__when">{when}</span>
               <span className="live-board__players">
                 <span className="live-board__side">{match.side1Names.join(" / ")}</span>

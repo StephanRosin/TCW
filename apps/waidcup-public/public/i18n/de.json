@@ -49,6 +49,10 @@
   "theme.night": "Night",
   "kiosk.toDark": "Dunkles Design",
   "kiosk.toLight": "Helles Design",
+  "kiosk.colCourt": "Platz",
+  "kiosk.colTime": "Uhrzeit",
+  "kiosk.colMatch": "Matchup",
+  "kiosk.colEvent": "Kategorie",
   "app.contactDirector": "Kontakt",
   "app.contactMessage": "Hallo Stephan, ich habe eine Frage zum Waidcup"
 }
