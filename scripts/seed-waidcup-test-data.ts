@@ -49,6 +49,12 @@ const MATCHES: SeedMatch[] = [
   { eventId: 1, eventName: "MS A", key: "t:ms:4", court: "Platz 1", offsetHours: 2, side1: ["Franchini Gianluca (R2)"], side2: ["Biella Andrea (R3)"] },
   { eventId: 2, eventName: "WS A", key: "t:ws:4", court: "Platz 3", offsetHours: 1, side1: ["Wüst Martina (R5)"], side2: ["Beck Claudia (R4)"] },
   { eventId: 3, eventName: "DM A", key: "t:dm:2", court: "Platz 6", offsetHours: 3, side1: ["Rauch Markus (R4)", "Weiss Xenia (R5)"], side2: ["Aepli Daniel (R4)", "Roth Lorena (R5)"] },
+  // ... und weitere Partien über den Nachmittag verteilt (längeres Testfenster)
+  { eventId: 1, eventName: "MS A", key: "t:ms:6", court: "Platz 2", offsetHours: 4, side1: ["Kalayci Cem (R7)"], side2: ["Pedretti Christoph (R7)"] },
+  { eventId: 2, eventName: "WS A", key: "t:ws:6", court: "Platz 4", offsetHours: 4, side1: ["Mellini Karin (R7)"], side2: ["Hansjosten Victoria (R8)"] },
+  { eventId: 1, eventName: "MS A", key: "t:ms:7", court: "Platz 5", offsetHours: 5, side1: ["Issler Stefan (R7)"], side2: ["Hofer Roli (R6)"] },
+  { eventId: 3, eventName: "DM A", key: "t:dm:3", court: "Platz 3", offsetHours: 5, side1: ["Yuen Denis (R5)", "Bütikofer Anne (R5)"], side2: ["Persico Christian (R3)", "Ganz Karin (R7)"] },
+  { eventId: 2, eventName: "WS A", key: "t:ws:7", court: "Platz 1", offsetHours: 6, side1: ["Beck Claudia (R4)"], side2: ["Kucera Talissa (R5)"] },
   // Morgen: eine Partie mit bekannten Spielern, eine noch offene (leere Namen,
   // wie bei echten "Sieger aus ..."-Slots) – letztere darf nirgends erscheinen.
   { eventId: 2, eventName: "WS A", key: "t:ws:5", court: "Platz 1", offsetHours: 23, side1: ["Weiss Xenia (R5)"], side2: ["Wüst Martina (R5)"] },
