@@ -5,6 +5,7 @@ import type { SiteSettings } from "@tcw/shared";
 
 export const MAIN_VIEWS = [
   "teams",
+  "ticker",
   "training",
   "matches",
   "results",
@@ -27,6 +28,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "teams", labelKey: "nav.teams" },
+  { view: "ticker", labelKey: "nav.ticker" },
   { view: "training", labelKey: "nav.training" },
   { view: "matches", labelKey: "nav.matches" },
   { view: "results", labelKey: "nav.results" },

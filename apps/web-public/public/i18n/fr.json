@@ -183,5 +183,9 @@
   "plaetze.occupancyUnavailable": "Occupation des courts indisponible pour le moment.",
   "layout.label": "Mise en page",
   "layout.classic": "Classic",
-  "layout.studio": "Studio"
+  "layout.studio": "Studio",
+  "nav.ticker": "Ticker",
+  "ticker.competition": "Compétition",
+  "ticker.empty": "Aucun match joué pour le moment.",
+  "ticker.loadError": "Ticker introuvable."
 }

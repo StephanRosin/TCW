@@ -183,5 +183,9 @@
   "plaetze.occupancyUnavailable": "Court occupancy currently unavailable.",
   "layout.label": "Layout",
   "layout.classic": "Classic",
-  "layout.studio": "Studio"
+  "layout.studio": "Studio",
+  "nav.ticker": "Ticker",
+  "ticker.competition": "Competition",
+  "ticker.empty": "No matches played yet.",
+  "ticker.loadError": "Ticker could not be loaded."
 }

@@ -24,6 +24,7 @@ import {
   type RatingsSubView,
 } from "./app/navigation.js";
 import { TeamsView } from "./features/teams/TeamsView.js";
+import { TickerView } from "./features/ticker/TickerView.js";
 import { TrainingView } from "./features/training/TrainingView.js";
 import { MatchesView } from "./features/matches/MatchesView.js";
 import { RatingsView } from "./features/ratings/RatingsView.js";
@@ -50,6 +51,8 @@ function ActiveView(state: ViewState): JSX.Element {
   switch (state.view) {
     case "teams":
       return <TeamsView />;
+    case "ticker":
+      return <TickerView />;
     case "training":
       return <TrainingView />;
     case "matches":

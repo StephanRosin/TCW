@@ -21,6 +21,7 @@ import {
   type PlayerMatchParticipant,
   type PlayerSuggestion,
   type ResultType,
+  type TickerMatch,
 } from "@tcw/shared";
 import type { AppConfig } from "../config.js";
 import { createResultsService } from "./results-service.js";
@@ -531,4 +532,31 @@ export function getPlayerMatches(db: Database.Database, key: string): PlayerMatc
       matchUrl: row.match_url,
     };
   });
+}
+
+/** Die zuletzt gespielten Matches clubweit (Ergebnis-Ticker), neueste zuerst. */
+export function getTickerMatches(db: Database.Database, limit = 30): TickerMatch[] {
+  const year = currentYear(db);
+  // Ohne Namen (z. B. namenlose Walkover) ist ein Eintrag im Ticker wertlos.
+  const rows = db
+    .prepare(
+      `SELECT * FROM player_matches WHERE year=? AND s1p1_name<>'' AND s2p1_name<>''
+       ORDER BY sort_key DESC, updated_at DESC, match_uid DESC LIMIT ?`,
+    )
+    .all(Number(year), limit) as Array<PlayerMatchRow & { match_uid: string }>;
+
+  const sideNames = (first: string, second: string): string[] =>
+    [first, second].filter((name) => name.trim() !== "");
+
+  return rows.map((row) => ({
+    date: row.match_date,
+    competitionCode: row.competition_code,
+    competition: row.competition_label,
+    discipline: row.discipline,
+    side1: sideNames(row.s1p1_name, row.s1p2_name),
+    side2: sideNames(row.s2p1_name, row.s2p2_name),
+    result: row.result,
+    winnerSide: row.winner_side,
+    matchUrl: row.match_url,
+  }));
 }

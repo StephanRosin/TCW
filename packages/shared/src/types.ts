@@ -459,3 +459,23 @@ export interface CourtsResponse {
   /** [aktuelle Stunde, ggf. nächste Stunde]. */
   blocks: CourtBlock[];
 }
+
+/** Ein Eintrag im Ergebnis-Ticker: zuletzt gespielte Matches clubweit. */
+export interface TickerMatch {
+  /** Anzeige-Datum (D.M.YYYY) oder leer. */
+  date: string;
+  competitionCode: string;
+  competition: string;
+  discipline: "single" | "double";
+  /** Spielernamen (inkl. Klassierung) je Seite; Doppel = zwei Einträge. */
+  side1: string[];
+  side2: string[];
+  result: string;
+  /** 0 = unbekannt, 1/2 = Siegerseite. */
+  winnerSide: number;
+  matchUrl: string | null;
+}
+
+export interface TickerResponse {
+  matches: TickerMatch[];
+}

@@ -1,5 +1,6 @@
 /**
- * Kopfbereich mit Logo, Titel, Importstand und Sprachwahl.
+ * Kopfbereich mit Logo, Titel, Helfereinsatz-Aktion sowie Sprach- und
+ * Themenwahl.
  */
 import type { JSX } from "react";
 import { useI18n } from "../i18n/I18nProvider.js";
@@ -21,8 +22,18 @@ export function SiteHeader(): JSX.Element {
             </div>
           </div>
           <div className="site-header__controls">
-            <LanguageSwitch />
-            <ThemeSwitch />
+            <a
+              className="header-cta"
+              href="https://tcwaidberg.ch/helfereinsatz"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("nav.helfereinsatz")} <span aria-hidden="true">↗</span>
+            </a>
+            <div className="site-header__switches">
+              <LanguageSwitch />
+              <ThemeSwitch />
+            </div>
           </div>
         </div>
       </div>

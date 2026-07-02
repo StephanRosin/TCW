@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { playerNameKey } from "@tcw/shared";
 import { openDatabase } from "../db/connection.js";
-import { getPlayerMatches, isoToSwissDate, suggestPlayers, toSortKey } from "./player-matches-service.js";
+import { getPlayerMatches, getTickerMatches, isoToSwissDate, suggestPlayers, toSortKey } from "./player-matches-service.js";
 
 test("isoToSwissDate wandelt ISO in IC/TC-Format (D.M.YYYY ohne führende Nullen)", () => {
   assert.equal(isoToSwissDate("2026-06-24"), "24.6.2026");
@@ -75,5 +75,27 @@ test("suggestPlayers ab 3 Zeichen, dedupliziert über Namens-Schlüssel", () => 
   assert.equal(hits.length, 1);
   assert.equal(hits[0]!.key, playerNameKey("Stephan Rosin"));
   assert.equal(hits[0]!.url, "https://www.mytennis.ch/de/spieler/19799802");
+  db.close();
+});
+
+test("getTickerMatches liefert die neuesten Matches zuerst und respektiert das Limit", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  const insert = db.prepare(
+    `INSERT INTO player_matches (
+       match_uid, year, competition_code, competition_label, discipline, match_date, sort_key,
+       s1p1_name, s1p1_key, s2p1_name, s2p1_key, result, winner_side, updated_at
+     ) VALUES (@uid, 2026, 'cm', 'CM', 'single', @date, @sort, 'A Eins', 'a', 'B Zwei', 'b', '6:0 6:0', 1, @upd)`,
+  );
+  insert.run({ uid: "t:1", date: "1.6.2026", sort: "2026-06-01", upd: "2026-06-01T10:00:00Z" });
+  insert.run({ uid: "t:2", date: "3.6.2026", sort: "2026-06-03", upd: "2026-06-03T10:00:00Z" });
+  insert.run({ uid: "t:3", date: "2.6.2026", sort: "2026-06-02", upd: "2026-06-02T10:00:00Z" });
+
+  const all = getTickerMatches(db);
+  assert.deepEqual(all.map((m) => m.date), ["3.6.2026", "2.6.2026", "1.6.2026"]);
+  assert.deepEqual(all[0]!.side1, ["A Eins"]);
+  assert.equal(all[0]!.winnerSide, 1);
+
+  const limited = getTickerMatches(db, 2);
+  assert.equal(limited.length, 2);
   db.close();
 });

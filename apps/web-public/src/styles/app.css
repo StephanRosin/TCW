@@ -411,12 +411,43 @@ main.container {
   line-height: 1;
 }
 
-/* Sprach- und Themenwahl rechts gestapelt; Theme-Leiste = Breite der Sprachwahl */
+/* Rechts im Header: Helfereinsatz-Aktion neben der gestapelten Sprach-/Themenwahl */
 .site-header__controls {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+.site-header__switches {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 0.35rem;
+}
+/* Helfereinsatz: volle Hoehe beider Switches zusammen */
+.header-cta {
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 1.1rem;
+  border-radius: 14px;
+  background: var(--green-600);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-decoration: none;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.header-cta:hover {
+  background: var(--green-700);
+  color: #fff;
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.3);
+}
+.header-cta span {
+  margin-left: 0.35rem;
+  font-size: 0.85em;
+  opacity: 0.9;
 }
 
 /* ---------- Theme switch (unter der Sprachwahl, Farbpunkte) ---------- */
@@ -512,35 +543,6 @@ main.container {
   opacity: 1;
 }
 
-/* Hervorgehobener externer Call-to-Action ganz rechts ("Helfereinsatz") */
-.tabbar__cta {
-  margin-left: auto;
-  align-self: center;
-  margin-right: 0.2rem;
-  padding: 0.42rem 0.95rem;
-  border-radius: 999px;
-  background: var(--green-600);
-  color: #fff;
-  font-weight: 700;
-  text-decoration: none;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
-  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
-}
-.tabbar__cta::after {
-  display: none; /* kein Tab-Unterstrich für den Button */
-}
-.tabbar__cta:hover {
-  color: #fff;
-  background: var(--green-700);
-  transform: translateY(-1px);
-  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.3);
-  text-decoration: none;
-}
-.tabbar__cta-icon {
-  margin-left: 0.35rem;
-  font-size: 0.85em;
-  opacity: 0.9;
-}
 
 /* ---------- Pills / chips / sub-tabs (einheitlich, blau aktiv) ---------- */
 .subtabs {
@@ -1929,16 +1931,17 @@ html[data-theme="night"] body {
   font-weight: 700;
   box-shadow: 0 0 20px rgba(200, 241, 53, 0.35);
 }
-[data-theme="night"] .tabbar__cta {
+[data-theme="night"] .header-cta {
   background: transparent;
   color: var(--ball);
   border: 1px solid rgba(200, 241, 53, 0.55);
   box-shadow: none;
 }
-[data-theme="night"] .tabbar__cta:hover {
+[data-theme="night"] .header-cta:hover {
   background: var(--ball-dim);
   color: var(--ball);
   box-shadow: 0 0 18px rgba(200, 241, 53, 0.25);
+  transform: none;
 }
 
 /* --- Sub-Tabs / Chips --- */
@@ -2289,7 +2292,7 @@ html[data-theme="night"] body {
 
 /* --- Classic-Header: Schalter exakt wie im Studio (218px = Sidebar-Innenbreite,
    zentriert, Sprache nur Flaggen) --- */
-.site-header__controls {
+.site-header__switches {
   width: 218px;
 }
 .site-header__controls .lang-switch,

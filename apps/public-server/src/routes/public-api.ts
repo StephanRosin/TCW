@@ -12,6 +12,7 @@ import {
   getPublicTournaments,
   getRankingChanges,
   getSiteSettings,
+  getTickerMatches,
   getTrainingPlan,
   suggestPlayers,
   type TcwDatabase,
@@ -24,6 +25,7 @@ export function registerPublicCoreRoutes(app: FastifyInstance, database: TcwData
   app.get("/api/matches", async () => getMatches(database));
   app.get("/api/tournaments", async () => getPublicTournaments(database));
   app.get("/api/agenda", async () => getPublicAgenda(database));
+  app.get("/api/ticker", async () => ({ matches: getTickerMatches(database) }));
   app.get("/api/settings", async () => getSiteSettings(database));
 
   app.get<{ Querystring: { q?: string } }>("/api/player-matches/suggest", async (request) => ({

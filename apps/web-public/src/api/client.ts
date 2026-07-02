@@ -15,6 +15,7 @@ import type {
   ResultType,
   SiteSettings,
   TeamResultsResponse,
+  TickerResponse,
   TournamentsResponse,
   TrainingPlanResponse,
 } from "@tcw/shared";
@@ -59,6 +60,7 @@ export const publicApi = {
   matches: () => fetchJson<MatchesResponse>("/api/matches"),
   tournaments: () => fetchJson<TournamentsResponse>("/api/tournaments"),
   agenda: () => fetchJson<AgendaResponse>("/api/agenda"),
+  ticker: () => fetchJson<TickerResponse>("/api/ticker"),
   courts: (at?: string) =>
     fetchJson<CourtsResponse>(at ? `/api/courts?at=${encodeURIComponent(at)}` : "/api/courts"),
   settings: () => fetchJson<SiteSettings>("/api/settings"),
