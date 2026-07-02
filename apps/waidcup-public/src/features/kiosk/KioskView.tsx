@@ -7,7 +7,7 @@ import { useEffect, useState, type JSX } from "react";
 import type { WaidcupLiveResponse } from "@tcw/shared";
 import { useI18n } from "@tcw/tournament-ui";
 import { waidcupApi } from "../../api/client.js";
-import { isTodayLocal, LiveCourtTiles, UpcomingList } from "./../live/LiveBoard.js";
+import { isTodayLocal, LiveCourtRows, UpcomingList } from "./../live/LiveBoard.js";
 
 const REFRESH_MS = 60_000;
 
@@ -65,7 +65,7 @@ export function KioskView(): JSX.Element {
       ) : board.now.length === 0 ? (
         <div className="kiosk__empty">{t("live.nobodyPlaying")}</div>
       ) : (
-        <LiveCourtTiles matches={board.now} />
+        <LiveCourtRows matches={board.now} />
       )}
 
       {board !== null && board.upcoming.length > 0 ? (

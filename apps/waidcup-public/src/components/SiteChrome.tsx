@@ -20,15 +20,6 @@ export function SiteHeader(): JSX.Element {
             </div>
           </div>
           <div className="site-header__controls">
-            <a
-              className="waidcup-flyer"
-              href="/waidcup-flyer-2026.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              title={t("app.flyer")}
-            >
-              <img src="/waidcup-logo.png" alt={t("app.flyer")} />
-            </a>
             <div className="site-header__switches">
               <LanguageSwitch />
               <ThemeSwitch />

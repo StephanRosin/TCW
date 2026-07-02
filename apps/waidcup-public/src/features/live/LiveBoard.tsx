@@ -17,28 +17,29 @@ function shortDate(iso: string): string {
   return match ? `${Number(match[3])}.${Number(match[2])}.` : iso;
 }
 
-export function LiveCourtTiles({ matches }: { matches: WaidcupLiveMatch[] }): JSX.Element {
+/** Laufende Partien als Zeilen (eine pro Platz) – 6 Plätze passen so immer. */
+export function LiveCourtRows({ matches }: { matches: WaidcupLiveMatch[] }): JSX.Element {
   const { t } = useI18n();
   return (
-    <div className="live-tiles">
-      {matches.map((match, index) => {
-        const { side1, side2 } = names(match);
-        return (
-          <div className="live-tile" key={`${match.court}-${index}`}>
-            <div className="live-tile__head">
-              <span className="live-tile__court">{match.court || t("live.noCourt")}</span>
-              <span className="live-tile__meta">
+    <div className="live-now-wrap">
+      <ul className="live-now">
+        {matches.map((match, index) => {
+          const { side1, side2 } = names(match);
+          return (
+            <li className="live-now__row" key={`${match.court}-${index}`}>
+              <span className="live-now__court">{match.court || t("live.noCourt")}</span>
+              <span className="live-now__players">
+                <span className="live-now__side">{side1}</span>
+                <span className="live-tile__vs">vs</span>
+                <span className="live-now__side">{side2}</span>
+              </span>
+              <span className="live-now__meta">
                 {match.eventName} · {t("live.since", { value: match.scheduledTime })}
               </span>
-            </div>
-            <div className="live-tile__players">
-              <span className="live-tile__side">{side1}</span>
-              <span className="live-tile__vs">vs</span>
-              <span className="live-tile__side">{side2}</span>
-            </div>
-          </div>
-        );
-      })}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

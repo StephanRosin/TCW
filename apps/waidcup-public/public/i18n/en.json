@@ -39,7 +39,6 @@
   "live.since": "since {value}",
   "live.noCourt": "Court open",
   "live.loadError": "Live board could not be loaded.",
-  "app.flyer": "Waidcup flyer (PDF)",
   "theme.label": "Colour theme",
   "theme.club": "Club",
   "theme.nacht": "Night",

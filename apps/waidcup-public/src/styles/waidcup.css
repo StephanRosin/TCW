@@ -12,54 +12,64 @@
   flex-wrap: wrap;
 }
 
-.live-tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
-  gap: 0.9rem;
-  margin-bottom: 1.4rem;
-}
-.live-tile {
+/* Laufende Partien als Zeilen: eine pro Platz, volle Breite */
+.live-now-wrap {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  color: var(--text);
   overflow: hidden;
+  margin-bottom: 1.4rem;
 }
-.live-tile__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.6rem;
-  padding: 0.55rem 0.9rem;
-  background: linear-gradient(120deg, var(--blue-900), var(--blue-800));
-  color: #fff;
-  border-bottom: 3px solid var(--green-600);
+.live-now {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-.live-tile__court {
+.live-now__row {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.65rem 1rem;
+  color: var(--text);
+}
+.live-now__row + .live-now__row {
+  border-top: 1px solid var(--border);
+}
+.live-now__court {
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 1.05rem;
+  color: var(--own);
 }
-.live-tile__meta {
-  font-size: 0.78rem;
-  color: #c9d4f2;
-  white-space: nowrap;
-}
-.live-tile__players {
+.live-now__players {
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.7rem 0.9rem 0.8rem;
+  align-items: baseline;
+  gap: 0.55rem;
+  flex-wrap: wrap;
 }
-.live-tile__side {
+.live-now__side {
   font-weight: 700;
+}
+.live-now__meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 .live-tile__vs {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
+}
+@media (max-width: 640px) {
+  .live-now__row {
+    grid-template-columns: 5rem 1fr;
+  }
+  .live-now__meta {
+    display: none;
+  }
 }
 
 /* --- Als Nächstes --- */
@@ -168,36 +178,32 @@
   font-size: clamp(1.3rem, 2.6vw, 2.2rem);
 }
 
-/* Kacheln im Kiosk: grösser, dunkles Glas, gut aus Distanz lesbar */
-.kiosk .live-tiles {
+/* Zeilen im Kiosk: grossformatig, dunkles Glas, gut aus Distanz lesbar */
+.kiosk .live-now-wrap {
   flex: 1;
-  align-content: start;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 28rem), 1fr));
-  gap: 1.6vh;
-  margin-bottom: 0;
-}
-.kiosk .live-tile {
   background: rgba(21, 26, 38, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: none;
+  margin-bottom: 0;
+}
+.kiosk .live-now__row {
+  grid-template-columns: clamp(8rem, 12vw, 12rem) 1fr auto;
+  padding: 1.6vh 1.6rem;
   color: #e9edf5;
 }
-.kiosk .live-tile__head {
-  background: rgba(255, 255, 255, 0.04);
-  border-bottom: 2px solid var(--green-600);
+.kiosk .live-now__row + .live-now__row {
+  border-top-color: rgba(255, 255, 255, 0.1);
 }
-.kiosk .live-tile__court {
-  font-size: clamp(1.2rem, 2vw, 1.8rem);
+.kiosk .live-now__court {
+  font-size: clamp(1.3rem, 2.4vw, 2.2rem);
+  color: #c8f135;
 }
-.kiosk .live-tile__meta {
-  font-size: clamp(0.75rem, 1.1vw, 1rem);
+.kiosk .live-now__side {
+  font-size: clamp(1.2rem, 2.2vw, 2rem);
 }
-.kiosk .live-tile__players {
-  padding: 1.2vh 1rem 1.6vh;
-  gap: 0.4vh;
-}
-.kiosk .live-tile__side {
-  font-size: clamp(1.1rem, 1.9vw, 1.7rem);
+.kiosk .live-now__meta {
+  font-size: clamp(0.85rem, 1.3vw, 1.2rem);
+  color: #8b94ad;
 }
 
 /* Als-Nächstes-Leiste unten im Kiosk */
@@ -224,29 +230,4 @@
 .kiosk .live-upcoming__court,
 .kiosk .live-upcoming__event {
   color: #8b94ad;
-}
-
-/* --- Waidcup-Logo im Header: kleine Plakette, verlinkt auf den Flyer (PDF) --- */
-.waidcup-flyer {
-  align-self: center;
-  display: inline-flex;
-  padding: 0.3rem 0.55rem;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.waidcup-flyer:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.3);
-}
-.waidcup-flyer img {
-  height: 52px;
-  width: auto;
-  display: block;
-}
-@media (max-width: 760px) {
-  .waidcup-flyer {
-    display: none;
-  }
 }
