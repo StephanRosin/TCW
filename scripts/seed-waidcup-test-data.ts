@@ -49,8 +49,10 @@ const MATCHES: SeedMatch[] = [
   { eventId: 1, eventName: "MS A", key: "t:ms:4", court: "Platz 1", offsetHours: 2, side1: ["Franchini Gianluca (R2)"], side2: ["Biella Andrea (R3)"] },
   { eventId: 2, eventName: "WS A", key: "t:ws:4", court: "Platz 3", offsetHours: 1, side1: ["Wüst Martina (R5)"], side2: ["Beck Claudia (R4)"] },
   { eventId: 3, eventName: "DM A", key: "t:dm:2", court: "Platz 6", offsetHours: 3, side1: ["Rauch Markus (R4)", "Weiss Xenia (R5)"], side2: ["Aepli Daniel (R4)", "Roth Lorena (R5)"] },
-  // Morgen
-  { eventId: 1, eventName: "MS A", key: "t:ms:5", court: "Platz 2", offsetHours: 22, side1: ["Sieger t:ms:3 (offen)"], side2: ["Sieger t:ms:4 (offen)"] },
+  // Morgen: eine Partie mit bekannten Spielern, eine noch offene (leere Namen,
+  // wie bei echten "Sieger aus ..."-Slots) – letztere darf nirgends erscheinen.
+  { eventId: 2, eventName: "WS A", key: "t:ws:5", court: "Platz 1", offsetHours: 23, side1: ["Weiss Xenia (R5)"], side2: ["Wüst Martina (R5)"] },
+  { eventId: 1, eventName: "MS A", key: "t:ms:5", court: "Platz 2", offsetHours: 22, side1: [""], side2: [""] },
 ];
 
 function pad2(value: number): string {

@@ -24,9 +24,16 @@ export function getWaidcupBrackets(database: TcwDatabase, tournamentId: number):
   return loadTournamentEvents(database, tournamentId).events;
 }
 
-/** Alle Matches des Waidcups über alle Events (Filter/Sortierung macht das Frontend). */
+/** Beide Seiten besetzt? Platzhalter (z. B. „Sieger aus …" = leere Namen) bleiben aussen vor. */
+function hasKnownSides(match: TournamentMatch): boolean {
+  return match.side1Names.length > 0 && match.side2Names.length > 0;
+}
+
+/** Alle Matches des Waidcups mit bekannten Spielern (Filter/Sortierung macht das Frontend). */
 export function getWaidcupMatches(database: TcwDatabase, tournamentId: number): TournamentMatch[] {
-  return loadTournamentEvents(database, tournamentId).events.flatMap((event) => event.matches);
+  return loadTournamentEvents(database, tournamentId)
+    .events.flatMap((event) => event.matches)
+    .filter(hasKnownSides);
 }
 
 interface LiveRow {
@@ -85,7 +92,9 @@ export function getWaidcupLive(
        FROM tournament_matches
        WHERE tournament_id = ? AND status = 'open'
          AND TRIM(COALESCE(scheduled_date, '')) <> ''
-         AND TRIM(COALESCE(scheduled_time, '')) <> ''`,
+         AND TRIM(COALESCE(scheduled_time, '')) <> ''
+         AND TRIM(COALESCE(player1_name, '')) <> ''
+         AND TRIM(COALESCE(player2_name, '')) <> ''`,
     )
     .all(tournamentId) as LiveRow[];
 

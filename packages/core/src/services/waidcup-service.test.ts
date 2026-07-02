@@ -53,6 +53,8 @@ test("getWaidcupLive: heute + Startzeit erreicht = live (nach Platz sortiert), Z
     { key: "up-soon-today", date: "2026-07-04", time: "15:00", court: "Platz 3" },
     { key: "up-tomorrow", date: "2026-07-05", time: "09:00", court: "Platz 1" },
     { key: "no-schedule" }, // ohne Termin: weder live noch upcoming
+    // Platzhalter ("Sieger aus ..." = leere Namen): darf nirgends erscheinen
+    { key: "placeholder", date: "2026-07-05", time: "10:00", court: "Platz 2", p1: "", p2: "" },
   ]);
 
   const board = getWaidcupLive(db, TID, NOW);
