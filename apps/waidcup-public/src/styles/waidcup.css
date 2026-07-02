@@ -292,13 +292,20 @@
   color: #57627b;
 }
 
-/* --- Spielleiter-Kontakt (WhatsApp) im Header --- */
-.header-cta--whatsapp {
+/* --- Spielleiter-Kontakt (WhatsApp) im Header: nur Rahmen, damit sich der
+   Button in keinem Theme mit dem gruenen WhatsApp-Symbol beisst --- */
+.header-cta.header-cta--whatsapp {
   gap: 0.5rem;
-  background: #25d366;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: none;
+  color: #fff;
 }
-.header-cta--whatsapp:hover {
-  background: #1ebe5b;
+.header-cta.header-cta--whatsapp:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: none;
 }
 .header-cta__icon {
   height: 1.5em;
