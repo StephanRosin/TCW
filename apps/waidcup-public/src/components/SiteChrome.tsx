@@ -29,7 +29,7 @@ export function SiteHeader(): JSX.Element {
               rel="noopener noreferrer"
             >
               <img className="header-cta__icon" src="/whatsapp.png" alt="" aria-hidden="true" />
-              {t("app.contactDirector")}
+              <span className="header-cta__label">{t("app.contactDirector")}</span>
             </a>
             <div className="site-header__switches">
               <LanguageSwitch />

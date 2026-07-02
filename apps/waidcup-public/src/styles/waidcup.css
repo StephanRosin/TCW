@@ -308,8 +308,16 @@
   box-shadow: none;
 }
 .header-cta__icon {
-  height: 1.5em;
+  height: 2.5em;
   width: auto;
   display: block;
-  border-radius: 4px;
+  border-radius: 7px;
+}
+/* Zweizeilig: bricht am Leerzeichen um ("Spielleiter" / "kontaktieren") */
+.header-cta__label {
+  white-space: normal;
+  width: min-content;
+  line-height: 1.2;
+  font-size: 0.9rem;
+  text-align: left;
 }
