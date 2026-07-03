@@ -15,7 +15,6 @@
  *   WAIDCUP_TOURNAMENT_ID=999001 npm run dev:waidcup
  */
 import { loadConfig, openDatabase } from "@tcw/core";
-import { playerNameKey } from "@tcw/shared";
 
 export const TEST_TOURNAMENT_ID = 999001;
 const TEST_NAME = "Waidcup (Testdaten)";
@@ -82,22 +81,6 @@ const MATCHES: SeedMatch[] = [
   { eventId: 1, eventName: "MS A R1/R5", key: "t:empty", court: "Platz 2", time: "20:30", side1: [""], side2: [""] },
 ];
 
-/** Alle vorkommenden Spielernamen (ohne Doppel-Platzhalter/leere Slots). */
-function distinctPlayerNames(): string[] {
-  const seen = new Set<string>();
-  const names: string[] = [];
-  for (const match of MATCHES) {
-    for (const name of [...match.side1, ...match.side2]) {
-      if (!name || name.trim() === "") continue;
-      const key = playerNameKey(name);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      names.push(name);
-    }
-  }
-  return names;
-}
-
 function pad2(value: number): string {
   return String(value).padStart(2, "0");
 }
@@ -143,7 +126,6 @@ function main(): void {
   const config = loadConfig();
   const database = openDatabase({ filePath: config.dbFilePath });
   const now = new Date().toISOString();
-  let seededLinkedPlayers = 0;
 
   const run = database.transaction(() => {
     database
@@ -205,50 +187,15 @@ function main(): void {
       });
     }
     }
-
-    // Spieler-Profil-Links (mytennis.ch) je Spieler – ermöglicht das Testen der
-    // Verlinkung in „Order of Play" und „Matches". Die ECHTEN URLs werden aus den
-    // bereits importierten Turnieren übernommen (dieselben Spieler existieren dort
-    // real); wer dort keine URL hat, bleibt link-frei – genau wie im Echtbetrieb.
-    const realUrlRows = database
-      .prepare(
-        `SELECT player_name, player_name_2, player_url, player_url_2
-           FROM tournament_players WHERE tournament_id <> ?`,
-      )
-      .all(TEST_TOURNAMENT_ID) as Array<{
-      player_name: string | null;
-      player_name_2: string | null;
-      player_url: string | null;
-      player_url_2: string | null;
-    }>;
-    const realUrls = new Map<string, string>();
-    const rememberUrl = (name: string | null, url: string | null): void => {
-      if (name && url && !realUrls.has(playerNameKey(name))) realUrls.set(playerNameKey(name), url);
-    };
-    for (const row of realUrlRows) {
-      rememberUrl(row.player_name, row.player_url);
-      rememberUrl(row.player_name_2, row.player_url_2);
-    }
-
-    const insertPlayer = database.prepare(
-      `INSERT INTO tournament_players (tournament_id, event_id, player_key, player_name, player_url)
-       VALUES (@tid, @eventId, @key, @name, @url)`,
-    );
-    let linkedPlayers = 0;
-    for (const name of distinctPlayerNames()) {
-      const url = realUrls.get(playerNameKey(name)) ?? "";
-      if (url) linkedPlayers += 1;
-      insertPlayer.run({ tid: TEST_TOURNAMENT_ID, eventId: EVENTS[0]!.eventId, key: playerNameKey(name), name, url });
-    }
-    seededLinkedPlayers = linkedPlayers;
   });
   run();
   database.close();
 
   const total = MATCHES.length * (EXTRA_DAYS + 1);
   console.log(
-    `Testdaten angelegt: Turnier ${TEST_TOURNAMENT_ID} („${TEST_NAME}"), ${total} Matches über ${EXTRA_DAYS + 1} Tage, ${seededLinkedPlayers}/${distinctPlayerNames().length} Spieler mit echtem Profil-Link.`,
+    `Testdaten angelegt: Turnier ${TEST_TOURNAMENT_ID} („${TEST_NAME}"), ${total} Matches über ${EXTRA_DAYS + 1} Tage.`,
   );
+  console.log(`Für Spieler-Links vorher \`npm run backfill:player-registry\` ausführen.`);
   console.log(`Testen mit: WAIDCUP_TOURNAMENT_ID=${TEST_TOURNAMENT_ID} npm run dev:waidcup`);
 }
 
