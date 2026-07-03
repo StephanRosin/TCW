@@ -53,6 +53,7 @@ export function PlayersAdmin(): JSX.Element {
   const [newPlayer, setNewPlayer] = useState<Omit<PlayerDraft, "id">>(emptyPlayer(0));
   const [memberHits, setMemberHits] = useState<MemberHit[]>([]);
   const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suggestSeq = useRef(0);
 
   useEffect(() => {
     if (playersState.data) setDrafts(playersState.data);
@@ -72,7 +73,17 @@ export function PlayersAdmin(): JSX.Element {
       return;
     }
     suggestTimer.current = setTimeout(() => {
-      void adminApi.memberSuggest(value).then((res) => setMemberHits(res.items));
+      // "Latest query wins": langsame ältere Antworten dürfen neuere nicht überschreiben.
+      const seq = ++suggestSeq.current;
+      adminApi
+        .memberSuggest(value)
+        .then((res) => {
+          if (seq === suggestSeq.current) setMemberHits(res.items);
+        })
+        .catch(() => {
+          // Fehlgeschlagene Live-Suche zeigt schlicht keine Vorschläge an.
+          if (seq === suggestSeq.current) setMemberHits([]);
+        });
     }, 250);
   };
 
