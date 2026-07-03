@@ -87,3 +87,24 @@ export function upsertPlayer(db: TcwDatabase, input: RegistryUpsert): void {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(mytennisId, nameKey, input.name.trim(), url, input.klassierung ?? null, input.license ?? null, isMember, memberSource);
 }
+
+/** Namens-only-Auflösung. null bei fehlend ODER mehrdeutig (mehrere IDs auf einen name_key). */
+export function resolveUrlByNameKey(db: TcwDatabase, nameKey: string): string | null {
+  if (nameKey === "") return null;
+  const hits = db
+    .prepare("SELECT DISTINCT profile_url FROM player_registry WHERE name_key = ? AND profile_url IS NOT NULL")
+    .all(nameKey) as Array<{ profile_url: string }>;
+  return hits.length === 1 ? hits[0]!.profile_url : null;
+}
+
+/** Bulk-Auflösung Anzeigenamen -> URL (nur eindeutige Treffer), als name_key-Map. */
+export function resolveUrlsForNames(db: TcwDatabase, names: string[]): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const name of names) {
+    const key = playerNameKey(name);
+    if (key === "" || key in map) continue;
+    const url = resolveUrlByNameKey(db, key);
+    if (url) map[key] = url;
+  }
+  return map;
+}

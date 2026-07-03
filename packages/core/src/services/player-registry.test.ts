@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import Database from "better-sqlite3";
 import { SCHEMA_SQL } from "../db/schema.js";
-import { upsertPlayer } from "./player-registry.js";
+import { upsertPlayer, resolveUrlByNameKey, resolveUrlsForNames } from "./player-registry.js";
+import { playerNameKey } from "@tcw/shared";
 
 function freshDb(): Database.Database {
   const db = new Database(":memory:");
@@ -92,5 +93,31 @@ test("upsertPlayer: Werden einer Person neu Mitglied setzt die member_source", (
   assert.equal(all.length, 1);
   assert.equal(all[0]!.is_tcw_member, 1);
   assert.equal(all[0]!.member_source, "ic-home");
+  db.close();
+});
+
+test("resolveUrlByNameKey: eindeutiger Treffer liefert URL", () => {
+  const db = freshDb();
+  upsertPlayer(db, { name: "Rauch Markus (R4)", url: "https://www.mytennis.ch/de/spieler/177712" });
+  assert.equal(resolveUrlByNameKey(db, playerNameKey("Markus Rauch")), "https://www.mytennis.ch/de/spieler/177712");
+  assert.equal(resolveUrlByNameKey(db, playerNameKey("Unbekannt Person")), null);
+  db.close();
+});
+
+test("resolveUrlByNameKey: mehrdeutiger name_key -> null (kein Rateversuch)", () => {
+  const db = freshDb();
+  upsertPlayer(db, { name: "Peter Meier", url: "https://www.mytennis.ch/de/spieler/111" });
+  upsertPlayer(db, { name: "Meier Peter", url: "https://www.mytennis.ch/de/spieler/222" });
+  // gleicher name_key, zwei verschiedene IDs -> ambig
+  assert.equal(resolveUrlByNameKey(db, playerNameKey("Peter Meier")), null);
+  db.close();
+});
+
+test("resolveUrlsForNames: Bulk-Map nur mit eindeutigen Treffern", () => {
+  const db = freshDb();
+  upsertPlayer(db, { name: "Weiss Xenia (R5)", url: "https://www.mytennis.ch/de/spieler/19786267" });
+  upsertPlayer(db, { name: "Kramer Sophia (R6)" }); // ohne URL
+  const map = resolveUrlsForNames(db, ["Xenia Weiss", "Sophia Kramer", ""]);
+  assert.deepEqual(map, { [playerNameKey("Weiss Xenia")]: "https://www.mytennis.ch/de/spieler/19786267" });
   db.close();
 });
