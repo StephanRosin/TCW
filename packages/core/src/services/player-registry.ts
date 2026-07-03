@@ -112,6 +112,13 @@ export function resolveUrlByNameKey(db: TcwDatabase, nameKey: string): string | 
   return hits.length === 1 ? hits[0]!.profile_url : null;
 }
 
+/** Register-id für einen Namensschlüssel – nur bei GENAU einem Treffer, sonst null (weicher Link). */
+export function registryIdForKey(db: TcwDatabase, nameKey: string): number | null {
+  if (nameKey === "") return null;
+  const rows = db.prepare("SELECT id FROM player_registry WHERE name_key = ?").all(nameKey) as Array<{ id: number }>;
+  return rows.length === 1 ? rows[0]!.id : null;
+}
+
 /** Bulk-Auflösung Anzeigenamen -> URL (nur eindeutige Treffer), als name_key-Map. */
 export function resolveUrlsForNames(db: TcwDatabase, names: string[]): Record<string, string> {
   const map: Record<string, string> = {};

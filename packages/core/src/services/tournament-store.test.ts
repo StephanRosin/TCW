@@ -71,6 +71,51 @@ test("replaceTournamentData spiegelt Spieler ins Register (non-member, mit URL)"
   database.close();
 });
 
+test("Turnier-Import setzt tournament_players.registry_id (weicher Link)", () => {
+  const database = openDatabase({ filePath: ":memory:" });
+  const events: EventImport[] = [
+    {
+      meta: { eventId: 1, eventName: "MS", discipline: "MS", mode: "Draw", matchTypeId: 1, sortOrder: 1 },
+      registrations: [
+        {
+          playerKey: "k1",
+          playerName: "Till Novak",
+          playerName2: null,
+          firstName: "Till",
+          lastName: "Novak",
+          firstName2: "",
+          lastName2: "",
+          licenseNumber: "1",
+          licenseNumber2: null,
+          confirmed: 1,
+          ranking: "R4",
+          ranking2: null,
+          registeredOn: "",
+          registeredOnSort: "",
+          note: null,
+          sortOrder: 0,
+          playerUrl: "https://www.mytennis.ch/de/spieler/19799660",
+          playerUrl2: "",
+        },
+      ],
+      matches: [],
+      pools: [],
+      bracket: null,
+    },
+  ];
+
+  replaceTournamentData(database, 158138, "Waidcup", events, new Date().toISOString());
+
+  const row = database
+    .prepare(
+      "SELECT tp.registry_id, r.profile_url FROM tournament_players tp JOIN player_registry r ON r.id = tp.registry_id",
+    )
+    .get() as { registry_id: number; profile_url: string } | undefined;
+  assert.ok(row && row.registry_id > 0);
+  assert.equal(row.profile_url, "https://www.mytennis.ch/de/spieler/19799660");
+  database.close();
+});
+
 test("replaceTournamentData speichert auch Spieler ohne Notiz (kein OR-IGNORE-Verlust)", () => {
   const database = openDatabase({ filePath: ":memory:" });
   const events: EventImport[] = [

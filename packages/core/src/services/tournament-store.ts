@@ -264,20 +264,29 @@ export function replaceTournamentData(
         });
 
         // Turnier-Import spiegelt beide Doppel-Spieler als Nicht-Mitglieder ins
-        // zentrale Register (kein Datenverlust, kein member-Flag).
-        upsertPlayer(database, {
+        // zentrale Register (kein Datenverlust, kein member-Flag) und verknüpft
+        // tournament_players weich (kein FK) mit der so entstandenen Register-Zeile.
+        const regId = upsertPlayer(database, {
           name: player.playerName,
           url: player.playerUrl,
           license: player.licenseNumber,
           klassierung: player.ranking,
         });
+        let regId2 = 0;
         if (player.playerName2) {
-          upsertPlayer(database, {
+          regId2 = upsertPlayer(database, {
             name: player.playerName2,
             url: player.playerUrl2,
             license: player.licenseNumber2,
             klassierung: player.ranking2,
           });
+        }
+        if (regId > 0 || regId2 > 0) {
+          database
+            .prepare(
+              "UPDATE tournament_players SET registry_id = ?, registry_id_2 = ? WHERE tournament_id = ? AND event_id = ? AND player_key = ?",
+            )
+            .run(regId > 0 ? regId : null, regId2 > 0 ? regId2 : null, tournamentId, event.meta.eventId, player.playerKey);
         }
       }
       event.matches.forEach((match, index) => {

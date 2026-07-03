@@ -30,7 +30,7 @@ import { createResultsService } from "./results-service.js";
 import { INTERCLUB, TEAM_CHALLENGE } from "../integrations/swisstennis/competition.js";
 import { tournamentDisplayUrl } from "../integrations/swisstennis/tournament-urls.js";
 import { chooseBestHit, searchPlayers } from "../integrations/mytennis/search.js";
-import { upsertPlayer, resolveUrlByNameKey } from "./player-registry.js";
+import { upsertPlayer, resolveUrlByNameKey, registryIdForKey } from "./player-registry.js";
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -394,6 +394,30 @@ export function syncOpponentUrlsFromRegistry(db: Database.Database): number {
   return filled;
 }
 
+const REGISTRY_ID_SLOTS = [
+  ["s1p1_key", "s1p1_registry_id"],
+  ["s1p2_key", "s1p2_registry_id"],
+  ["s2p1_key", "s2p1_registry_id"],
+  ["s2p2_key", "s2p2_registry_id"],
+] as const;
+
+/** Setzt die weichen Slot-registry_id in player_matches aus dem Register (eindeutige Treffer). */
+export function syncPlayerMatchRegistryIds(db: Database.Database): number {
+  let filled = 0;
+  for (const [keyCol, idCol] of REGISTRY_ID_SLOTS) {
+    const rows = db
+      .prepare(`SELECT DISTINCT ${keyCol} k FROM player_matches WHERE ${keyCol}<>'' AND ${idCol} IS NULL`)
+      .all() as Array<{ k: string }>;
+    for (const { k } of rows) {
+      const id = registryIdForKey(db, k);
+      if (!id) continue;
+      db.prepare(`UPDATE player_matches SET ${idCol}=? WHERE ${keyCol}=? AND ${idCol} IS NULL`).run(id, k);
+      filled++;
+    }
+  }
+  return filled;
+}
+
 /** Löst fehlende Gegner-URLs übers Spieler-Register auf; Netzsuche nur für unbekannte Namen. */
 async function resolveOpponentUrls(
   db: Database.Database,
@@ -477,6 +501,8 @@ export async function syncPlayerMatches(db: Database.Database, config: AppConfig
     const urls = await resolveOpponentUrls(db, config, delayMs, maxUrlLookups, log);
     log(`Gegner-URLs aufgelöst: ${urls}`);
   }
+  const registryIds = syncPlayerMatchRegistryIds(db);
+  log(`Register-IDs aufgelöst: ${registryIds}`);
   log("Sync fertig.");
 }
 

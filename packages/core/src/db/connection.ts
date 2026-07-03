@@ -43,6 +43,12 @@ export function openDatabase(options: DatabaseOptions): TcwDatabase {
     ensureColumn(database, "tournament_matches", "result_seen_at", "TEXT");
     // Harter Fremdschlüssel: welcher Register-Eintrag zu diesem Kaderspieler gehört.
     ensureColumn(database, "players", "registry_id", "INTEGER REFERENCES player_registry(id)");
+    // Weiche (nullable, ohne FK-Constraint) Register-Verknüpfung auf den Feed-Tabellen.
+    ensureColumn(database, "tournament_players", "registry_id", "INTEGER");
+    ensureColumn(database, "tournament_players", "registry_id_2", "INTEGER");
+    for (const slot of ["s1p1", "s1p2", "s2p1", "s2p2"]) {
+      ensureColumn(database, "player_matches", `${slot}_registry_id`, "INTEGER");
+    }
   }
   return database;
 }
