@@ -1,21 +1,45 @@
 /**
- * Standort- und Willkommensseite des Waidcups: Begrüssung, Bilder der Anlage,
- * Anfahrtsinformationen (ÖV empfohlen, Parkkarte zum Download) sowie eine
- * eingebettete Google-Maps-Karte mit Link zur Routenplanung.
+ * Standort- und Willkommensseite des Waidcups: Begrüssung mit langsam
+ * überblendendem Anlagenfoto (Wechsel alle 10 s), Anfahrtsinformationen
+ * (ÖV empfohlen, Parkkarte zum Download) und eine eingebettete Google-Maps-Karte.
  */
-import type { JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import { useI18n } from "@tcw/tournament-ui";
 
 // Einbettung ohne API-Key über den offiziellen ?output=embed-Modus.
 const MAPS_EMBED_URL =
   "https://www.google.com/maps?q=Tennisclub%20Waidberg%2C%20Waidbadstrasse%20151%2C%208037%20Z%C3%BCrich&z=16&output=embed";
 
+const HERO_IMAGES = [
+  { src: "/anlage-1.jpg", altKey: "location.photoAlt1" },
+  { src: "/anlage-2.jpg", altKey: "location.photoAlt2" },
+] as const;
+const HERO_INTERVAL_MS = 10_000;
+
 export function LocationView(): JSX.Element {
   const { t } = useI18n();
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setHeroIndex((index) => (index + 1) % HERO_IMAGES.length);
+    }, HERO_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <section className="loc">
       <div className="loc__hero">
-        <img className="loc__hero-img" src="/anlage-1.jpg" alt={t("location.photoAlt1")} />
+        {HERO_IMAGES.map((image, index) => (
+          <img
+            key={image.src}
+            className="loc__hero-img"
+            src={image.src}
+            alt={t(image.altKey)}
+            aria-hidden={index === heroIndex ? undefined : true}
+            style={{ opacity: index === heroIndex ? 1 : 0 }}
+          />
+        ))}
         <div className="loc__hero-overlay">
           <h2 className="loc__title">{t("location.welcomeTitle")}</h2>
           <p className="loc__lead">{t("location.welcomeText")}</p>
@@ -42,11 +66,6 @@ export function LocationView(): JSX.Element {
             ⬇ {t("location.parkingDownload")}
           </a>
         </article>
-      </div>
-
-      <div className="loc__gallery">
-        <img src="/anlage-1.jpg" alt={t("location.photoAlt1")} loading="lazy" />
-        <img src="/anlage-2.jpg" alt={t("location.photoAlt2")} loading="lazy" />
       </div>
     </section>
   );
