@@ -7,6 +7,7 @@
  */
 import type { TcwDatabase } from "../../db/connection.js";
 import { chooseBestHit, searchPlayers } from "../../integrations/mytennis/search.js";
+import { upsertPlayer } from "../player-registry.js";
 
 export interface EnrichResult {
   klassierung: string;
@@ -46,7 +47,22 @@ export async function enrichPlayer(
   database
     .prepare("UPDATE players SET klassierung = ?, myTennisID = ? WHERE id = ?")
     .run(klassierung, best.url, playerId);
+  syncPlayerToRegistry(database, { name: player.name, klassierung, myTennisID: best.url });
   return { klassierung, myTennisID: best.url };
+}
+
+/** Spiegelt einen Kaderspieler ins zentrale Register (Mitglied). */
+export function syncPlayerToRegistry(
+  db: TcwDatabase,
+  player: { name: string; klassierung: string | null; myTennisID: string | null },
+): void {
+  upsertPlayer(db, {
+    name: player.name,
+    url: player.myTennisID,
+    klassierung: player.klassierung,
+    member: true,
+    memberSource: "roster",
+  });
 }
 
 function normalizeUrl(value: string): string {
