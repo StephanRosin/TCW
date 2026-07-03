@@ -75,7 +75,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
-  padding: 1.4rem 1.5rem;
+  padding: 1.3rem 1.15rem;
 }
 .loc__card > p {
   line-height: 1.55;
@@ -133,8 +133,11 @@
   align-items: stretch;
   gap: 1.2rem;
 }
+/* Karte ~62% / Anreise-Panel ~38%: gibt der Überschrift „Anreise mit dem öV
+   (empfohlen)" genug Breite, damit sie auch in breiteren Theme-Schriften
+   (z. B. Schiefer/Nunito Sans) nicht umbricht. */
 .loc__row .loc__map {
-  flex: 2;
+  flex: 1.65;
   min-width: 0;
 }
 .loc__row .loc__card {

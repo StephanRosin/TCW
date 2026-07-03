@@ -246,10 +246,12 @@ html[data-theme="schiefer"] {
 }
 
 /* Schriften mit kleinerer x-Höhe (Bitter/Nunito) auf die übrigen Themes
-   angleichen – skaliert die Glyphen, ohne rem/Layout zu verändern. */
+   angleichen – skaliert die Glyphen, ohne rem/Layout zu verändern. Der Wert
+   entspricht der x-Höhe des Club-Themes (Manrope/Space Grotesk ≈ 0.536), damit
+   Sand und Wald exakt gleich gross rendern wie alle anderen Themes. */
 html[data-theme="sand"],
 html[data-theme="wald"] {
-  font-size-adjust: 0.55;
+  font-size-adjust: 0.536;
 }
 
 * {
