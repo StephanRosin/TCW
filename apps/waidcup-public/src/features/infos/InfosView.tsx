@@ -32,7 +32,6 @@ export function InfosView(): JSX.Element {
   return (
     <section className="infos">
       <header className="infos__head">
-        <p className="infos__eyebrow">Waidcup 2026</p>
         <h2 className="infos__title">{t("infos.subtitle")}</h2>
       </header>
 
