@@ -12,7 +12,9 @@ import {
   createAgendaImporter,
   createMatchesImporter,
   createTournamentService,
+  fetchWebcamSnapshot,
   syncPlayerMatches,
+  writeWebcamSnapshot,
   type AppConfig,
   type TcwDatabase,
 } from "@tcw/core";
@@ -20,6 +22,9 @@ import type { FastifyBaseLogger } from "fastify";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
+// Webcam: ein zentraler Abruf alle 10 s, den beide Seiten aus dem Cache
+// ausliefern (Kamera-Last unabhängig von der Zuschauerzahl).
+const WEBCAM_INTERVAL_MS = 10_000;
 // Turniere alle 30 Minuten: hält Waidcup-Live-Board und Resultate aktuell.
 const TOURNAMENT_INTERVAL_MS = 30 * 60 * 1000;
 const INITIAL_DELAY_MS = 5_000;
@@ -139,8 +144,23 @@ export function startBackgroundJobs(
     PLAYER_MATCHES_JITTER_MS,
   );
 
+  // Webcam-Poller: rund um die Uhr, kein Nachtruhe-/Saison-Gate (lokale Kamera,
+  // keine Swisstennis-Last). Fehler nur auf debug – das letzte Bild bleibt.
+  scheduleRecurring(
+    async () => {
+      try {
+        const frame = await fetchWebcamSnapshot();
+        writeWebcamSnapshot(config, frame.body);
+      } catch (error) {
+        logger.debug({ error }, "Webcam-Snapshot fehlgeschlagen – letztes Bild bleibt erhalten.");
+      }
+    },
+    WEBCAM_INTERVAL_MS,
+    0,
+  );
+
   logger.info(
-    "Hintergrund-Jobs gestartet (Spieltermine + Turniere + Spielermatches stündlich, Agenda täglich; " +
-      "Swisstennis-Jobs pausieren 23–09 Uhr, Interclub nur Mai–Juni).",
+    "Hintergrund-Jobs gestartet (Spieltermine + Turniere + Spielermatches stündlich, Agenda täglich, " +
+      "Webcam alle 10 s; Swisstennis-Jobs pausieren 23–09 Uhr, Interclub nur Mai–Juni).",
   );
 }

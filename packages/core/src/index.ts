@@ -3,6 +3,7 @@ export * from "./db/connection.js";
 export * from "./db/schema.js";
 export * from "./http/security-headers.js";
 export * from "./http/logger.js";
+export * from "./integrations/webcam/webcam-cache.js";
 export * from "./services/teams-service.js";
 export * from "./services/training-service.js";
 export * from "./services/ranking-service.js";

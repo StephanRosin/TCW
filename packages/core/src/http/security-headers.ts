@@ -14,6 +14,9 @@ const PUBLIC_CONTENT_SECURITY_POLICY = [
   "object-src 'none'",
   "base-uri 'self'",
   "frame-ancestors 'self'",
+  // Nur die eingebettete Google-Maps-Karte auf der Standort-Seite; wir selbst
+  // bleiben durch frame-ancestors 'self' weiterhin gegen Framing geschützt.
+  "frame-src https://www.google.com",
 ].join("; ");
 
 const COMMON_SECURITY_HEADERS: Record<string, string> = {

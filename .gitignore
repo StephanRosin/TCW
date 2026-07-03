@@ -13,3 +13,5 @@ data/seeds/ic_teams.legacy.sqlite
 .env
 .DS_Store
 *.tsbuildinfo
+data/webcam-latest.jpg
+data/webcam-latest.jpg.tmp

@@ -14,6 +14,7 @@ import {
   getWaidcupBrackets,
   getWaidcupLive,
   getWaidcupMatches,
+  getWebcamFrame,
   loadConfig,
   openDatabase,
   PUBLIC_SECURITY_HEADERS,
@@ -60,6 +61,19 @@ export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise
   app.get("/api/waidcup/brackets", async () => ({ events: getWaidcupBrackets(database, tournamentId) }));
   app.get("/api/waidcup/matches", async () => ({ matches: getWaidcupMatches(database, tournamentId) }));
   app.get("/api/waidcup/live", async () => getWaidcupLive(database, tournamentId));
+
+  // Webcam: gleiches Standbild wie die Spielbetriebsseite, aus dem vom Admin
+  // gepflegten Cache (kein Kamera-Abruf pro Client).
+  app.get("/api/webcam", async (_request, reply) => {
+    const frame = await getWebcamFrame(config);
+    if (!frame) {
+      return reply.code(502).send({ error: "Webcam nicht erreichbar." });
+    }
+    return reply
+      .header("Content-Type", frame.contentType)
+      .header("Cache-Control", "no-store")
+      .send(frame.body);
+  });
 
   if (existsSync(WEB_DIST_DIR)) {
     app.register(fastifyStatic, { root: WEB_DIST_DIR });

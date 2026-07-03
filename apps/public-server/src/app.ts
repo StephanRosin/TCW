@@ -57,7 +57,7 @@ export async function buildPublicApp(config: AppConfig = loadConfig()): Promise<
 
   registerPublicCoreRoutes(app, database);
   registerIcResultRoutes(app, config);
-  registerWebcamRoute(app);
+  registerWebcamRoute(app, config);
   registerCourtsRoute(app, config);
 
   if (existsSync(WEB_DIST_DIR)) {

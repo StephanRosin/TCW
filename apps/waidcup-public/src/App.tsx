@@ -10,16 +10,22 @@ import { SiteFooter, SiteHeader, TabBar } from "./components/SiteChrome.js";
 import { BracketsView } from "./features/brackets/BracketsView.js";
 import { MatchesView } from "./features/matches/MatchesView.js";
 import { LiveView } from "./features/live/LiveView.js";
+import { LocationView } from "./features/location/LocationView.js";
+import { WebcamView } from "./features/webcam/WebcamView.js";
 import { KioskView } from "./features/kiosk/KioskView.js";
 
 function ActiveView({ view }: { view: MainView }): JSX.Element {
   switch (view) {
+    case "brackets":
+      return <BracketsView />;
     case "matches":
       return <MatchesView />;
     case "live":
       return <LiveView />;
+    case "webcam":
+      return <WebcamView />;
     default:
-      return <BracketsView />;
+      return <LocationView />;
   }
 }
 
