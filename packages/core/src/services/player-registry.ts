@@ -58,9 +58,14 @@ function resolveMemberSource(
   return existingSource ?? (wantMember ? (inputSource ?? null) : null);
 }
 
-export function upsertPlayer(db: TcwDatabase, input: RegistryUpsert): void {
+/**
+ * Legt einen Spieler an oder aktualisiert ihn (Merge per mytennis_id, sonst per Namensschlüssel).
+ * Gibt die `player_registry.id` der ein- bzw. aktualisierten Zeile zurück, damit Aufrufer
+ * (z. B. der Team-Picker) die Zeile ohne separaten Lookup referenzieren können.
+ */
+export function upsertPlayer(db: TcwDatabase, input: RegistryUpsert): number {
   const nameKey = playerNameKey(input.name);
-  if (nameKey === "") return;
+  if (nameKey === "") return 0; // leerer Name: keine Zeile angelegt, 0 als "kein Treffer"-Sentinel
   const url = safeExternalUrl(input.url ?? null) || null;
   const mytennisId = parseMyTennisId(url);
   const existing = findExisting(db, mytennisId, nameKey);
@@ -86,13 +91,16 @@ export function upsertPlayer(db: TcwDatabase, input: RegistryUpsert): void {
          updated_at = datetime('now')
        WHERE id = ?`,
     ).run(mytennisId, nameKey, input.name.trim(), url, input.klassierung ?? null, input.license ?? null, isMember, memberSource, existing.id);
-    return;
+    return existing.id;
   }
 
-  db.prepare(
-    `INSERT INTO player_registry (mytennis_id, name_key, display_name, profile_url, klassierung, license_number, is_tcw_member, member_source)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).run(mytennisId, nameKey, input.name.trim(), url, input.klassierung ?? null, input.license ?? null, isMember, memberSource);
+  const info = db
+    .prepare(
+      `INSERT INTO player_registry (mytennis_id, name_key, display_name, profile_url, klassierung, license_number, is_tcw_member, member_source)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(mytennisId, nameKey, input.name.trim(), url, input.klassierung ?? null, input.license ?? null, isMember, memberSource);
+  return Number(info.lastInsertRowid);
 }
 
 /** Namens-only-Auflösung. null bei fehlend ODER mehrdeutig (mehrere IDs auf einen name_key). */
@@ -102,6 +110,13 @@ export function resolveUrlByNameKey(db: TcwDatabase, nameKey: string): string | 
     .prepare("SELECT DISTINCT profile_url FROM player_registry WHERE name_key = ? AND profile_url IS NOT NULL")
     .all(nameKey) as Array<{ profile_url: string }>;
   return hits.length === 1 ? hits[0]!.profile_url : null;
+}
+
+/** Register-id für einen Namensschlüssel – nur bei GENAU einem Treffer, sonst null (weicher Link). */
+export function registryIdForKey(db: TcwDatabase, nameKey: string): number | null {
+  if (nameKey === "") return null;
+  const rows = db.prepare("SELECT id FROM player_registry WHERE name_key = ?").all(nameKey) as Array<{ id: number }>;
+  return rows.length === 1 ? rows[0]!.id : null;
 }
 
 /** Bulk-Auflösung Anzeigenamen -> URL (nur eindeutige Treffer), als name_key-Map. */

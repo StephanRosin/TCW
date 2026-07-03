@@ -96,6 +96,17 @@ test("upsertPlayer: Werden einer Person neu Mitglied setzt die member_source", (
   db.close();
 });
 
+test("upsertPlayer: liefert die player_registry.id zurueck; gleicher Spieler -> gleiche id, andere Spieler -> andere id", () => {
+  const db = freshDb();
+  const idFirstInsert = upsertPlayer(db, { name: "Muster Erika", url: "https://www.mytennis.ch/de/spieler/700001" });
+  assert.equal(typeof idFirstInsert, "number");
+  const idSameUpdate = upsertPlayer(db, { name: "Erika Muster", url: "https://www.mytennis.ch/de/spieler/700001", klassierung: "R5" });
+  assert.equal(idSameUpdate, idFirstInsert, "Upsert desselben Spielers (gleiche mytennis-URL) liefert dieselbe id");
+  const idOtherPlayer = upsertPlayer(db, { name: "Muster Franz", url: "https://www.mytennis.ch/de/spieler/700002" });
+  assert.notEqual(idOtherPlayer, idFirstInsert, "Anderer Spieler liefert eine andere id");
+  db.close();
+});
+
 test("resolveUrlByNameKey: eindeutiger Treffer liefert URL", () => {
   const db = freshDb();
   upsertPlayer(db, { name: "Rauch Markus (R4)", url: "https://www.mytennis.ch/de/spieler/177712" });

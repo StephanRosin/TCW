@@ -11,7 +11,7 @@ import {
 } from "@tcw/shared";
 import type { TcwDatabase } from "../../db/connection.js";
 import { runDatabaseWrite, ValidationError } from "./errors.js";
-import { enrichPlayer, syncPlayerToRegistry } from "./enrich.js";
+import { enrichPlayer, syncPlayerToRegistry, linkPlayerRegistryId } from "./enrich.js";
 
 export interface PlayerInput {
   name: string;
@@ -102,7 +102,9 @@ function mirrorRosterPlayer(database: TcwDatabase, id: number): void {
   const row = database.prepare("SELECT name, klassierung, myTennisID FROM players WHERE id = ?").get(id) as
     | { name: string; klassierung: string | null; myTennisID: string | null }
     | undefined;
-  if (row) syncPlayerToRegistry(database, { name: row.name, klassierung: row.klassierung, myTennisID: row.myTennisID });
+  if (!row) return;
+  const registryId = syncPlayerToRegistry(database, { name: row.name, klassierung: row.klassierung, myTennisID: row.myTennisID });
+  linkPlayerRegistryId(database, id, registryId);
 }
 
 export async function createPlayer(

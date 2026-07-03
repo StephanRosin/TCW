@@ -9,6 +9,7 @@ import {
   isoToSwissDate,
   suggestPlayers,
   syncOpponentUrlsFromRegistry,
+  syncPlayerMatchRegistryIds,
   toSortKey,
 } from "./player-matches-service.js";
 import { upsertPlayer } from "./player-registry.js";
@@ -158,5 +159,44 @@ test("syncOpponentUrlsFromRegistry füllt leere Gegner-URLs aus dem Register", (
   assert.equal(filled, 1);
   const row = db.prepare("SELECT s2p1_url FROM player_matches WHERE match_uid='u1'").get() as { s2p1_url: string };
   assert.equal(row.s2p1_url, "https://www.mytennis.ch/de/spieler/424242");
+  db.close();
+});
+
+test("syncPlayerMatchRegistryIds füllt Slot-registry_id aus dem Register (eindeutig)", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  const regId = upsertPlayer(db, { name: "Extern Gegner", url: "https://www.mytennis.ch/de/spieler/424242" });
+  db.prepare(
+    `INSERT INTO player_matches (match_uid, year, competition_code, competition_label, discipline, s2p1_name, s2p1_key, updated_at)
+     VALUES ('u1', 2026, 'ic', 'Interclub', 'single', 'Extern Gegner', ?, datetime('now'))`,
+  ).run(playerNameKey("Extern Gegner"));
+  const filled = syncPlayerMatchRegistryIds(db);
+  assert.equal(filled, 1);
+  const row = db.prepare("SELECT s2p1_registry_id FROM player_matches WHERE match_uid='u1'").get() as {
+    s2p1_registry_id: number;
+  };
+  assert.equal(row.s2p1_registry_id, regId);
+  db.close();
+});
+
+test("syncPlayerMatchRegistryIds lässt mehrdeutige Namensschlüssel NULL (kein falscher Link)", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  // Zwei verschiedene mytennis-IDs, aber derselbe name_key → mehrdeutig.
+  upsertPlayer(db, { name: "Doppel Gänger", url: "https://www.mytennis.ch/de/spieler/111111" });
+  upsertPlayer(db, { name: "Doppel Gänger", url: "https://www.mytennis.ch/de/spieler/222222" });
+  const key = playerNameKey("Doppel Gänger");
+  const existing = db
+    .prepare("SELECT COUNT(*) n FROM player_registry WHERE name_key = ?")
+    .get(key) as { n: number };
+  assert.equal(existing.n, 2);
+  db.prepare(
+    `INSERT INTO player_matches (match_uid, year, competition_code, competition_label, discipline, s2p1_name, s2p1_key, updated_at)
+     VALUES ('u2', 2026, 'ic', 'Interclub', 'single', 'Doppel Gänger', ?, datetime('now'))`,
+  ).run(key);
+  const filled = syncPlayerMatchRegistryIds(db);
+  assert.equal(filled, 0);
+  const row = db.prepare("SELECT s2p1_registry_id FROM player_matches WHERE match_uid='u2'").get() as {
+    s2p1_registry_id: number | null;
+  };
+  assert.equal(row.s2p1_registry_id, null);
   db.close();
 });
