@@ -482,19 +482,14 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
   - `listMembers(db, opts?: { query?: string; limit?: number }): RegistryMember[]` — nur `is_tcw_member = 1`, alphabetisch, optional nach Namensteil gefiltert.
   - `setMembership(db, id: number, isMember: boolean): void` — setzt `member_source = "admin"` (stärkste Stufe).
 
+> **Hinweis:** Die Membership-Merge-Regeln von `upsertPlayer` (Import degradiert
+> nie, `member_source="admin"` gewinnt) sind bereits in Task 3 getestet — hier
+> NICHT erneut testen. Diese Task deckt nur `setMembership` und `listMembers` ab.
+
 - [ ] **Step 1: Write the failing test** (anhängen)
 
 ```ts
 import { listMembers, setMembership } from "./player-registry.js";
-
-test("Import degradiert Mitglied nicht; admin-Flag gewinnt", () => {
-  const db = freshDb();
-  upsertPlayer(db, { name: "Anna Meier", url: "https://www.mytennis.ch/de/spieler/500", member: true, memberSource: "roster" });
-  // Ein späterer Turnier-Import (non-member) darf das Mitglied nicht entwerten:
-  upsertPlayer(db, { name: "Meier Anna", url: "https://www.mytennis.ch/de/spieler/500", member: false });
-  assert.equal(listMembers(db).length, 1);
-  db.close();
-});
 
 test("setMembership: admin schaltet an/aus, Import ueberschreibt admin nicht", () => {
   const db = freshDb();
