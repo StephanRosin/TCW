@@ -36,6 +36,31 @@ function matchText(match: WaidcupLiveMatch): string {
   return `${formatSide(match.side1Names)} vs. ${formatSide(match.side2Names)}`;
 }
 
+/** Ein Spieler als „(R5) Nachname Vorname" (fürs mehrzeilige Anzeige-Layout). */
+function playerLine(name: string): string {
+  const { label, ranking } = splitRanking(name);
+  return ranking !== "" ? `(${ranking}) ${label}` : label;
+}
+
+/** Anzeige-Zelle: jeder Spieler auf eigener Zeile, „vs" dazwischen. */
+function MatchLines({ match }: { match: WaidcupLiveMatch }): JSX.Element {
+  return (
+    <span className="oopt__match">
+      {match.side1Names.map((n, i) => (
+        <span key={`a${i}`} className="oopt__player">
+          {playerLine(n)}
+        </span>
+      ))}
+      <span className="oopt__vs">vs</span>
+      {match.side2Names.map((n, i) => (
+        <span key={`b${i}`} className="oopt__player">
+          {playerLine(n)}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function courtNumber(court: string): number {
   return Number(court.match(/\d+/)?.[0] ?? 0);
 }
@@ -160,7 +185,7 @@ function ScheduleTimeBlock({
           }
           return (
             <td key={c} className={cls("oopt__cell")} style={st("cell")}>
-              {matchText(match)}
+              {email ? matchText(match) : <MatchLines match={match} />}
             </td>
           );
         })}
