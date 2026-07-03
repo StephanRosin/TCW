@@ -6,6 +6,7 @@
   "nav.infos": "Infos",
   "nav.brackets": "Tableaux",
   "nav.matches": "Matchs",
+  "nav.orderOfPlay": "Order of Play",
   "nav.live": "Live",
   "nav.webcam": "Webcam",
   "footer.imprint": "Impressum : Stephan Rosin",
@@ -101,5 +102,8 @@
   "infos.hint6": "En cas de pluie, des courts couverts sont disponibles au centre sportif Grindel le week-end des finales. Des matchs des tours précédents peuvent aussi être déplacés en salle selon la météo.",
   "infos.hint8": "En principe, le « jeu sans arbitre » s'applique :",
   "infos.hintPdf": "Fiche d'information (PDF) ↗",
-  "infos.hintPdfUrl": "https://www.swisstennis.ch/media/810/2025_officiating_spielohneschiedsrichter_f.pdf"
+  "infos.hintPdfUrl": "https://www.swisstennis.ch/media/810/2025_officiating_spielohneschiedsrichter_f.pdf",
+  "orderOfPlay.copy": "Copier pour e-mail",
+  "orderOfPlay.copied": "Copié",
+  "orderOfPlay.empty": "Aucun match programmé aujourd'hui."
 }

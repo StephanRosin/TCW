@@ -159,3 +159,35 @@ export function getWaidcupLive(
 
   return { now: live, upcoming };
 }
+
+/**
+ * Tagesspielplan („Order of Play"): alle heute terminierten Partien mit
+ * bekanntem Platz, Zeit und beiden Spielern – unabhängig vom Status
+ * (gespielt/laufend/anstehend). Sortiert nach Zeit, dann Platz.
+ */
+export function getWaidcupOrderOfPlay(
+  database: TcwDatabase,
+  tournamentId: number,
+  now: Date = new Date(),
+): WaidcupLiveMatch[] {
+  const today = localDate(now);
+  const rows = database
+    .prepare(
+      `SELECT event_name, court, scheduled_date, scheduled_time,
+              player1_name, player1_name_2, player2_name, player2_name_2
+       FROM tournament_matches
+       WHERE tournament_id = ? AND scheduled_date = ?
+         AND TRIM(COALESCE(scheduled_time, '')) <> ''
+         AND TRIM(COALESCE(court, '')) <> ''
+         AND TRIM(COALESCE(player1_name, '')) <> ''
+         AND TRIM(COALESCE(player2_name, '')) <> ''
+       ORDER BY scheduled_time`,
+    )
+    .all(tournamentId, today) as LiveRow[];
+  return rows
+    .map(toLiveMatch)
+    .sort(
+      (a, b) =>
+        a.scheduledTime.localeCompare(b.scheduledTime) || courtSortKey(a.court) - courtSortKey(b.court),
+    );
+}

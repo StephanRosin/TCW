@@ -6,6 +6,7 @@
   "nav.infos": "Infos",
   "nav.brackets": "Turnierbaum",
   "nav.matches": "Matches",
+  "nav.orderOfPlay": "Order of Play",
   "nav.live": "Live",
   "nav.webcam": "Webcam",
   "footer.imprint": "Impressum: Stephan Rosin",
@@ -101,5 +102,8 @@
   "infos.hint6": "Bei Regen stehen am Final-Wochenende Hallenplätze im Sportzentrum Grindel zur Verfügung. Ggf. können auch Matches in den Vorrunden wetterbedingt in die Halle verlegt werden.",
   "infos.hint8": "Grundsätzlich gilt „Spielen ohne Schiedsrichter“:",
   "infos.hintPdf": "Merkblatt (PDF) ↗",
-  "infos.hintPdfUrl": "https://www.swisstennis.ch/media/809/2025_officiating_spielohneschiedsrichter_d.pdf"
+  "infos.hintPdfUrl": "https://www.swisstennis.ch/media/809/2025_officiating_spielohneschiedsrichter_d.pdf",
+  "orderOfPlay.copy": "Für E-Mail kopieren",
+  "orderOfPlay.copied": "Kopiert",
+  "orderOfPlay.empty": "Heute sind keine Partien angesetzt."
 }

@@ -3,7 +3,12 @@
  * fürs Display aufbereitet (Aktiv-Kürzel "A" entfernt), damit alle Ansichten
  * (Chips, Matchliste, Live-Board, Kiosk) dieselben Namen zeigen.
  */
-import type { TournamentEventView, TournamentMatch, WaidcupLiveResponse } from "@tcw/shared";
+import type {
+  TournamentEventView,
+  TournamentMatch,
+  WaidcupLiveMatch,
+  WaidcupLiveResponse,
+} from "@tcw/shared";
 import { displayEventName } from "../lib/events.js";
 
 async function fetchJson<TResponse>(url: string): Promise<TResponse> {
@@ -30,5 +35,9 @@ export const waidcupApi = {
   live: async (): Promise<WaidcupLiveResponse> => {
     const data = await fetchJson<WaidcupLiveResponse>("/api/waidcup/live");
     return { ...data, now: data.now.map(withDisplayName), upcoming: data.upcoming.map(withDisplayName) };
+  },
+  orderOfPlay: async (): Promise<{ matches: WaidcupLiveMatch[] }> => {
+    const data = await fetchJson<{ matches: WaidcupLiveMatch[] }>("/api/waidcup/order-of-play");
+    return { matches: data.matches.map(withDisplayName) };
   },
 };

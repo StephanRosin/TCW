@@ -332,6 +332,109 @@
 }
 
 /* ==========================================================================
+   Order of Play (Tagesspielplan)
+   ========================================================================== */
+.oop {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.oop__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.oop__date {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1rem;
+  color: #fff;
+  text-transform: capitalize;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(13, 17, 25, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.oop__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.15rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--own);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.oop__copy:hover {
+  background: var(--accent);
+  transform: translateY(-1px);
+}
+.oop__scroll {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+/* Unsichtbare, exakt eingefärbte Kopiervorlage – off-screen, aber gerendert
+   (nicht display:none, damit sie selektiert/kopiert werden kann). */
+.oop__email {
+  position: absolute;
+  left: -100000px;
+  top: 0;
+}
+
+/* Theme-angepasste Anzeige-Tabelle */
+.oopt {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 600px;
+  font-family: var(--font-body);
+  background: var(--surface);
+}
+.oopt__court {
+  background: var(--own);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 0.7rem 0.4rem;
+  border: 1px solid var(--own);
+}
+.oopt__band {
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  text-align: left;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--accent);
+}
+.oopt__cell {
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.86rem;
+  text-align: center;
+  vertical-align: middle;
+  padding: 0.6rem 0.55rem;
+  border: 1px solid var(--border);
+  line-height: 1.35;
+}
+.oopt__cell--empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ==========================================================================
    Webcam-Seite
    ========================================================================== */
 .webcam__frame {

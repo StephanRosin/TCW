@@ -6,6 +6,7 @@
   "nav.infos": "Info",
   "nav.brackets": "Tabelloni",
   "nav.matches": "Partite",
+  "nav.orderOfPlay": "Order of Play",
   "nav.live": "Live",
   "nav.webcam": "Webcam",
   "footer.imprint": "Impressum: Stephan Rosin",
@@ -101,5 +102,8 @@
   "infos.hint6": "In caso di pioggia, nel weekend delle finali sono disponibili campi coperti nel centro sportivo Grindel. Anche le partite dei turni precedenti possono essere spostate al coperto per motivi meteo.",
   "infos.hint8": "In generale vale il «gioco senza arbitro»:",
   "infos.hintPdf": "Scheda informativa (PDF) ↗",
-  "infos.hintPdfUrl": "https://www.tennis-ticino.ch/document/Giocare%20senza%20arbitro.pdf"
+  "infos.hintPdfUrl": "https://www.tennis-ticino.ch/document/Giocare%20senza%20arbitro.pdf",
+  "orderOfPlay.copy": "Copia per e-mail",
+  "orderOfPlay.copied": "Copiato",
+  "orderOfPlay.empty": "Nessuna partita in programma oggi."
 }
