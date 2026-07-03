@@ -23,6 +23,7 @@
     "import:live": "tsx scripts/import-live-snapshot.ts",
     "refresh:tournaments": "tsx scripts/refresh-tournaments.ts",
     "backfill:player-matches": "tsx scripts/backfill-player-matches.ts",
+    "backfill:player-registry": "tsx scripts/backfill-player-registry.ts",
     "import:agenda": "tsx scripts/import-agenda.ts",
     "dev": "concurrently -n public-api,admin-api,public-web,admin-web -c blue,magenta,green,yellow \"npm:dev:public-api\" \"npm:dev:admin-api\" \"npm:dev:public-web\" \"npm:dev:admin-web\"",
     "dev:public-api": "npm -w @tcw/public-server run dev",

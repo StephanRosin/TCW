@@ -27,3 +27,4 @@ export * from "./services/admin/ranking-admin.js";
 export * from "./services/admin/tournaments-admin.js";
 export * from "./services/admin/enrich.js";
 export * from "./services/player-registry.js";
+export * from "./services/player-registry-backfill.js";
