@@ -143,6 +143,7 @@ function main(): void {
   const config = loadConfig();
   const database = openDatabase({ filePath: config.dbFilePath });
   const now = new Date().toISOString();
+  let seededLinkedPlayers = 0;
 
   const run = database.transaction(() => {
     database
@@ -206,29 +207,47 @@ function main(): void {
     }
 
     // Spieler-Profil-Links (mytennis.ch) je Spieler – ermöglicht das Testen der
-    // Verlinkung in „Order of Play" und „Matches". Die IDs sind erfunden (echte
-    // Turnierdaten liefern beim Import die tatsächlichen Profil-URLs); Host
-    // mytennis.ch ist in der Allowlist, damit die Links gerendert werden.
+    // Verlinkung in „Order of Play" und „Matches". Die ECHTEN URLs werden aus den
+    // bereits importierten Turnieren übernommen (dieselben Spieler existieren dort
+    // real); wer dort keine URL hat, bleibt link-frei – genau wie im Echtbetrieb.
+    const realUrlRows = database
+      .prepare(
+        `SELECT player_name, player_name_2, player_url, player_url_2
+           FROM tournament_players WHERE tournament_id <> ?`,
+      )
+      .all(TEST_TOURNAMENT_ID) as Array<{
+      player_name: string | null;
+      player_name_2: string | null;
+      player_url: string | null;
+      player_url_2: string | null;
+    }>;
+    const realUrls = new Map<string, string>();
+    const rememberUrl = (name: string | null, url: string | null): void => {
+      if (name && url && !realUrls.has(playerNameKey(name))) realUrls.set(playerNameKey(name), url);
+    };
+    for (const row of realUrlRows) {
+      rememberUrl(row.player_name, row.player_url);
+      rememberUrl(row.player_name_2, row.player_url_2);
+    }
+
     const insertPlayer = database.prepare(
       `INSERT INTO tournament_players (tournament_id, event_id, player_key, player_name, player_url)
        VALUES (@tid, @eventId, @key, @name, @url)`,
     );
-    distinctPlayerNames().forEach((name, index) => {
-      insertPlayer.run({
-        tid: TEST_TOURNAMENT_ID,
-        eventId: EVENTS[0]!.eventId,
-        key: playerNameKey(name),
-        name,
-        url: `https://www.mytennis.ch/de/player/${900000 + index}`,
-      });
-    });
+    let linkedPlayers = 0;
+    for (const name of distinctPlayerNames()) {
+      const url = realUrls.get(playerNameKey(name)) ?? "";
+      if (url) linkedPlayers += 1;
+      insertPlayer.run({ tid: TEST_TOURNAMENT_ID, eventId: EVENTS[0]!.eventId, key: playerNameKey(name), name, url });
+    }
+    seededLinkedPlayers = linkedPlayers;
   });
   run();
   database.close();
 
   const total = MATCHES.length * (EXTRA_DAYS + 1);
   console.log(
-    `Testdaten angelegt: Turnier ${TEST_TOURNAMENT_ID} („${TEST_NAME}"), ${total} Matches über ${EXTRA_DAYS + 1} Tage, ${distinctPlayerNames().length} Spieler mit Profil-Link.`,
+    `Testdaten angelegt: Turnier ${TEST_TOURNAMENT_ID} („${TEST_NAME}"), ${total} Matches über ${EXTRA_DAYS + 1} Tage, ${seededLinkedPlayers}/${distinctPlayerNames().length} Spieler mit echtem Profil-Link.`,
   );
   console.log(`Testen mit: WAIDCUP_TOURNAMENT_ID=${TEST_TOURNAMENT_ID} npm run dev:waidcup`);
 }
