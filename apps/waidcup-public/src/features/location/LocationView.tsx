@@ -11,8 +11,8 @@ const MAPS_EMBED_URL =
   "https://www.google.com/maps?q=Tennisclub%20Waidberg%2C%20Waidbadstrasse%20151%2C%208037%20Z%C3%BCrich&z=16&output=embed";
 
 const HERO_IMAGES = [
-  { src: "/anlage-1.jpg", altKey: "location.photoAlt1" },
-  { src: "/anlage-2.jpg", altKey: "location.photoAlt2" },
+  { src: "/anlage-1.jpg", altKey: "location.photoAlt1", position: "50% 72%" },
+  { src: "/anlage-2.jpg", altKey: "location.photoAlt2", position: "50% 88%" },
 ] as const;
 const HERO_INTERVAL_MS = 10_000;
 
@@ -37,7 +37,7 @@ export function LocationView(): JSX.Element {
             src={image.src}
             alt={t(image.altKey)}
             aria-hidden={index === heroIndex ? undefined : true}
-            style={{ opacity: index === heroIndex ? 1 : 0 }}
+            style={{ opacity: index === heroIndex ? 1 : 0, objectPosition: image.position }}
           />
         ))}
         <div className="loc__hero-overlay">
