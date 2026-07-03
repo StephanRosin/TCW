@@ -8,11 +8,12 @@ import { useI18n } from "@tcw/tournament-ui";
 const OFFICIATING_PDF =
   "https://www.swisstennis.ch/media/809/2025_officiating_spielohneschiedsrichter_d.pdf";
 
+// WS immer vor MS.
 const TABLEAUX: ReadonlyArray<readonly [string, string, string]> = [
-  ["MS", "R1/R5", "infos.tableau32"],
-  ["MS", "R5/R9", "infos.tableau32"],
   ["WS", "R1/R5", "infos.tableau32"],
   ["WS", "R5/R9", "infos.tableau32"],
+  ["MS", "R1/R5", "infos.tableau32"],
+  ["MS", "R5/R9", "infos.tableau32"],
   ["DM", "R1/R5", "infos.tableau16"],
 ];
 

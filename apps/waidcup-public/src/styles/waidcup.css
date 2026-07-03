@@ -217,10 +217,11 @@
 
 /* Kompakte Karten (Termine/Tableaux/Preisgelder) nebeneinander, Hinweise
    darunter als volle Breite. */
+/* stretch = alle drei Karten in der Reihe bekommen dieselbe Höhe. */
 .infos__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
-  align-items: start;
+  align-items: stretch;
   gap: 1.2rem;
 }
 .infos__card {
@@ -229,6 +230,9 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
   padding: 1.3rem 1.4rem;
+  /* Textfarbe auf die Kartenfläche zurücksetzen (sonst erbt sie die helle
+     „auf-Hintergrundbild"-Farbe und ist auf hellen Karten unlesbar). */
+  color: var(--text);
 }
 .infos__card-title {
   margin: 0 0 0.9rem;
