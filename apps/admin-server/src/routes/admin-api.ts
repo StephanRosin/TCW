@@ -13,6 +13,7 @@ import {
   deleteRankingChange,
   deleteTeam,
   listAdminTournaments,
+  listMembers,
   listPlayers,
   listRankingChanges,
   listTeams,
@@ -80,6 +81,12 @@ export function registerAdminRoutes(app: FastifyInstance, deps: AdminDependencie
   app.delete("/api/players/:id", async (request) => {
     deletePlayer(database, parseId((request.params as { id: string }).id, "Spieler-ID"));
     return { ok: true };
+  });
+
+  // ----- Mitglieder-Verzeichnis -----
+  app.get("/api/players/members", async (request) => {
+    const q = (request.query as { q?: string }).q;
+    return { items: listMembers(database, { query: q, limit: 25 }) };
   });
 
   // ----- Trainingsslots -----
