@@ -202,7 +202,8 @@ function OrderOfPlayTable({ matches }: { matches: WaidcupLiveMatch[] }): JSX.Ele
   const copyForEmail = async (): Promise<void> => {
     const table = emailRef.current?.querySelector("table");
     if (!table) return;
-    const html = table.outerHTML;
+    // charset-Wrapper: hilft Mail-Clients, den Inhalt als HTML (UTF-8) zu erkennen.
+    const html = `<meta charset="utf-8">${table.outerHTML}`;
     const text = table.innerText;
 
     if (window.isSecureContext && navigator.clipboard && typeof window.ClipboardItem === "function") {
