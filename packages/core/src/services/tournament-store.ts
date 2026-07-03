@@ -19,6 +19,7 @@ import type { TcwDatabase } from "../db/connection.js";
 import type { RegistrationRecord } from "../integrations/swisstennis/tournament-registrations.js";
 import type { MatchRecord } from "../integrations/swisstennis/tournament-matches.js";
 import type { TournamentEventMeta } from "../integrations/swisstennis/tournament-events.js";
+import { upsertPlayer } from "./player-registry.js";
 
 export interface TournamentConfig {
   id: number;
@@ -261,6 +262,23 @@ export function replaceTournamentData(
           sort_order_player: player.sortOrder,
           note: player.note,
         });
+
+        // Turnier-Import spiegelt beide Doppel-Spieler als Nicht-Mitglieder ins
+        // zentrale Register (kein Datenverlust, kein member-Flag).
+        upsertPlayer(database, {
+          name: player.playerName,
+          url: player.playerUrl,
+          license: player.licenseNumber,
+          klassierung: player.ranking,
+        });
+        if (player.playerName2) {
+          upsertPlayer(database, {
+            name: player.playerName2,
+            url: player.playerUrl2,
+            license: player.licenseNumber2,
+            klassierung: player.ranking2,
+          });
+        }
       }
       event.matches.forEach((match, index) => {
         incomingKeys.add(match.matchKey);
