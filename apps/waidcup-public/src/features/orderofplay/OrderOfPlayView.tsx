@@ -207,11 +207,13 @@ function OrderOfPlayTable({ matches }: { matches: WaidcupLiveMatch[] }): JSX.Ele
 
   return (
     <div className="oop">
+      {/* Doppelklick auf das Datum kopiert die E-Mail-Tabelle (verstecktes
+          Admin-Feature; kein sichtbarer Button). */}
       <div className="oop__bar">
-        <span className="oop__date">{dateLabel}</span>
-        <button type="button" className="oop__copy" onClick={copyForEmail}>
-          {copied ? `✓ ${t("orderOfPlay.copied")}` : t("orderOfPlay.copy")}
-        </button>
+        <span className="oop__date" onDoubleClick={copyForEmail} title="">
+          {dateLabel}
+        </span>
+        {copied ? <span className="oop__copied">✓ {t("orderOfPlay.copied")}</span> : null}
       </div>
       <div className="oop__scroll">
         <ScheduleTable grid={grid} email={false} />

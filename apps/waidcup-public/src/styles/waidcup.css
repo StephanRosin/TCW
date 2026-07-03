@@ -342,8 +342,8 @@
 .oop__bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: flex-start;
+  gap: 0.7rem;
   flex-wrap: wrap;
 }
 .oop__date {
@@ -357,24 +357,16 @@
   background: rgba(13, 17, 25, 0.55);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  /* Doppelklick kopiert die Mail-Tabelle – daher keine Textauswahl. */
+  user-select: none;
 }
-.oop__copy {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 1.15rem;
-  border: 0;
-  border-radius: 999px;
-  background: var(--own);
-  color: #fff;
+.oop__copied {
   font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
-}
-.oop__copy:hover {
-  background: var(--accent);
-  transform: translateY(-1px);
+  font-size: 0.85rem;
+  color: #fff;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: var(--green-600, #2f9e44);
 }
 .oop__scroll {
   overflow-x: auto;
@@ -398,26 +390,29 @@
   font-family: var(--font-body);
   background: var(--surface);
 }
+/* Court-Kopf und Uhrzeit-Band nutzen die Blau-Palette des Themes (immer dunkel
+   genug für weisse Schrift, auch im gelben „night"-Theme). Court dunkler als
+   die Uhrzeit-Bänder, damit sich die Kopfzeile klar abhebt. */
 .oopt__court {
-  background: var(--own);
+  background: var(--blue-900);
   color: #fff;
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 0.9rem;
   text-align: center;
   padding: 0.7rem 0.4rem;
-  border: 1px solid var(--own);
+  border: 1px solid var(--blue-900);
 }
 .oopt__band {
-  background: var(--accent);
+  background: var(--blue-700);
   color: #fff;
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 0.9rem;
   letter-spacing: 0.03em;
-  text-align: left;
+  text-align: center;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--blue-700);
 }
 .oopt__cell {
   background: var(--surface);
