@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { TournamentMatchStatus } from "@tcw/shared";
+import { playerNameKey, type TournamentMatchStatus } from "@tcw/shared";
 import { openDatabase, type TcwDatabase } from "../db/connection.js";
 import { replaceTournamentData, type EventImport } from "./tournament-store.js";
 
@@ -26,6 +26,50 @@ function registration(playerKey: string, note: string | null) {
     playerUrl2: "",
   };
 }
+
+test("replaceTournamentData spiegelt Spieler ins Register (non-member, mit URL)", () => {
+  const database = openDatabase({ filePath: ":memory:" });
+  const events: EventImport[] = [
+    {
+      meta: { eventId: 1, eventName: "MS", discipline: "MS", mode: "Draw", matchTypeId: 1, sortOrder: 1 },
+      registrations: [
+        {
+          playerKey: "k1",
+          playerName: "Till Novak",
+          playerName2: null,
+          firstName: "Till",
+          lastName: "Novak",
+          firstName2: "",
+          lastName2: "",
+          licenseNumber: "1",
+          licenseNumber2: null,
+          confirmed: 1,
+          ranking: "R4",
+          ranking2: null,
+          registeredOn: "",
+          registeredOnSort: "",
+          note: null,
+          sortOrder: 0,
+          playerUrl: "https://www.mytennis.ch/de/spieler/19799660",
+          playerUrl2: "",
+        },
+      ],
+      matches: [],
+      pools: [],
+      bracket: null,
+    },
+  ];
+
+  replaceTournamentData(database, 158138, "Waidcup", events, new Date().toISOString());
+
+  const nameKey = playerNameKey("Till Novak");
+  const row = database
+    .prepare("SELECT profile_url, is_tcw_member FROM player_registry WHERE name_key = ?")
+    .get(nameKey) as { profile_url: string; is_tcw_member: number } | undefined;
+  assert.equal(row?.profile_url, "https://www.mytennis.ch/de/spieler/19799660");
+  assert.equal(row?.is_tcw_member, 0);
+  database.close();
+});
 
 test("replaceTournamentData speichert auch Spieler ohne Notiz (kein OR-IGNORE-Verlust)", () => {
   const database = openDatabase({ filePath: ":memory:" });

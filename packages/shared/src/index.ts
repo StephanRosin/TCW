@@ -5,5 +5,6 @@ export * from "./domain/teams.js";
 export * from "./domain/disciplines.js";
 export * from "./domain/names.js";
 export * from "./domain/url.js";
+export * from "./domain/mytennis-id.js";
 export * from "./domain/errors.js";
 export * from "./i18n/known-text.js";

@@ -482,19 +482,14 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
   - `listMembers(db, opts?: { query?: string; limit?: number }): RegistryMember[]` — nur `is_tcw_member = 1`, alphabetisch, optional nach Namensteil gefiltert.
   - `setMembership(db, id: number, isMember: boolean): void` — setzt `member_source = "admin"` (stärkste Stufe).
 
+> **Hinweis:** Die Membership-Merge-Regeln von `upsertPlayer` (Import degradiert
+> nie, `member_source="admin"` gewinnt) sind bereits in Task 3 getestet — hier
+> NICHT erneut testen. Diese Task deckt nur `setMembership` und `listMembers` ab.
+
 - [ ] **Step 1: Write the failing test** (anhängen)
 
 ```ts
 import { listMembers, setMembership } from "./player-registry.js";
-
-test("Import degradiert Mitglied nicht; admin-Flag gewinnt", () => {
-  const db = freshDb();
-  upsertPlayer(db, { name: "Anna Meier", url: "https://www.mytennis.ch/de/spieler/500", member: true, memberSource: "roster" });
-  // Ein späterer Turnier-Import (non-member) darf das Mitglied nicht entwerten:
-  upsertPlayer(db, { name: "Meier Anna", url: "https://www.mytennis.ch/de/spieler/500", member: false });
-  assert.equal(listMembers(db).length, 1);
-  db.close();
-});
 
 test("setMembership: admin schaltet an/aus, Import ueberschreibt admin nicht", () => {
   const db = freshDb();
@@ -885,60 +880,142 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ---
 
-## Task 9: Interclub-Sync — Heimspieler Mitglied, Gegner-URLs übers Register
+## Task 9: Gegner-URLs übers Register (opponent_url_cache ablösen)
 
 **Files:**
-- Modify: `packages/core/src/services/player-matches-service.ts` (`applyOwnUrls` ~361, `resolveOpponentUrls` ~378, `syncPlayerMatches` ~436)
+- Modify: `packages/core/src/services/player-matches-service.ts` (`resolveOpponentUrls` ~378, `syncPlayerMatches` ~436)
 - Modify: `packages/core/src/services/player-matches-service.test.ts`
 
 **Interfaces:**
 - Consumes: `upsertPlayer`, `resolveUrlByNameKey` (Tasks 3–4).
+- Produces: exportierte `syncOpponentUrlsFromRegistry(db): number` — füllt leere `player_matches`-URL-Slots aus dem Register (ohne Netz), gibt die Anzahl gefüllter Slots zurück.
+
+> **Scope-Entscheidung:** Diese Task ersetzt NUR die Gegner-URL-Auflösung
+> (`opponent_url_cache` → Register). Die IC-Mitgliedschaftsableitung (Heim/Auswärts)
+> ist NICHT Teil dieser Task: sie ist weitgehend redundant zum Kader (Task 8), und
+> ihre korrekte Ableitung ist heikel (Waidberg kann Heim ODER Auswärts sein;
+> `extractEncounter` setzt `side1 = homeNames`, Zeile 141). Sie ist als optionale
+> Phase-2-Task 19 vermerkt.
+>
+> **Negativ-Cache erhalten:** Der bisherige `opponent_url_cache` speicherte auch
+> „gesucht, nichts gefunden" (url NULL), um denselben Namen nicht bei jedem Sync
+> erneut zu suchen. Das bleibt erhalten, indem die Netzsuche für einen Gegner
+> IMMER eine Register-Zeile anlegt (`upsertPlayer` — auch ohne URL entsteht eine
+> name-only-Zeile), und die Suche Namen überspringt, die bereits eine Register-Zeile
+> haben. So wird jeder Name höchstens einmal gesucht.
 
 - [ ] **Step 1: Read context**
 
-Run: `sed -n '355,470p' packages/core/src/services/player-matches-service.ts`
-Verstehen: wo Heim-/Auswärts-Seite unterschieden wird (Encounter mit `homeClubNb == OWN_CLUB_ID`) und wo `opponent_url_cache` gelesen/geschrieben wird.
+Run: `sed -n '350,435p' packages/core/src/services/player-matches-service.ts`
+Beachten: `SLOTS`-Konstante (4 Slots je `[nameCol, keyCol, urlCol]`), `applyOwnUrls` (bleibt unverändert), `resolveOpponentUrls` (nutzt aktuell `cacheGet`/`cacheSet` auf `opponent_url_cache`), `lookupUrl` (Netzsuche). `syncPlayerMatches` ruft `applyOwnUrls` dann `resolveOpponentUrls`.
 
-- [ ] **Step 2: Write the failing test** (an bestehende Testdatei anlehnen; nutzt den dort etablierten DB-Helper)
+- [ ] **Step 2: Write the failing test** (an `player-matches-service.test.ts` anhängen; die Datei nutzt `openDatabase({ filePath: ":memory:" })` und importiert `playerNameKey`)
 
 ```ts
-test("resolveOpponentUrls nutzt Register statt opponent_url_cache", () => {
-  const db = makeDb(); // vorhandener Helper der Testdatei
-  // Register kennt die URL bereits (z.B. aus Turnierimport):
+import { upsertPlayer } from "./player-registry.js";
+import { syncOpponentUrlsFromRegistry } from "./player-matches-service.js";
+
+test("syncOpponentUrlsFromRegistry füllt leere Gegner-URLs aus dem Register", () => {
+  const db = openDatabase({ filePath: ":memory:" });
   upsertPlayer(db, { name: "Extern Gegner", url: "https://www.mytennis.ch/de/spieler/424242" });
-  // ein player_matches-Datensatz mit leerer Gegner-URL:
-  insertMatchWithOpponent(db, "Extern Gegner"); // Testhelfer analog zu bestehenden Tests
-  syncOpponentUrlsFromRegistry(db); // neue, testbare Teilfunktion
-  const url = db.prepare("SELECT s2p1_url FROM player_matches LIMIT 1").get() as { s2p1_url: string };
-  assert.equal(url.s2p1_url, "https://www.mytennis.ch/de/spieler/424242");
+  db.prepare(
+    `INSERT INTO player_matches (match_uid, year, competition_code, competition_label, discipline, s2p1_name, s2p1_key, updated_at)
+     VALUES ('u1', 2026, 'ic', 'Interclub', 'single', 'Extern Gegner', ?, datetime('now'))`,
+  ).run(playerNameKey("Extern Gegner"));
+  const filled = syncOpponentUrlsFromRegistry(db);
+  assert.equal(filled, 1);
+  const row = db.prepare("SELECT s2p1_url FROM player_matches WHERE match_uid='u1'").get() as { s2p1_url: string };
+  assert.equal(row.s2p1_url, "https://www.mytennis.ch/de/spieler/424242");
   db.close();
 });
 ```
-(`upsertPlayer` importieren; `syncOpponentUrlsFromRegistry` ist die in Step 4 extrahierte Funktion. Falls Testhelfer fehlen, minimal per direktem `INSERT INTO player_matches (...)` mit gesetztem `s2p1_name`/`s2p1_key` und leerer `s2p1_url` aufbauen.)
 
 - [ ] **Step 3: Run test to verify it fails**
 
 Run: `npm -w @tcw/core run test 2>&1 | tail -20`
-Expected: FAIL (`syncOpponentUrlsFromRegistry` fehlt).
+Expected: FAIL (`syncOpponentUrlsFromRegistry` nicht exportiert).
 
 - [ ] **Step 4: Implement**
 
-In `player-matches-service.ts`:
-- `import { upsertPlayer, resolveUrlByNameKey } from "./player-registry.js";`
-- `resolveOpponentUrls` so umbauen, dass es die fehlenden Slot-URLs über `resolveUrlByNameKey(db, slotKey)` füllt statt über `opponent_url_cache`. Die bisherige externe Netzwerksuche (`lookupUrl`) bleibt als Fallback erhalten, schreibt ihr Ergebnis aber per `upsertPlayer(db, { name: displayName, url })` ins Register (nicht mehr in den Cache). Die reine „aus Register füllen"-Logik in eine kleine, exportierte Funktion `syncOpponentUrlsFromRegistry(db)` extrahieren (für den Test).
-- In `syncPlayerMatches`: nach dem Import der Encounter die Heim-Seite (`homeClubNb === OWN_CLUB_ID`) je Spieler `upsertPlayer(db, { name, member: true, memberSource: "ic-home" })` markieren; Auswärts-Spieler `upsertPlayer(db, { name })` (non-member). `applyOwnUrls` bleibt (Kader-URLs), ergänzt aber ebenfalls das Register nicht doppelt — Kader läuft bereits über Task 8.
-- Jede verbliebene Referenz auf `opponent_url_cache` entfernen (Tabelle existiert nach Task 6/Backfill nicht mehr).
+In `player-matches-service.ts` den Import ergänzen:
+```ts
+import { upsertPlayer, resolveUrlByNameKey } from "./player-registry.js";
+```
+Neue exportierte Funktion (nutzt die bestehende `SLOTS`-Konstante):
+```ts
+/** Füllt leere Spieler-/Gegner-URL-Slots aus dem zentralen Register (ohne Netz). */
+export function syncOpponentUrlsFromRegistry(db: Database.Database): number {
+  let filled = 0;
+  for (const [, keyCol, urlCol] of SLOTS) {
+    const rows = db
+      .prepare(`SELECT DISTINCT ${keyCol} k FROM player_matches WHERE ${keyCol}<>'' AND (${urlCol} IS NULL OR ${urlCol}='')`)
+      .all() as Array<{ k: string }>;
+    for (const { k } of rows) {
+      const url = resolveUrlByNameKey(db, k);
+      if (!url) continue;
+      db.prepare(`UPDATE player_matches SET ${urlCol}=? WHERE ${keyCol}=? AND (${urlCol} IS NULL OR ${urlCol}='')`).run(url, k);
+      filled++;
+    }
+  }
+  return filled;
+}
+```
+`resolveOpponentUrls` ersetzen (kein `opponent_url_cache` mehr; Register als Quelle + Negativ-Cache):
+```ts
+async function resolveOpponentUrls(
+  db: Database.Database,
+  config: AppConfig,
+  delayMs: number,
+  maxLookups: number,
+  log: (m: string) => void,
+): Promise<number> {
+  // 1) Was das Register schon kennt, ohne Netz auffüllen.
+  let resolved = syncOpponentUrlsFromRegistry(db);
+  // 2) Verbleibende Lücken sammeln.
+  const needed = new Map<string, string>(); // key → Anzeigename
+  for (const [nameCol, keyCol, urlCol] of SLOTS) {
+    const rows = db
+      .prepare(`SELECT DISTINCT ${keyCol} k, ${nameCol} n FROM player_matches WHERE ${keyCol}<>'' AND (${urlCol} IS NULL OR ${urlCol}='')`)
+      .all() as Array<{ k: string; n: string }>;
+    for (const r of rows) if (!needed.has(r.k)) needed.set(r.k, r.n);
+  }
+  const known = db.prepare("SELECT 1 FROM player_registry WHERE name_key=? LIMIT 1");
+  let lookups = 0;
+  for (const [key, displayName] of needed) {
+    // Schon im Register (in Schritt 1 aufgelöst, mehrdeutig, oder zuvor erfolglos gesucht) → nicht erneut suchen.
+    if (known.get(key)) continue;
+    if (lookups >= maxLookups) {
+      log(`  URL-Lookup-Limit ${maxLookups} erreicht, Rest folgt`);
+      break;
+    }
+    lookups++;
+    const url = await lookupUrl(displayName, config.swisstennisTimeoutMs);
+    // Register-Zeile IMMER anlegen (auch ohne URL = name-only) → Negativ-Cache, kein erneutes Suchen.
+    upsertPlayer(db, { name: displayName, url });
+    log(`  url ${displayName} → ${url ?? "—"}`);
+    if (url) {
+      for (const [, keyCol, urlCol] of SLOTS) {
+        db.prepare(`UPDATE player_matches SET ${urlCol}=? WHERE ${keyCol}=? AND (${urlCol} IS NULL OR ${urlCol}='')`).run(url, key);
+      }
+      resolved++;
+    }
+    await sleep(delayMs);
+  }
+  return resolved;
+}
+```
+`applyOwnUrls` bleibt unverändert (füllt Kader-URLs). Alle `opponent_url_cache`-Referenzen (die `cacheGet`/`cacheSet`-Prepares) sind damit entfernt.
 
 - [ ] **Step 5: Run test to verify it passes**
 
 Run: `npm -w @tcw/core run test 2>&1 | tail -30`
-Expected: PASS (inkl. bestehender player-matches-Tests; ggf. Tests, die `opponent_url_cache` erwarteten, auf Register umstellen).
+Expected: PASS (inkl. aller bestehenden player-matches-Tests). Kein Test darf noch `opponent_url_cache` referenzieren.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add packages/core/src/services/player-matches-service.ts packages/core/src/services/player-matches-service.test.ts
-git commit -m "feat(core): IC-Sync markiert Heimspieler als Mitglied, Gegner-URLs übers Register
+git commit -m "feat(core): Gegner-URLs übers Spieler-Register (opponent_url_cache abgelöst)
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
@@ -1199,6 +1276,79 @@ Nachdem verifiziert ist, dass alle Auflösungen übers Register laufen und ein B
 - [ ] **Step 6: Commit/Doku**
 
 Kurze Notiz in `docs/STATUS.md`, dass das Register aktiv ist und wie Backup, Backfill und der Admin-Picker zu nutzen sind.
+
+---
+
+---
+
+# Phase 2: Fremdschlüssel-Verknüpfung (Folge-Ausbau)
+
+> Startet **nachdem** die Register-Basis (Tasks 1–14) steht und deployt ist.
+> Entscheidung: **Kader/Teams hart** verknüpfen (`players.registry_id` als echter
+> FK), **Swisstennis-Feed-Tabellen weich** (nullable `registry_id`, vom Import
+> opportunistisch nur bei eindeutigem Treffer gefüllt). Grund: Feed-Namen haben
+> nicht immer eine stabile Identität (NC/Gäste), der Import ersetzt atomar, und
+> Doppel packen zwei Personen pro Zeile — ein harter FK dort würde das
+> Import-Modell brechen und Live-Migrationsrisiko erzeugen. Weiterhin gilt: KEIN
+> Datenverlust (nur additive Spalten via `ensureColumn`, Backup vor Backfill).
+
+## Task 15: `upsertPlayer` liefert die Register-id zurück
+
+**Files:** Modify `packages/core/src/services/player-registry.ts`, `packages/core/src/services/player-registry.test.ts`
+
+**Interfaces:** `upsertPlayer(db, input): number` — gibt die `player_registry.id` der ein-/upgedateten Zeile zurück (bisher `void`; bestehende Aufrufer, die den Rückgabewert ignorieren, bleiben unberührt).
+
+- [ ] **Step 1:** Test: `const id = upsertPlayer(db, {...}); ` — zweiter Upsert desselben Spielers liefert **dieselbe** id; unterschiedliche Spieler → verschiedene ids.
+- [ ] **Step 2:** Fail-Lauf (`upsertPlayer` gibt noch `void`).
+- [ ] **Step 3:** Implementieren: im UPDATE-Zweig `existing.id` zurückgeben; im INSERT-Zweig `Number(info.lastInsertRowid)` aus dem `better-sqlite3`-`RunResult`. Rückgabetyp auf `number` setzen.
+- [ ] **Step 4:** `npm -w @tcw/core run test` grün (alle Bestandstests unverändert grün).
+- [ ] **Step 5:** Commit.
+
+## Task 16: `players.registry_id` (harter FK) + Population
+
+**Files:** Modify `packages/core/src/db/connection.ts` (`ensureColumn`), `packages/core/src/services/admin/enrich.ts`, `packages/core/src/services/player-registry-backfill.ts`, jeweils zugehörige Tests.
+
+**Interfaces:** Neue Spalte `players.registry_id INTEGER REFERENCES player_registry(id)`, gefüllt beim Kader-Sync und im Backfill.
+
+- [ ] **Step 1:** Test: nach `syncPlayerToRegistry` bzw. Backfill hat die `players`-Zeile ein `registry_id`, das auf die passende Register-Zeile zeigt (Join liefert dieselbe URL/Klassierung).
+- [ ] **Step 2:** Fail-Lauf.
+- [ ] **Step 3:** Implementieren:
+  - In `connection.ts` bei den `ensureColumn`-Aufrufen ergänzen: `ensureColumn(database, "players", "registry_id", "INTEGER REFERENCES player_registry(id)");` (additiv, bestehende DBs erhalten die Spalte; kein Datenverlust). Reihenfolge beachten: `player_registry` wird von `SCHEMA_SQL` vor dem `ensureColumn` erzeugt.
+  - `syncPlayerToRegistry` (Task 8) so erweitern, dass es die von `upsertPlayer` (Task 15) zurückgegebene id nimmt und `UPDATE players SET registry_id=? WHERE id=?` setzt (id des Kaderspielers durchreichen).
+  - Im Backfill (Schritt „Team-Kader") nach dem Upsert die zurückgegebene id in `players.registry_id` schreiben.
+- [ ] **Step 4:** `npm -w @tcw/core run test` grün.
+- [ ] **Step 5:** Commit.
+
+## Task 17: Weiche `registry_id`-Spalten auf den Feed-Tabellen
+
+**Files:** Modify `packages/core/src/db/connection.ts`, `packages/core/src/services/tournament-store.ts`, `packages/core/src/services/player-matches-service.ts`, zugehörige Tests.
+
+**Interfaces:** Nullable Spalten (kein erzwungener FK-Constraint, „weich"): `tournament_players.registry_id`, `tournament_players.registry_id_2`; `player_matches.s1p1_registry_id … s2p2_registry_id`. Vom Import **nur bei eindeutigem** Register-Treffer gefüllt (sonst NULL).
+
+- [ ] **Step 1:** Test: nach Turnier-Import trägt ein Spieler mit eindeutigem Register-Treffer sein `registry_id`; ein mehrdeutiger/namens-only-Fall bleibt NULL.
+- [ ] **Step 2:** Fail-Lauf.
+- [ ] **Step 3:** Implementieren:
+  - `ensureColumn` für die neuen nullable Spalten (additiv). Bewusst **ohne** `REFERENCES`-Constraint (weich), damit der atomare Replace-Import und name-only-Fälle nicht brechen.
+  - Eine Hilfsfunktion `registryIdForName(db, name): number | null` im Register-Service (nutzt die eindeutige Auflösung analog `resolveUrlByNameKey`, gibt die id nur bei genau einem Treffer).
+  - Turnier-Import (Task 7) und IC-Sync (Task 9) füllen die Slot-`registry_id`s über `registryIdForName` beim Schreiben der Zeile.
+- [ ] **Step 4:** `npm -w @tcw/core run test` grün.
+- [ ] **Step 5:** Commit.
+
+## Task 18: Verifikation & optionaler Consumer-Join
+
+**Files:** keine erzwungene Änderung; Verifikation.
+
+- [ ] Prüfen, dass Team-Roster und Spielermatches über den FK/Soft-Link denselben Stand liefern wie zuvor (keine Regression). Optional: Team-Roster-Anzeige (`teams-service.ts`) und Autocomplete auf den Join zum Register umstellen, falls das Duplikate reduziert — nur wenn ohne Risiko. Andernfalls bewusst beim bestehenden Lesen belassen und als künftige Aufräumarbeit notieren.
+
+## Task 19 (optional): IC-Mitgliedschaftsableitung
+
+> Nur wenn zusätzliche Mitglieder-Abdeckung über den Kader hinaus gewünscht ist.
+> Aus Task 9 bewusst herausgehalten (Redundanz zum Kader + Risiko).
+
+- [ ] In `extractEncounter` (`player-matches-service.ts`) die eigene Seite bestimmen:
+  `ownSide = detail.homeClubNb === OWN_CLUB_ID ? 1 : (/waidberg/i.test(detail.awayTeam) ? 2 : 0)`.
+  `ownSide` auf dem `MatchRecord` mitführen (nur IC/TC; Turnier-Records `ownSide = 0`).
+- [ ] In `upsertRecords` je Slot `upsertPlayer(db, { name, member: onOwnSide, memberSource: onOwnSide ? "ic-home" : undefined })` aufrufen (nur nicht-leere Namen). Test: Heim-Waidberg → side1 Mitglied; Auswärts-Waidberg → side2 Mitglied; Gegner nie Mitglied.
 
 ---
 

@@ -181,6 +181,39 @@ button.btn:disabled {
 .muted {
   color: var(--ink-500);
 }
+.member-suggest-wrap {
+  position: relative;
+}
+.member-suggest-list {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0.4rem;
+  right: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(20, 37, 57, 0.18);
+  max-height: 12rem;
+  overflow-y: auto;
+}
+.member-suggest-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+  font: inherit;
+  color: var(--ink-900);
+}
+.member-suggest-item:hover {
+  background: var(--sand-100);
+}
 .actions-cell {
   display: flex;
   gap: 0.4rem;

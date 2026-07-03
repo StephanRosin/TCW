@@ -45,6 +45,10 @@ export const adminApi = {
   updatePlayer: (id: number, body: Record<string, unknown>) =>
     request(`/api/players/${id}`, { method: "PUT", body: JSON.stringify(body) }),
   deletePlayer: (id: number) => request(`/api/players/${id}`, { method: "DELETE" }),
+  memberSuggest: (q: string) =>
+    request<{ items: Array<{ id: number; displayName: string; klassierung: string | null; profileUrl: string | null }> }>(
+      `/api/players/members?q=${encodeURIComponent(q)}`,
+    ),
 
   trainingSlots: () => items<AdminTrainingSlot>("/api/training-slots"),
   saveTrainingGrid: (gridItems: unknown[]) =>

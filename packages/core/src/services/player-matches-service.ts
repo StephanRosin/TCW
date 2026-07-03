@@ -8,7 +8,9 @@
  *
  * Schonend: pro Begegnung wird nur dann (erneut) geladen, wenn sie neu oder ihr
  * Resultat geändert ist (`encounter_detail_state`). Gegner-Profil-URLs werden
- * einmalig über die Namenssuche aufgelöst und gecacht (`opponent_url_cache`).
+ * über das zentrale Spieler-Register (`player_registry`) aufgelöst; nur wenn
+ * das Register noch nichts weiss, wird einmalig über die Namenssuche gesucht
+ * und das Ergebnis (auch „nichts gefunden") ins Register geschrieben.
  */
 import type Database from "better-sqlite3";
 import {
@@ -28,6 +30,7 @@ import { createResultsService } from "./results-service.js";
 import { INTERCLUB, TEAM_CHALLENGE } from "../integrations/swisstennis/competition.js";
 import { tournamentDisplayUrl } from "../integrations/swisstennis/tournament-urls.js";
 import { chooseBestHit, searchPlayers } from "../integrations/mytennis/search.js";
+import { upsertPlayer, resolveUrlByNameKey } from "./player-registry.js";
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -374,7 +377,24 @@ function applyOwnUrls(db: Database.Database): void {
   }
 }
 
-/** Löst fehlende Gegner-URLs über die Namenssuche auf (gecacht, mit Pause). */
+/** Füllt leere Spieler-/Gegner-URL-Slots aus dem zentralen Register (ohne Netz). */
+export function syncOpponentUrlsFromRegistry(db: Database.Database): number {
+  let filled = 0;
+  for (const [, keyCol, urlCol] of SLOTS) {
+    const rows = db
+      .prepare(`SELECT DISTINCT ${keyCol} k FROM player_matches WHERE ${keyCol}<>'' AND (${urlCol} IS NULL OR ${urlCol}='')`)
+      .all() as Array<{ k: string }>;
+    for (const { k } of rows) {
+      const url = resolveUrlByNameKey(db, k);
+      if (!url) continue;
+      db.prepare(`UPDATE player_matches SET ${urlCol}=? WHERE ${keyCol}=? AND (${urlCol} IS NULL OR ${urlCol}='')`).run(url, k);
+      filled++;
+    }
+  }
+  return filled;
+}
+
+/** Löst fehlende Gegner-URLs übers Spieler-Register auf; Netzsuche nur für unbekannte Namen. */
 async function resolveOpponentUrls(
   db: Database.Database,
   config: AppConfig,
@@ -382,7 +402,9 @@ async function resolveOpponentUrls(
   maxLookups: number,
   log: (m: string) => void,
 ): Promise<number> {
-  // Alle Namen/Schlüssel ohne URL einsammeln.
+  // 1) Was das Register schon kennt, ohne Netz auffüllen.
+  let resolved = syncOpponentUrlsFromRegistry(db);
+  // 2) Verbleibende Lücken sammeln.
   const needed = new Map<string, string>(); // key → Anzeigename
   for (const [nameCol, keyCol, urlCol] of SLOTS) {
     const rows = db
@@ -390,32 +412,27 @@ async function resolveOpponentUrls(
       .all() as Array<{ k: string; n: string }>;
     for (const r of rows) if (!needed.has(r.k)) needed.set(r.k, r.n);
   }
-  const cacheGet = db.prepare("SELECT url FROM opponent_url_cache WHERE name_key=?");
-  const cacheSet = db.prepare("INSERT OR REPLACE INTO opponent_url_cache (name_key, url, resolved_at) VALUES (?, ?, ?)");
-  let resolved = 0;
+  const known = db.prepare("SELECT 1 FROM player_registry WHERE name_key=? LIMIT 1");
   let lookups = 0;
   for (const [key, displayName] of needed) {
-    let url: string | null;
-    const cached = cacheGet.get(key) as { url: string | null } | undefined;
-    if (cached) {
-      url = cached.url;
-    } else {
-      if (lookups >= maxLookups) {
-        log(`  URL-Lookup-Limit ${maxLookups} erreicht, Rest folgt`);
-        break;
-      }
-      lookups++;
-      url = await lookupUrl(displayName, config.swisstennisTimeoutMs);
-      cacheSet.run(key, url, new Date().toISOString());
-      log(`  url ${displayName} → ${url ?? "—"}`);
-      await sleep(delayMs);
+    // Schon im Register (in Schritt 1 aufgelöst, mehrdeutig, oder zuvor erfolglos gesucht) → nicht erneut suchen.
+    if (known.get(key)) continue;
+    if (lookups >= maxLookups) {
+      log(`  URL-Lookup-Limit ${maxLookups} erreicht, Rest folgt`);
+      break;
     }
+    lookups++;
+    const url = await lookupUrl(displayName, config.swisstennisTimeoutMs);
+    // Register-Zeile IMMER anlegen (auch ohne URL = name-only) → Negativ-Cache, kein erneutes Suchen.
+    upsertPlayer(db, { name: displayName, url });
+    log(`  url ${displayName} → ${url ?? "—"}`);
     if (url) {
       for (const [, keyCol, urlCol] of SLOTS) {
         db.prepare(`UPDATE player_matches SET ${urlCol}=? WHERE ${keyCol}=? AND (${urlCol} IS NULL OR ${urlCol}='')`).run(url, key);
       }
       resolved++;
     }
+    await sleep(delayMs);
   }
   return resolved;
 }

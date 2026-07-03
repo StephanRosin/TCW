@@ -2,7 +2,16 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { playerNameKey } from "@tcw/shared";
 import { openDatabase } from "../db/connection.js";
-import { getPlayerMatches, getTickerMatches, importTournaments, isoToSwissDate, suggestPlayers, toSortKey } from "./player-matches-service.js";
+import {
+  getPlayerMatches,
+  getTickerMatches,
+  importTournaments,
+  isoToSwissDate,
+  suggestPlayers,
+  syncOpponentUrlsFromRegistry,
+  toSortKey,
+} from "./player-matches-service.js";
+import { upsertPlayer } from "./player-registry.js";
 
 test("isoToSwissDate wandelt ISO in IC/TC-Format (D.M.YYYY ohne führende Nullen)", () => {
   assert.equal(isoToSwissDate("2026-06-24"), "24.6.2026");
@@ -135,5 +144,19 @@ test("importTournaments ignoriert inaktive Turniere und entfernt deren Altbestan
     .prepare("SELECT COUNT(*) AS n FROM player_matches WHERE match_uid LIKE 'tour:999001:%'")
     .get() as { n: number };
   assert.equal(stale.n, 0);
+  db.close();
+});
+
+test("syncOpponentUrlsFromRegistry füllt leere Gegner-URLs aus dem Register", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  upsertPlayer(db, { name: "Extern Gegner", url: "https://www.mytennis.ch/de/spieler/424242" });
+  db.prepare(
+    `INSERT INTO player_matches (match_uid, year, competition_code, competition_label, discipline, s2p1_name, s2p1_key, updated_at)
+     VALUES ('u1', 2026, 'ic', 'Interclub', 'single', 'Extern Gegner', ?, datetime('now'))`,
+  ).run(playerNameKey("Extern Gegner"));
+  const filled = syncOpponentUrlsFromRegistry(db);
+  assert.equal(filled, 1);
+  const row = db.prepare("SELECT s2p1_url FROM player_matches WHERE match_uid='u1'").get() as { s2p1_url: string };
+  assert.equal(row.s2p1_url, "https://www.mytennis.ch/de/spieler/424242");
   db.close();
 });
