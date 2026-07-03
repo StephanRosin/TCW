@@ -63,7 +63,8 @@ export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise
   app.get("/api/waidcup/matches", async () => ({ matches: getWaidcupMatches(database, tournamentId) }));
   app.get("/api/waidcup/live", async () => getWaidcupLive(database, tournamentId));
   app.get("/api/waidcup/order-of-play", async () => ({
-    matches: getWaidcupOrderOfPlay(database, tournamentId),
+    today: getWaidcupOrderOfPlay(database, tournamentId, new Date(), 0),
+    tomorrow: getWaidcupOrderOfPlay(database, tournamentId, new Date(), 1),
   }));
 
   // Webcam: gleiches Standbild wie die Spielbetriebsseite, aus dem vom Admin

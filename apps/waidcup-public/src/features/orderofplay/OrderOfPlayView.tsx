@@ -169,24 +169,33 @@ function ScheduleTimeBlock({
   );
 }
 
-function OrderOfPlayTable({ matches }: { matches: WaidcupLiveMatch[] }): JSX.Element {
+/** ISO-Datum → „Freitag, 3. Juli 2026" (Locale des Nutzers). */
+function formatDate(iso: string | undefined, language: string): string {
+  const p = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? "");
+  if (!p) return "";
+  return new Date(Number(p[1]), Number(p[2]) - 1, Number(p[3])).toLocaleDateString(language, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function OrderOfPlayBoard({
+  today,
+  tomorrow,
+}: {
+  today: WaidcupLiveMatch[];
+  tomorrow: WaidcupLiveMatch[];
+}): JSX.Element {
   const { t, language } = useI18n();
   const emailRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
 
-  const grid = useMemo(() => buildGrid(matches), [matches]);
-  const dateLabel = useMemo(() => {
-    const iso = matches[0]?.scheduledDate ?? "";
-    const p = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-    return p
-      ? new Date(Number(p[1]), Number(p[2]) - 1, Number(p[3])).toLocaleDateString(language, {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        })
-      : "";
-  }, [matches, language]);
+  // Anzeige: heute. Kopiervorlage für die E-Mail: morgen (Ankündigung).
+  const gridToday = useMemo(() => buildGrid(today), [today]);
+  const gridTomorrow = useMemo(() => buildGrid(tomorrow), [tomorrow]);
+  const dateLabel = useMemo(() => formatDate(today[0]?.scheduledDate, language), [today, language]);
 
   const flagCopied = (): void => {
     setCopied(true);
@@ -242,20 +251,28 @@ function OrderOfPlayTable({ matches }: { matches: WaidcupLiveMatch[] }): JSX.Ele
 
   return (
     <div className="oop">
-      {/* Doppelklick auf das Datum kopiert die E-Mail-Tabelle (verstecktes
-          Admin-Feature; kein sichtbarer Button). */}
+      {/* Doppelklick auf das Datum kopiert die E-Mail-Tabelle für MORGEN
+          (verstecktes Admin-Feature; kein sichtbarer Button). */}
       <div className="oop__bar">
-        <span className="oop__date" onDoubleClick={() => void copyForEmail()} title="">
+        <span
+          className="oop__date"
+          onDoubleClick={() => void copyForEmail()}
+          title={t("orderOfPlay.copyHint")}
+        >
           {dateLabel}
         </span>
         {copied ? <span className="oop__copied">✓ {t("orderOfPlay.copied")}</span> : null}
       </div>
-      <div className="oop__scroll">
-        <ScheduleTable grid={grid} email={false} />
-      </div>
-      {/* Unsichtbare, exakt eingefärbte Kopiervorlage für die E-Mail */}
+      {gridToday.times.length > 0 ? (
+        <div className="oop__scroll">
+          <ScheduleTable grid={gridToday} email={false} />
+        </div>
+      ) : (
+        <div className="state">{t("orderOfPlay.empty")}</div>
+      )}
+      {/* Unsichtbare, exakt eingefärbte Kopiervorlage für die E-Mail (morgen) */}
       <div ref={emailRef} aria-hidden="true" className="oop__email">
-        <ScheduleTable grid={grid} email />
+        <ScheduleTable grid={gridTomorrow} email />
       </div>
     </div>
   );
@@ -268,10 +285,10 @@ export function OrderOfPlayView(): JSX.Element {
     <section>
       <DataView state={state} errorKey="live.loadError">
         {(data) =>
-          data.matches.length === 0 ? (
+          data.today.length === 0 && data.tomorrow.length === 0 ? (
             <div className="state">{t("orderOfPlay.empty")}</div>
           ) : (
-            <OrderOfPlayTable matches={data.matches} />
+            <OrderOfPlayBoard today={data.today} tomorrow={data.tomorrow} />
           )
         }
       </DataView>

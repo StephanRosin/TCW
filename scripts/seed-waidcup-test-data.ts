@@ -92,6 +92,36 @@ function scheduleDate(dayOffset: number): string {
   return `${at.getFullYear()}-${pad2(at.getMonth() + 1)}-${pad2(at.getDate())}`;
 }
 
+function shuffle<T>(items: T[]): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j]!, out[i]!];
+  }
+  return out;
+}
+
+/**
+ * Variante eines Tages: dasselbe Zeit×Platz-Raster, aber die Matchups
+ * (Kategorie + beide Seiten) werden zufällig auf die Positionen verteilt und
+ * ohne Resultat angesetzt (Folgetage sind noch nicht gespielt). Damit sieht
+ * jeder Tag anders aus.
+ */
+function variantForDay(base: SeedMatch[], day: number): SeedMatch[] {
+  const matchups = shuffle(
+    base.map((m) => ({ eventId: m.eventId, eventName: m.eventName, side1: m.side1, side2: m.side2 })),
+  );
+  return base.map((m, index) => ({
+    key: `${m.key}:d${day}`,
+    court: m.court,
+    time: m.time,
+    eventId: matchups[index]!.eventId,
+    eventName: matchups[index]!.eventName,
+    side1: matchups[index]!.side1,
+    side2: matchups[index]!.side2,
+  }));
+}
+
 function main(): void {
   const config = loadConfig();
   const database = openDatabase({ filePath: config.dbFilePath });
@@ -132,19 +162,20 @@ function main(): void {
        )`,
     );
     for (let day = 0; day <= EXTRA_DAYS; day++) {
-    for (const match of MATCHES) {
+    // Tag 0 = fester Tagesplan (mit Resultaten am Vormittag), Folgetage variiert.
+    const dayMatches = day === 0 ? MATCHES : variantForDay(MATCHES, day);
+    for (const match of dayMatches) {
       const date = scheduleDate(day);
-      const time = match.time;
       insertMatch.run({
         tid: TEST_TOURNAMENT_ID,
         tname: TEST_NAME,
         now,
         eventId: match.eventId,
         eventName: match.eventName,
-        key: day === 0 ? match.key : `${match.key}:d${day}`,
+        key: match.key,
         roundName: "Testrunde",
         date,
-        time,
+        time: match.time,
         court: match.court,
         p1: match.side1[0],
         p1b: match.side1[1] ?? "",

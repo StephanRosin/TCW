@@ -161,16 +161,20 @@ export function getWaidcupLive(
 }
 
 /**
- * Tagesspielplan („Order of Play"): alle heute terminierten Partien mit
+ * Tagesspielplan („Order of Play"): alle für einen Tag terminierten Partien mit
  * bekanntem Platz, Zeit und beiden Spielern – unabhängig vom Status
- * (gespielt/laufend/anstehend). Sortiert nach Zeit, dann Platz.
+ * (gespielt/laufend/anstehend). `dayOffset` verschiebt den Tag (0 = heute,
+ * 1 = morgen). Sortiert nach Zeit, dann Platz.
  */
 export function getWaidcupOrderOfPlay(
   database: TcwDatabase,
   tournamentId: number,
   now: Date = new Date(),
+  dayOffset = 0,
 ): WaidcupLiveMatch[] {
-  const today = localDate(now);
+  const base = new Date(now);
+  base.setDate(base.getDate() + dayOffset);
+  const today = localDate(base);
   const rows = database
     .prepare(
       `SELECT event_name, court, scheduled_date, scheduled_time,

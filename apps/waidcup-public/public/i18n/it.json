@@ -105,5 +105,6 @@
   "infos.hintPdfUrl": "https://www.tennis-ticino.ch/document/Giocare%20senza%20arbitro.pdf",
   "orderOfPlay.copy": "Copia per e-mail",
   "orderOfPlay.copied": "Copiato",
-  "orderOfPlay.empty": "Nessuna partita in programma oggi."
+  "orderOfPlay.empty": "Nessuna partita in programma oggi.",
+  "orderOfPlay.copyHint": "Doppio clic: copia l'order of play di domani per l'e-mail"
 }

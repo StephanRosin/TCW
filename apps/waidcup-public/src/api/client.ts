@@ -36,8 +36,13 @@ export const waidcupApi = {
     const data = await fetchJson<WaidcupLiveResponse>("/api/waidcup/live");
     return { ...data, now: data.now.map(withDisplayName), upcoming: data.upcoming.map(withDisplayName) };
   },
-  orderOfPlay: async (): Promise<{ matches: WaidcupLiveMatch[] }> => {
-    const data = await fetchJson<{ matches: WaidcupLiveMatch[] }>("/api/waidcup/order-of-play");
-    return { matches: data.matches.map(withDisplayName) };
+  orderOfPlay: async (): Promise<{ today: WaidcupLiveMatch[]; tomorrow: WaidcupLiveMatch[] }> => {
+    const data = await fetchJson<{ today: WaidcupLiveMatch[]; tomorrow: WaidcupLiveMatch[] }>(
+      "/api/waidcup/order-of-play",
+    );
+    return {
+      today: data.today.map(withDisplayName),
+      tomorrow: data.tomorrow.map(withDisplayName),
+    };
   },
 };

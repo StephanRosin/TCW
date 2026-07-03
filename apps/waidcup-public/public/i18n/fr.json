@@ -105,5 +105,6 @@
   "infos.hintPdfUrl": "https://www.swisstennis.ch/media/810/2025_officiating_spielohneschiedsrichter_f.pdf",
   "orderOfPlay.copy": "Copier pour e-mail",
   "orderOfPlay.copied": "Copié",
-  "orderOfPlay.empty": "Aucun match programmé aujourd'hui."
+  "orderOfPlay.empty": "Aucun match programmé aujourd'hui.",
+  "orderOfPlay.copyHint": "Double-clic : copier l'order of play de demain pour l'e-mail"
 }

@@ -105,5 +105,6 @@
   "infos.hintPdfUrl": "https://www.itftennis.com/media/2509/duties-procedures-for-officials-2026.pdf#page=49",
   "orderOfPlay.copy": "Copy for email",
   "orderOfPlay.copied": "Copied",
-  "orderOfPlay.empty": "No matches scheduled today."
+  "orderOfPlay.empty": "No matches scheduled today.",
+  "orderOfPlay.copyHint": "Double-click: copy tomorrow's order of play for email"
 }
