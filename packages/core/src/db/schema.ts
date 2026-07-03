@@ -227,11 +227,21 @@ CREATE TABLE IF NOT EXISTS encounter_detail_state (
   PRIMARY KEY (competition_code, encount_id)
 );
 
--- Cache der über die Namenssuche aufgelösten Spieler-Profil-URLs (Gegner),
--- damit jeder Name nur einmal gesucht wird. url NULL = gesucht, nichts gefunden.
-CREATE TABLE IF NOT EXISTS opponent_url_cache (
-  name_key TEXT PRIMARY KEY,
-  url TEXT,
-  resolved_at TEXT NOT NULL
+-- Zentrales Spieler-Register mit Klassierung, Lizenzierung und Verbandszugehörigkeit.
+-- Dient als Single Source of Truth für Spielerprofil-Daten über alle Wettbewerbe.
+CREATE TABLE IF NOT EXISTS player_registry (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  mytennis_id TEXT,
+  name_key TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  profile_url TEXT,
+  klassierung TEXT,
+  license_number TEXT,
+  is_tcw_member INTEGER NOT NULL DEFAULT 0,
+  member_source TEXT,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_player_registry_mytennis ON player_registry(mytennis_id) WHERE mytennis_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_player_registry_name_key ON player_registry(name_key);
+CREATE INDEX IF NOT EXISTS idx_player_registry_member ON player_registry(is_tcw_member);
 `;
