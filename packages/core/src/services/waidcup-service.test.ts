@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { playerNameKey } from "@tcw/shared";
 import { openDatabase, type TcwDatabase } from "../db/connection.js";
-import { getWaidcupLive, getWaidcupMatches } from "./waidcup-service.js";
+import { upsertPlayer } from "./player-registry.js";
+import { getWaidcupLive, getWaidcupMatches, getWaidcupPlayerUrls } from "./waidcup-service.js";
 
 const TID = 999001;
 // Fester Bezugszeitpunkt für deterministische Tests: 2026-07-04, 14:30 lokal.
@@ -122,5 +124,22 @@ test("getWaidcupMatches: liefert nur Matches des konfigurierten Turniers", () =>
   const matches = getWaidcupMatches(db, TID);
   assert.equal(matches.length, 1);
   assert.equal(matches[0]!.matchKey, "m1");
+  db.close();
+});
+
+test("getWaidcupPlayerUrls: löst über das Register auf (auch quellenübergreifend)", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  // Waidcup-Match nennt den Spieler, die URL kommt aber aus dem Register (z. B. Kader),
+  // nicht aus tournament_players des Turniers.
+  upsertPlayer(db, {
+    name: "Rauch Markus (R4)",
+    url: "https://www.mytennis.ch/de/spieler/177712",
+    member: true,
+    memberSource: "roster",
+  });
+  seed(db, [{ key: "m-registry", p1: "Rauch Markus (R4)", p2: "Aepli Daniel (R4)" }]);
+
+  const map = getWaidcupPlayerUrls(db, TID);
+  assert.equal(map[playerNameKey("Markus Rauch")], "https://www.mytennis.ch/de/spieler/177712");
   db.close();
 });

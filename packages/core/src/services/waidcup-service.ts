@@ -10,14 +10,13 @@
  * Resultat den ganzen Abend als „laufend" hängen bleibt.
  */
 import {
-  playerNameKey,
-  safeExternalUrl,
   type TournamentEventView,
   type TournamentMatch,
   type WaidcupLiveMatch,
   type WaidcupLiveResponse,
 } from "@tcw/shared";
 import type { TcwDatabase } from "../db/connection.js";
+import { resolveUrlsForNames } from "./player-registry.js";
 import { loadTournamentEvents } from "./tournament-store.js";
 
 /** Alle Events des Waidcups inkl. Tableau/Pools (für die Turnierbaum-Seite). */
@@ -26,36 +25,33 @@ export function getWaidcupBrackets(database: TcwDatabase, tournamentId: number):
 }
 
 /**
- * Spieler-Profil-Links (mytennis.ch) je normalisiertem Namensschlüssel. Erlaubt
- * es dem Frontend, angezeigte Spielernamen auf ihr Swisstennis-Profil zu
- * verlinken. Nur freigegebene http(s)-Hosts (safeExternalUrl) landen in der Map.
+ * Spieler-Profil-Links (mytennis.ch) je normalisiertem Namensschlüssel, für alle
+ * in den Matches des Turniers vorkommenden Spieler. Löst über das zentrale
+ * Spieler-Register auf (nicht nur über `tournament_players` dieses Turniers),
+ * damit ein Link auch dann erscheint, wenn die URL aus einer anderen Quelle
+ * (z. B. Kader oder einem anderen Turnier) bekannt ist. Mehrdeutige Namen
+ * liefern keinen Treffer (siehe `resolveUrlsForNames`).
  */
-export function getWaidcupPlayerUrls(
-  database: TcwDatabase,
-  tournamentId: number,
-): Record<string, string> {
+export function getWaidcupPlayerUrls(database: TcwDatabase, tournamentId: number): Record<string, string> {
   const rows = database
     .prepare(
-      `SELECT player_name, player_name_2, player_url, player_url_2
-         FROM tournament_players WHERE tournament_id = ?`,
+      `SELECT player1_name, player1_name_2, player2_name, player2_name_2
+         FROM tournament_matches WHERE tournament_id = ?`,
     )
     .all(tournamentId) as Array<{
-    player_name: string | null;
-    player_name_2: string | null;
-    player_url: string | null;
-    player_url_2: string | null;
+    player1_name: string | null;
+    player1_name_2: string | null;
+    player2_name: string | null;
+    player2_name_2: string | null;
   }>;
 
-  const urls: Record<string, string> = {};
-  const add = (name: string | null, url: string | null): void => {
-    const safe = safeExternalUrl(url);
-    if (name && safe) urls[playerNameKey(name)] = safe;
-  };
+  const names: string[] = [];
   for (const row of rows) {
-    add(row.player_name, row.player_url);
-    add(row.player_name_2, row.player_url_2);
+    for (const name of [row.player1_name, row.player1_name_2, row.player2_name, row.player2_name_2]) {
+      if (name && name.trim() !== "") names.push(name);
+    }
   }
-  return urls;
+  return resolveUrlsForNames(database, names);
 }
 
 /** Beide Seiten besetzt? Platzhalter (z. B. „Sieger aus …" = leere Namen) bleiben aussen vor. */
