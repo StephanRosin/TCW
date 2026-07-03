@@ -22,7 +22,17 @@ export function LocationView(): JSX.Element {
         </div>
       </div>
 
-      <div className="loc__grid">
+      <div className="loc__row">
+        <div className="loc__map">
+          <iframe
+            className="loc__map-frame"
+            src={MAPS_EMBED_URL}
+            title={t("location.mapTitle")}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+          />
+        </div>
         <article className="loc__card">
           <h3 className="loc__card-title">🚋 {t("location.transitTitle")}</h3>
           <p>{t("location.transitText")}</p>
@@ -32,17 +42,6 @@ export function LocationView(): JSX.Element {
             ⬇ {t("location.parkingDownload")}
           </a>
         </article>
-      </div>
-
-      <div className="loc__map">
-        <iframe
-          className="loc__map-frame"
-          src={MAPS_EMBED_URL}
-          title={t("location.mapTitle")}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          allowFullScreen
-        />
       </div>
 
       <div className="loc__gallery">
