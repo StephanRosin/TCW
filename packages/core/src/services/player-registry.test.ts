@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import Database from "better-sqlite3";
 import { SCHEMA_SQL } from "../db/schema.js";
-import { upsertPlayer, resolveUrlByNameKey, resolveUrlsForNames } from "./player-registry.js";
+import { upsertPlayer, resolveUrlByNameKey, resolveUrlsForNames, listMembers, setMembership } from "./player-registry.js";
 import { playerNameKey } from "@tcw/shared";
 
 function freshDb(): Database.Database {
@@ -119,5 +119,27 @@ test("resolveUrlsForNames: Bulk-Map nur mit eindeutigen Treffern", () => {
   upsertPlayer(db, { name: "Kramer Sophia (R6)" }); // ohne URL
   const map = resolveUrlsForNames(db, ["Xenia Weiss", "Sophia Kramer", ""]);
   assert.deepEqual(map, { [playerNameKey("Weiss Xenia")]: "https://www.mytennis.ch/de/spieler/19786267" });
+  db.close();
+});
+
+test("setMembership: admin schaltet an/aus, Import ueberschreibt admin nicht", () => {
+  const db = freshDb();
+  upsertPlayer(db, { name: "Bea Muster", url: "https://www.mytennis.ch/de/spieler/600" });
+  const id = (db.prepare("SELECT id FROM player_registry").get() as { id: number }).id;
+  setMembership(db, id, true);
+  assert.equal(listMembers(db).length, 1);
+  setMembership(db, id, false);
+  upsertPlayer(db, { name: "Bea Muster", url: "https://www.mytennis.ch/de/spieler/600", member: true, memberSource: "ic-home" });
+  assert.equal(listMembers(db).length, 0, "admin-off bleibt trotz ic-home-Import");
+  db.close();
+});
+
+test("listMembers: Filter nach Namensteil, alphabetisch", () => {
+  const db = freshDb();
+  upsertPlayer(db, { name: "Zoe Adler", member: true, memberSource: "roster" });
+  upsertPlayer(db, { name: "Alex Adler", member: true, memberSource: "roster" });
+  upsertPlayer(db, { name: "Tom Baumann", member: true, memberSource: "roster" });
+  const adlers = listMembers(db, { query: "adler" }).map((m) => m.displayName);
+  assert.deepEqual(adlers, ["Alex Adler", "Zoe Adler"]);
   db.close();
 });

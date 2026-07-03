@@ -16,6 +16,13 @@ export interface RegistryUpsert {
   memberSource?: "roster" | "ic-home" | "admin";
 }
 
+export interface RegistryMember {
+  id: number;
+  displayName: string;
+  klassierung: string | null;
+  profileUrl: string | null;
+}
+
 interface Row {
   id: number;
   mytennis_id: string | null;
@@ -107,4 +114,37 @@ export function resolveUrlsForNames(db: TcwDatabase, names: string[]): Record<st
     if (url) map[key] = url;
   }
   return map;
+}
+
+/**
+ * Setzt die TCW-Mitgliedschaft eines Spielers und erzwingt member_source = 'admin'.
+ * Admin ist die stärkste Stufe — Imports können sie nicht überschreiben.
+ */
+export function setMembership(db: TcwDatabase, id: number, isMember: boolean): void {
+  db.prepare(
+    "UPDATE player_registry SET is_tcw_member = ?, member_source = 'admin', updated_at = datetime('now') WHERE id = ?",
+  ).run(isMember ? 1 : 0, id);
+}
+
+/**
+ * Listet nur TCW-Mitglieder (is_tcw_member = 1), alphabetisch sortiert nach Anzeigenamen.
+ * Optional: Filterung nach Namensteil (case-insensitive LIKE).
+ */
+export function listMembers(db: TcwDatabase, opts: { query?: string; limit?: number } = {}): RegistryMember[] {
+  const like = opts.query && opts.query.trim() !== "" ? `%${opts.query.trim().toLowerCase()}%` : null;
+  const rows = db
+    .prepare(
+      `SELECT id, display_name, klassierung, profile_url
+         FROM player_registry
+        WHERE is_tcw_member = 1 ${like ? "AND lower(display_name) LIKE ?" : ""}
+        ORDER BY display_name
+        LIMIT ?`,
+    )
+    .all(...(like ? [like, opts.limit ?? 50] : [opts.limit ?? 50])) as Array<{
+    id: number;
+    display_name: string;
+    klassierung: string | null;
+    profile_url: string | null;
+  }>;
+  return rows.map((r) => ({ id: r.id, displayName: r.display_name, klassierung: r.klassierung, profileUrl: r.profile_url }));
 }
