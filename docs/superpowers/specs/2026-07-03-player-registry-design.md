@@ -151,7 +151,13 @@ Ein idempotentes Script `scripts/backfill-player-registry.ts`:
    `ic-home`, ohne bestehende `admin`-Flags zu überschreiben.
 
 Dedup-Reihenfolge: erst `mytennis_id`, dann `name_key`. Beliebig wiederholbar.
-Anschließend `opponent_url_cache` droppen.
+
+**Datensicherheit:** Das Backfill liest nur aus den Bestandstabellen und schreibt
+ausschließlich in `player_registry` — **keine** bestehende Anmeldung, kein
+Kaderspieler, keine Team-Zuordnung wird verändert oder gelöscht. Vor jedem Lauf
+auf einer echten DB wird die SQLite-Datei kopiert (Backup). `opponent_url_cache`
+(reiner, regenerierbarer Cache) wird erst **nach** Backup und Verifikation
+entfernt, nachdem seine Werte ins Register übernommen wurden.
 
 Das Waidcup-Testdaten-Seed (`seed-waidcup-test-data.ts`) füllt keine erfundenen
 URLs mehr, sondern verlässt sich auf das Register (das nach dem Backfill die
