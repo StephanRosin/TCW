@@ -9,7 +9,7 @@
  */
 import { useMemo, useRef, useState, type CSSProperties, type JSX } from "react";
 import type { WaidcupLiveMatch } from "@tcw/shared";
-import { DataView, useI18n, useResource } from "@tcw/tournament-ui";
+import { DataView, PlayerLink, useI18n, useResource } from "@tcw/tournament-ui";
 import { waidcupApi } from "../../api/client.js";
 
 interface Grid {
@@ -42,19 +42,26 @@ function playerLine(name: string): string {
   return ranking !== "" ? `(${ranking}) ${label}` : label;
 }
 
-/** Anzeige-Zelle: jeder Spieler auf eigener Zeile, „vs" dazwischen. */
-function MatchLines({ match }: { match: WaidcupLiveMatch }): JSX.Element {
+/** Anzeige-Zelle: jeder Spieler auf eigener Zeile, „vs" dazwischen.
+ *  Namen verlinken (sofern URL vorhanden) auf das Swisstennis-Profil. */
+function MatchLines({
+  match,
+  playerUrls,
+}: {
+  match: WaidcupLiveMatch;
+  playerUrls?: Record<string, string>;
+}): JSX.Element {
   return (
     <span className="oopt__match">
       {match.side1Names.map((n, i) => (
         <span key={`a${i}`} className="oopt__player">
-          {playerLine(n)}
+          <PlayerLink name={n} label={playerLine(n)} playerUrls={playerUrls} />
         </span>
       ))}
       <span className="oopt__vs">vs</span>
       {match.side2Names.map((n, i) => (
         <span key={`b${i}`} className="oopt__player">
-          {playerLine(n)}
+          <PlayerLink name={n} label={playerLine(n)} playerUrls={playerUrls} />
         </span>
       ))}
     </span>
@@ -127,7 +134,15 @@ const EMAIL: Record<string, CSSProperties> = {
 
 /** Eine Tabelle rendern – entweder theme-angepasst (CSS-Klassen) oder mit den
  *  festen E-Mail-Inline-Styles. Struktur ist identisch. */
-function ScheduleTable({ grid, email }: { grid: Grid; email: boolean }): JSX.Element {
+function ScheduleTable({
+  grid,
+  email,
+  playerUrls,
+}: {
+  grid: Grid;
+  email: boolean;
+  playerUrls?: Record<string, string>;
+}): JSX.Element {
   const { times, courts, byKey } = grid;
   const cls = (name: string): string | undefined => (email ? undefined : name);
   const st = (name: keyof typeof EMAIL): CSSProperties | undefined =>
@@ -144,7 +159,16 @@ function ScheduleTable({ grid, email }: { grid: Grid; email: boolean }): JSX.Ele
           ))}
         </tr>
         {times.map((time) => (
-          <ScheduleTimeBlock key={time} time={time} courts={courts} byKey={byKey} email={email} cls={cls} st={st} />
+          <ScheduleTimeBlock
+            key={time}
+            time={time}
+            courts={courts}
+            byKey={byKey}
+            email={email}
+            cls={cls}
+            st={st}
+            playerUrls={playerUrls}
+          />
         ))}
       </tbody>
     </table>
@@ -158,6 +182,7 @@ function ScheduleTimeBlock({
   email,
   cls,
   st,
+  playerUrls,
 }: {
   time: string;
   courts: number[];
@@ -165,6 +190,7 @@ function ScheduleTimeBlock({
   email: boolean;
   cls: (name: string) => string | undefined;
   st: (name: keyof typeof EMAIL) => CSSProperties | undefined;
+  playerUrls?: Record<string, string>;
 }): JSX.Element {
   return (
     <>
@@ -185,7 +211,7 @@ function ScheduleTimeBlock({
           }
           return (
             <td key={c} className={cls("oopt__cell")} style={st("cell")}>
-              {email ? matchText(match) : <MatchLines match={match} />}
+              {email ? matchText(match) : <MatchLines match={match} playerUrls={playerUrls} />}
             </td>
           );
         })}
@@ -209,9 +235,11 @@ function formatDate(iso: string | undefined, language: string): string {
 function OrderOfPlayBoard({
   today,
   tomorrow,
+  playerUrls,
 }: {
   today: WaidcupLiveMatch[];
   tomorrow: WaidcupLiveMatch[];
+  playerUrls: Record<string, string>;
 }): JSX.Element {
   const { t, language } = useI18n();
   const emailRef = useRef<HTMLDivElement>(null);
@@ -290,7 +318,7 @@ function OrderOfPlayBoard({
       </div>
       {gridToday.times.length > 0 ? (
         <div className="oop__scroll">
-          <ScheduleTable grid={gridToday} email={false} />
+          <ScheduleTable grid={gridToday} email={false} playerUrls={playerUrls} />
         </div>
       ) : (
         <div className="state">{t("orderOfPlay.empty")}</div>
@@ -313,7 +341,7 @@ export function OrderOfPlayView(): JSX.Element {
           data.today.length === 0 && data.tomorrow.length === 0 ? (
             <div className="state">{t("orderOfPlay.empty")}</div>
           ) : (
-            <OrderOfPlayBoard today={data.today} tomorrow={data.tomorrow} />
+            <OrderOfPlayBoard today={data.today} tomorrow={data.tomorrow} playerUrls={data.playerUrls} />
           )
         }
       </DataView>

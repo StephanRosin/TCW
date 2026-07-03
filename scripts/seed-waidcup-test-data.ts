@@ -15,6 +15,7 @@
  *   WAIDCUP_TOURNAMENT_ID=999001 npm run dev:waidcup
  */
 import { loadConfig, openDatabase } from "@tcw/core";
+import { playerNameKey } from "@tcw/shared";
 
 export const TEST_TOURNAMENT_ID = 999001;
 const TEST_NAME = "Waidcup (Testdaten)";
@@ -80,6 +81,22 @@ const MATCHES: SeedMatch[] = [
   // Noch offener Slot (leere Namen, wie „Sieger aus …") – darf nirgends erscheinen.
   { eventId: 1, eventName: "MS A R1/R5", key: "t:empty", court: "Platz 2", time: "20:30", side1: [""], side2: [""] },
 ];
+
+/** Alle vorkommenden Spielernamen (ohne Doppel-Platzhalter/leere Slots). */
+function distinctPlayerNames(): string[] {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const match of MATCHES) {
+    for (const name of [...match.side1, ...match.side2]) {
+      if (!name || name.trim() === "") continue;
+      const key = playerNameKey(name);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      names.push(name);
+    }
+  }
+  return names;
+}
 
 function pad2(value: number): string {
   return String(value).padStart(2, "0");
@@ -187,12 +204,32 @@ function main(): void {
       });
     }
     }
+
+    // Spieler-Profil-Links (mytennis.ch) je Spieler – ermöglicht das Testen der
+    // Verlinkung in „Order of Play" und „Matches". Die IDs sind erfunden (echte
+    // Turnierdaten liefern beim Import die tatsächlichen Profil-URLs); Host
+    // mytennis.ch ist in der Allowlist, damit die Links gerendert werden.
+    const insertPlayer = database.prepare(
+      `INSERT INTO tournament_players (tournament_id, event_id, player_key, player_name, player_url)
+       VALUES (@tid, @eventId, @key, @name, @url)`,
+    );
+    distinctPlayerNames().forEach((name, index) => {
+      insertPlayer.run({
+        tid: TEST_TOURNAMENT_ID,
+        eventId: EVENTS[0]!.eventId,
+        key: playerNameKey(name),
+        name,
+        url: `https://www.mytennis.ch/de/player/${900000 + index}`,
+      });
+    });
   });
   run();
   database.close();
 
   const total = MATCHES.length * (EXTRA_DAYS + 1);
-  console.log(`Testdaten angelegt: Turnier ${TEST_TOURNAMENT_ID} („${TEST_NAME}"), ${total} Matches über ${EXTRA_DAYS + 1} Tage.`);
+  console.log(
+    `Testdaten angelegt: Turnier ${TEST_TOURNAMENT_ID} („${TEST_NAME}"), ${total} Matches über ${EXTRA_DAYS + 1} Tage, ${distinctPlayerNames().length} Spieler mit Profil-Link.`,
+  );
   console.log(`Testen mit: WAIDCUP_TOURNAMENT_ID=${TEST_TOURNAMENT_ID} npm run dev:waidcup`);
 }
 

@@ -2362,3 +2362,16 @@ html[data-theme="night"] body {
     padding-bottom: 0.75rem;
   }
 }
+
+/* --- Spieler-Link auf das Swisstennis-Profil -------------------------------
+   Anzeige unverändert (erbt Farbe/Font vom umgebenden Text, keine
+   Unterstreichung). Erst beim Hover erscheint die Unterstreichung als Hinweis,
+   dass der Name ein Link ist. */
+a.player-link {
+  color: inherit;
+  text-decoration: none;
+}
+a.player-link:hover,
+a.player-link:focus-visible {
+  text-decoration: underline;
+}

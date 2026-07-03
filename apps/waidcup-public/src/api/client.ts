@@ -28,21 +28,30 @@ export const waidcupApi = {
     const data = await fetchJson<{ events: TournamentEventView[] }>("/api/waidcup/brackets");
     return { events: data.events.map(withDisplayName) };
   },
-  matches: async (): Promise<{ matches: TournamentMatch[] }> => {
-    const data = await fetchJson<{ matches: TournamentMatch[] }>("/api/waidcup/matches");
-    return { matches: data.matches.map(withDisplayName) };
+  matches: async (): Promise<{ matches: TournamentMatch[]; playerUrls: Record<string, string> }> => {
+    const data = await fetchJson<{ matches: TournamentMatch[]; playerUrls: Record<string, string> }>(
+      "/api/waidcup/matches",
+    );
+    return { matches: data.matches.map(withDisplayName), playerUrls: data.playerUrls };
   },
   live: async (): Promise<WaidcupLiveResponse> => {
     const data = await fetchJson<WaidcupLiveResponse>("/api/waidcup/live");
     return { ...data, now: data.now.map(withDisplayName), upcoming: data.upcoming.map(withDisplayName) };
   },
-  orderOfPlay: async (): Promise<{ today: WaidcupLiveMatch[]; tomorrow: WaidcupLiveMatch[] }> => {
-    const data = await fetchJson<{ today: WaidcupLiveMatch[]; tomorrow: WaidcupLiveMatch[] }>(
-      "/api/waidcup/order-of-play",
-    );
+  orderOfPlay: async (): Promise<{
+    today: WaidcupLiveMatch[];
+    tomorrow: WaidcupLiveMatch[];
+    playerUrls: Record<string, string>;
+  }> => {
+    const data = await fetchJson<{
+      today: WaidcupLiveMatch[];
+      tomorrow: WaidcupLiveMatch[];
+      playerUrls: Record<string, string>;
+    }>("/api/waidcup/order-of-play");
     return {
       today: data.today.map(withDisplayName),
       tomorrow: data.tomorrow.map(withDisplayName),
+      playerUrls: data.playerUrls,
     };
   },
 };

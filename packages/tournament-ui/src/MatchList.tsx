@@ -7,6 +7,7 @@ import { useMemo, type JSX } from "react";
 import type { TournamentMatch } from "@tcw/shared";
 import { useI18n } from "./I18nProvider.js";
 import { compareTournamentMatches, type MatchListOrder } from "./matchOrder.js";
+import { PlayerLink } from "./PlayerLink.js";
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -19,12 +20,20 @@ function formatDate(match: TournamentMatch, noDateLabel: string): string {
   return [date, match.scheduledTime, match.court].filter((part) => part !== "").join(" · ");
 }
 
-function SideCell({ names, isWinner }: { names: string[]; isWinner: boolean }): JSX.Element {
+function SideCell({
+  names,
+  isWinner,
+  playerUrls,
+}: {
+  names: string[];
+  isWinner: boolean;
+  playerUrls?: Record<string, string>;
+}): JSX.Element {
   return (
     <div className={isWinner ? "match-side match-side--winner" : "match-side"}>
       {names.map((name, index) => (
         <div key={index} className="match-player">
-          {name}
+          <PlayerLink name={name} playerUrls={playerUrls} />
         </div>
       ))}
     </div>
@@ -34,9 +43,11 @@ function SideCell({ names, isWinner }: { names: string[]; isWinner: boolean }): 
 export function MatchList({
   matches,
   order = "playedFirst",
+  playerUrls,
 }: {
   matches: TournamentMatch[];
   order?: MatchListOrder;
+  playerUrls?: Record<string, string>;
 }): JSX.Element {
   const { t } = useI18n();
   const sorted = useMemo(() => [...matches].sort(compareTournamentMatches(order)), [matches, order]);
@@ -69,10 +80,10 @@ export function MatchList({
                 <td>{match.eventName}</td>
                 <td>{round}</td>
                 <td>
-                  <SideCell names={match.side1Names} isWinner={match.winnerSide === 1} />
+                  <SideCell names={match.side1Names} isWinner={match.winnerSide === 1} playerUrls={playerUrls} />
                 </td>
                 <td>
-                  <SideCell names={match.side2Names} isWinner={match.winnerSide === 2} />
+                  <SideCell names={match.side2Names} isWinner={match.winnerSide === 2} playerUrls={playerUrls} />
                 </td>
                 <td className="numeric">{match.result || t("common.none")}</td>
               </tr>

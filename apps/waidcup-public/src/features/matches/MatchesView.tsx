@@ -18,7 +18,13 @@ function matchesPlayerSearch(match: TournamentMatch, needle: string): boolean {
   );
 }
 
-function MatchesPanel({ matches }: { matches: TournamentMatch[] }): JSX.Element {
+function MatchesPanel({
+  matches,
+  playerUrls,
+}: {
+  matches: TournamentMatch[];
+  playerUrls: Record<string, string>;
+}): JSX.Element {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [eventId, setEventId] = useState<number>(ALL_EVENTS);
@@ -80,7 +86,7 @@ function MatchesPanel({ matches }: { matches: TournamentMatch[] }): JSX.Element 
           onChange={(event) => setSearch(event.target.value)}
         />
       </div>
-      <MatchList matches={filtered} order="upcomingFirst" />
+      <MatchList matches={filtered} order="upcomingFirst" playerUrls={playerUrls} />
     </>
   );
 }
@@ -90,7 +96,7 @@ export function MatchesView(): JSX.Element {
   return (
     <section>
       <DataView state={state} errorKey="matches.loadError">
-        {(data) => <MatchesPanel matches={data.matches} />}
+        {(data) => <MatchesPanel matches={data.matches} playerUrls={data.playerUrls} />}
       </DataView>
     </section>
   );
