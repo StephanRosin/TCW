@@ -33,7 +33,7 @@
     "build": "npm -w @tcw/web-public run build && npm -w @tcw/web-admin run build && npm -w @tcw/waidcup-public run build",
     "typecheck": "tsc -b packages/shared packages/core && tsc -p packages/tournament-ui",
     "lint": "eslint .",
-    "test": "npm -w @tcw/core run test && npm -w @tcw/tournament-ui run test",
+    "test": "npm -w @tcw/shared run test && npm -w @tcw/core run test && npm -w @tcw/tournament-ui run test",
     "dev:waidcup": "concurrently -n waidcup-api,waidcup-web -c cyan,white \"npm:dev:waidcup-api\" \"npm:dev:waidcup-web\"",
     "dev:waidcup-api": "npm -w @tcw/waidcup-server run dev",
     "dev:waidcup-web": "npm -w @tcw/waidcup-public run dev",
