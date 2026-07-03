@@ -17,24 +17,12 @@ const TABLEAUX: ReadonlyArray<readonly [string, string, string]> = [
   ["DM", "R1/R5", "infos.tableau16"],
 ];
 
-const PLAIN_HINTS = [
-  "infos.hint1",
-  "infos.hint2",
-  "infos.hint3",
-  "infos.hint4",
-  "infos.hint5",
-  "infos.hint6",
-  "infos.hint7",
-];
+const PLAIN_HINTS = ["infos.hint1", "infos.hint4", "infos.hint5", "infos.hint6"];
 
 export function InfosView(): JSX.Element {
   const { t } = useI18n();
   return (
     <section className="infos">
-      <header className="infos__head">
-        <h2 className="infos__title">{t("infos.subtitle")}</h2>
-      </header>
-
       <div className="infos__grid">
         <article className="infos__card">
           <h3 className="infos__card-title">📅 {t("infos.datesTitle")}</h3>

@@ -86,7 +86,7 @@
   "infos.dateFinalValue": "Samstag, 25.07.2026",
   "infos.dateBackupLabel": "Ersatzdatum Finaltag",
   "infos.dateBackupValue": "Sonntag, 26.07.2026",
-  "infos.tableauxTitle": "Geplante Tableaux",
+  "infos.tableauxTitle": "Tableaux",
   "infos.tableau32": "32er Tableau",
   "infos.tableau16": "16er Tableau",
   "infos.prizeTitle": "Preisgelder",
@@ -96,12 +96,9 @@
   "infos.prizeFinalist": "Finalist*in",
   "infos.hintsTitle": "Wichtige Hinweise",
   "infos.hint1": "Der 3. Satz wird als Champions-Tie-Break gespielt. In den Finals wird der 3. Satz ausgespielt!",
-  "infos.hint2": "Bitte aktuelle Kontaktdaten angeben, damit wir euch bei kurzfristigen Anpassungen erreichen können.",
-  "infos.hint3": "Sonderwünsche werden wenn möglich berücksichtigt, sind aber nicht garantiert.",
   "infos.hint4": "Keine Trostspiele geplant.",
   "infos.hint5": "Anreise bitte mit dem öffentlichen Verkehr oder auf den öffentlichen Parkplätzen unterhalb der Anlage parkieren (begrenzte Parkplätze).",
   "infos.hint6": "Bei Regen stehen am Final-Wochenende Hallenplätze im Sportzentrum Grindel zur Verfügung. Ggf. können auch Matches in den Vorrunden wetterbedingt in die Halle verlegt werden.",
-  "infos.hint7": "Bei Mehrfachanmeldungen behalten wir uns vor, zugunsten der Spieler*in zu entscheiden, die sich nur bei einem Turnier angemeldet hat.",
   "infos.hint8": "Grundsätzlich gilt „Spielen ohne Schiedsrichter“:",
   "infos.hintPdf": "Merkblatt (PDF) ↗"
 }

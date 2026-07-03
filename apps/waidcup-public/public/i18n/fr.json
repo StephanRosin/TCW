@@ -86,7 +86,7 @@
   "infos.dateFinalValue": "Samedi 25.07.2026",
   "infos.dateBackupLabel": "Date de repli des finales",
   "infos.dateBackupValue": "Dimanche 26.07.2026",
-  "infos.tableauxTitle": "Tableaux prévus",
+  "infos.tableauxTitle": "Tableaux",
   "infos.tableau32": "Tableau de 32",
   "infos.tableau16": "Tableau de 16",
   "infos.prizeTitle": "Prix en argent",
@@ -96,12 +96,9 @@
   "infos.prizeFinalist": "Finaliste",
   "infos.hintsTitle": "Informations importantes",
   "infos.hint1": "Le 3e set se joue en super tie-break (champions tie-break). Lors des finales, le 3e set est joué normalement !",
-  "infos.hint2": "Merci d'indiquer des coordonnées à jour afin que nous puissions vous joindre en cas de modifications de dernière minute.",
-  "infos.hint3": "Les demandes particulières sont prises en compte dans la mesure du possible, mais ne sont pas garanties.",
   "infos.hint4": "Aucun match de classement prévu.",
   "infos.hint5": "Merci de venir en transports publics ou de vous garer sur les places publiques en contrebas des installations (places limitées).",
   "infos.hint6": "En cas de pluie, des courts couverts sont disponibles au centre sportif Grindel le week-end des finales. Des matchs des tours précédents peuvent aussi être déplacés en salle selon la météo.",
-  "infos.hint7": "En cas d'inscriptions multiples, nous nous réservons le droit de trancher en faveur de la joueuse ou du joueur inscrit·e à un seul tournoi.",
   "infos.hint8": "En principe, le « jeu sans arbitre » s'applique :",
   "infos.hintPdf": "Fiche d'information (PDF) ↗"
 }
