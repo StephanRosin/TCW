@@ -32,6 +32,25 @@ function findExisting(db: TcwDatabase, mytennisId: string | null, nameKey: strin
   return db.prepare("SELECT id, mytennis_id, is_tcw_member, member_source FROM player_registry WHERE mytennis_id IS NULL AND name_key = ?").get(nameKey) as Row | undefined;
 }
 
+/**
+ * Bestimmt die zu speichernde member_source nach den drei Regeln:
+ * - admin-Sperre: bisherige Quelle bleibt unangetastet.
+ * - jemand wird neu Mitglied (0 -> 1): Quelle des Inputs übernehmen.
+ * - sonst: bisherige Quelle beibehalten (Fallback auf Input-Quelle nur, falls es noch keine bisherige Zeile/Quelle gibt).
+ */
+function resolveMemberSource(
+  memberLocked: boolean,
+  wantMember: number,
+  keepMember: number,
+  existingSource: string | null | undefined,
+  inputSource: string | null | undefined,
+): string | null {
+  if (memberLocked) return existingSource ?? null;
+  const becomingMember = wantMember && !keepMember;
+  if (becomingMember) return inputSource ?? null;
+  return existingSource ?? (wantMember ? (inputSource ?? null) : null);
+}
+
 export function upsertPlayer(db: TcwDatabase, input: RegistryUpsert): void {
   const nameKey = playerNameKey(input.name);
   if (nameKey === "") return;
@@ -43,12 +62,8 @@ export function upsertPlayer(db: TcwDatabase, input: RegistryUpsert): void {
   const wantMember = input.member ? 1 : 0;
   const keepMember = existing?.is_tcw_member ?? 0;
   const memberLocked = existing?.member_source === "admin";
-  const isMember = memberLocked ? keepMember : Math.max(keepMember, wantMember) ? 1 : 0;
-  const memberSource = memberLocked
-    ? existing!.member_source
-    : wantMember && !keepMember
-      ? (input.memberSource ?? null)
-      : (existing?.member_source ?? (wantMember ? (input.memberSource ?? null) : null));
+  const isMember = memberLocked ? keepMember : Math.max(keepMember, wantMember);
+  const memberSource = resolveMemberSource(memberLocked, wantMember, keepMember, existing?.member_source, input.memberSource);
 
   if (existing) {
     db.prepare(
