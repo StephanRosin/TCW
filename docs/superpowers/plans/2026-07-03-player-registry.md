@@ -1202,6 +1202,69 @@ Kurze Notiz in `docs/STATUS.md`, dass das Register aktiv ist und wie Backup, Bac
 
 ---
 
+---
+
+# Phase 2: Fremdschlüssel-Verknüpfung (Folge-Ausbau)
+
+> Startet **nachdem** die Register-Basis (Tasks 1–14) steht und deployt ist.
+> Entscheidung: **Kader/Teams hart** verknüpfen (`players.registry_id` als echter
+> FK), **Swisstennis-Feed-Tabellen weich** (nullable `registry_id`, vom Import
+> opportunistisch nur bei eindeutigem Treffer gefüllt). Grund: Feed-Namen haben
+> nicht immer eine stabile Identität (NC/Gäste), der Import ersetzt atomar, und
+> Doppel packen zwei Personen pro Zeile — ein harter FK dort würde das
+> Import-Modell brechen und Live-Migrationsrisiko erzeugen. Weiterhin gilt: KEIN
+> Datenverlust (nur additive Spalten via `ensureColumn`, Backup vor Backfill).
+
+## Task 15: `upsertPlayer` liefert die Register-id zurück
+
+**Files:** Modify `packages/core/src/services/player-registry.ts`, `packages/core/src/services/player-registry.test.ts`
+
+**Interfaces:** `upsertPlayer(db, input): number` — gibt die `player_registry.id` der ein-/upgedateten Zeile zurück (bisher `void`; bestehende Aufrufer, die den Rückgabewert ignorieren, bleiben unberührt).
+
+- [ ] **Step 1:** Test: `const id = upsertPlayer(db, {...}); ` — zweiter Upsert desselben Spielers liefert **dieselbe** id; unterschiedliche Spieler → verschiedene ids.
+- [ ] **Step 2:** Fail-Lauf (`upsertPlayer` gibt noch `void`).
+- [ ] **Step 3:** Implementieren: im UPDATE-Zweig `existing.id` zurückgeben; im INSERT-Zweig `Number(info.lastInsertRowid)` aus dem `better-sqlite3`-`RunResult`. Rückgabetyp auf `number` setzen.
+- [ ] **Step 4:** `npm -w @tcw/core run test` grün (alle Bestandstests unverändert grün).
+- [ ] **Step 5:** Commit.
+
+## Task 16: `players.registry_id` (harter FK) + Population
+
+**Files:** Modify `packages/core/src/db/connection.ts` (`ensureColumn`), `packages/core/src/services/admin/enrich.ts`, `packages/core/src/services/player-registry-backfill.ts`, jeweils zugehörige Tests.
+
+**Interfaces:** Neue Spalte `players.registry_id INTEGER REFERENCES player_registry(id)`, gefüllt beim Kader-Sync und im Backfill.
+
+- [ ] **Step 1:** Test: nach `syncPlayerToRegistry` bzw. Backfill hat die `players`-Zeile ein `registry_id`, das auf die passende Register-Zeile zeigt (Join liefert dieselbe URL/Klassierung).
+- [ ] **Step 2:** Fail-Lauf.
+- [ ] **Step 3:** Implementieren:
+  - In `connection.ts` bei den `ensureColumn`-Aufrufen ergänzen: `ensureColumn(database, "players", "registry_id", "INTEGER REFERENCES player_registry(id)");` (additiv, bestehende DBs erhalten die Spalte; kein Datenverlust). Reihenfolge beachten: `player_registry` wird von `SCHEMA_SQL` vor dem `ensureColumn` erzeugt.
+  - `syncPlayerToRegistry` (Task 8) so erweitern, dass es die von `upsertPlayer` (Task 15) zurückgegebene id nimmt und `UPDATE players SET registry_id=? WHERE id=?` setzt (id des Kaderspielers durchreichen).
+  - Im Backfill (Schritt „Team-Kader") nach dem Upsert die zurückgegebene id in `players.registry_id` schreiben.
+- [ ] **Step 4:** `npm -w @tcw/core run test` grün.
+- [ ] **Step 5:** Commit.
+
+## Task 17: Weiche `registry_id`-Spalten auf den Feed-Tabellen
+
+**Files:** Modify `packages/core/src/db/connection.ts`, `packages/core/src/services/tournament-store.ts`, `packages/core/src/services/player-matches-service.ts`, zugehörige Tests.
+
+**Interfaces:** Nullable Spalten (kein erzwungener FK-Constraint, „weich"): `tournament_players.registry_id`, `tournament_players.registry_id_2`; `player_matches.s1p1_registry_id … s2p2_registry_id`. Vom Import **nur bei eindeutigem** Register-Treffer gefüllt (sonst NULL).
+
+- [ ] **Step 1:** Test: nach Turnier-Import trägt ein Spieler mit eindeutigem Register-Treffer sein `registry_id`; ein mehrdeutiger/namens-only-Fall bleibt NULL.
+- [ ] **Step 2:** Fail-Lauf.
+- [ ] **Step 3:** Implementieren:
+  - `ensureColumn` für die neuen nullable Spalten (additiv). Bewusst **ohne** `REFERENCES`-Constraint (weich), damit der atomare Replace-Import und name-only-Fälle nicht brechen.
+  - Eine Hilfsfunktion `registryIdForName(db, name): number | null` im Register-Service (nutzt die eindeutige Auflösung analog `resolveUrlByNameKey`, gibt die id nur bei genau einem Treffer).
+  - Turnier-Import (Task 7) und IC-Sync (Task 9) füllen die Slot-`registry_id`s über `registryIdForName` beim Schreiben der Zeile.
+- [ ] **Step 4:** `npm -w @tcw/core run test` grün.
+- [ ] **Step 5:** Commit.
+
+## Task 18: Verifikation & optionaler Consumer-Join
+
+**Files:** keine erzwungene Änderung; Verifikation.
+
+- [ ] Prüfen, dass Team-Roster und Spielermatches über den FK/Soft-Link denselben Stand liefern wie zuvor (keine Regression). Optional: Team-Roster-Anzeige (`teams-service.ts`) und Autocomplete auf den Join zum Register umstellen, falls das Duplikate reduziert — nur wenn ohne Risiko. Andernfalls bewusst beim bestehenden Lesen belassen und als künftige Aufräumarbeit notieren.
+
+---
+
 ## Self-Review Notes
 
 - **Spec-Abdeckung:** Tabelle (T2), Identität/Matching (T3–T4), Mitgliedschaft (T5), Service (T3–T5), Imports befüllen (T7 Turnier, T8 Kader, T9 IC), Consumer (T10 Waidcup, T9 Spielermatches, T11/T12 Admin-Picker), Backfill + `opponent_url_cache`-Ablösung (T6), Seed (T13), Deploy (T14). Alle Spec-Abschnitte abgedeckt.
