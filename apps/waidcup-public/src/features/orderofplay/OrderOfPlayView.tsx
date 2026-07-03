@@ -188,20 +188,54 @@ function OrderOfPlayTable({ matches }: { matches: WaidcupLiveMatch[] }): JSX.Ele
       : "";
   }, [matches, language]);
 
-  const copyForEmail = (): void => {
+  const flagCopied = (): void => {
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2500);
+  };
+
+  /**
+   * Legt die E-Mail-Tabelle als Rich-HTML in die Zwischenablage. Wichtig:
+   * text/html EXPLIZIT setzen, sonst kopieren manche Browser/Mail-Clients nur
+   * Text. Moderne Clipboard-API (nur secure context) zuerst, sonst der
+   * copy-Event-Weg (funktioniert auch über http im LAN).
+   */
+  const copyForEmail = async (): Promise<void> => {
     const table = emailRef.current?.querySelector("table");
+    if (!table) return;
+    const html = table.outerHTML;
+    const text = table.innerText;
+
+    if (window.isSecureContext && navigator.clipboard && typeof window.ClipboardItem === "function") {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "text/html": new Blob([html], { type: "text/html" }),
+            "text/plain": new Blob([text], { type: "text/plain" }),
+          }),
+        ]);
+        flagCopied();
+        return;
+      } catch {
+        /* Fallback unten */
+      }
+    }
+
     const selection = window.getSelection();
-    if (!table || !selection) return;
     const range = document.createRange();
     range.selectNode(table);
-    selection.removeAllRanges();
-    selection.addRange(range);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    const onCopy = (event: ClipboardEvent): void => {
+      event.preventDefault();
+      event.clipboardData?.setData("text/html", html);
+      event.clipboardData?.setData("text/plain", text);
+    };
+    document.addEventListener("copy", onCopy);
     try {
-      document.execCommand("copy");
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2500);
+      if (document.execCommand("copy")) flagCopied();
     } finally {
-      selection.removeAllRanges();
+      document.removeEventListener("copy", onCopy);
+      selection?.removeAllRanges();
     }
   };
 
@@ -210,7 +244,7 @@ function OrderOfPlayTable({ matches }: { matches: WaidcupLiveMatch[] }): JSX.Ele
       {/* Doppelklick auf das Datum kopiert die E-Mail-Tabelle (verstecktes
           Admin-Feature; kein sichtbarer Button). */}
       <div className="oop__bar">
-        <span className="oop__date" onDoubleClick={copyForEmail} title="">
+        <span className="oop__date" onDoubleClick={() => void copyForEmail()} title="">
           {dateLabel}
         </span>
         {copied ? <span className="oop__copied">✓ {t("orderOfPlay.copied")}</span> : null}
