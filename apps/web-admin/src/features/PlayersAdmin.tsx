@@ -2,12 +2,19 @@
  * Spieler pflegen. Neuer Spieler oder geänderter Name löst serverseitig eine
  * MyTennis-Suche aus (Klassierung/Profil-URL werden übernommen).
  */
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import { CAPTAIN_STATUS, type AdminTeam } from "@tcw/shared";
 import { adminApi } from "../api/adminClient.js";
 import { useAsync } from "../useAsync.js";
 import { useMutation } from "../useMutation.js";
 import { StatusMessage } from "../components/Status.js";
+
+interface MemberHit {
+  id: number;
+  displayName: string;
+  klassierung: string | null;
+  profileUrl: string | null;
+}
 
 const CAPTAIN_OPTIONS: Array<{ value: number; label: string }> = [
   { value: CAPTAIN_STATUS.none, label: "Kein Captain" },
@@ -44,10 +51,35 @@ export function PlayersAdmin(): JSX.Element {
   const { status, busy, run } = useMutation(playersState.reload);
   const [drafts, setDrafts] = useState<PlayerDraft[]>([]);
   const [newPlayer, setNewPlayer] = useState<Omit<PlayerDraft, "id">>(emptyPlayer(0));
+  const [memberHits, setMemberHits] = useState<MemberHit[]>([]);
+  const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (playersState.data) setDrafts(playersState.data);
   }, [playersState.data]);
+
+  // Debounced Mitglieder-Suche fürs Namensfeld des "neuer Spieler"-Formulars;
+  // manuelles Eintippen ohne Treffer bleibt weiterhin möglich.
+  useEffect(() => () => {
+    if (suggestTimer.current) clearTimeout(suggestTimer.current);
+  }, []);
+
+  const onNameInput = (value: string): void => {
+    setNewPlayer((p) => ({ ...p, name: value }));
+    if (suggestTimer.current) clearTimeout(suggestTimer.current);
+    if (value.trim().length < 2) {
+      setMemberHits([]);
+      return;
+    }
+    suggestTimer.current = setTimeout(() => {
+      void adminApi.memberSuggest(value).then((res) => setMemberHits(res.items));
+    }, 250);
+  };
+
+  const pickMember = (hit: MemberHit): void => {
+    setNewPlayer((p) => ({ ...p, name: hit.displayName, klassierung: hit.klassierung ?? "", myTennisID: hit.profileUrl ?? "" }));
+    setMemberHits([]);
+  };
 
   const teams: AdminTeam[] = teamsState.data ?? [];
 
@@ -112,7 +144,25 @@ export function PlayersAdmin(): JSX.Element {
             ))}
             <tr>
               <td><input value={newPlayer.klassierung} onChange={(e) => setNewPlayer({ ...newPlayer, klassierung: e.target.value })} /></td>
-              <td><input value={newPlayer.name} onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })} /></td>
+              <td className="member-suggest-wrap">
+                <input
+                  value={newPlayer.name}
+                  autoComplete="off"
+                  onChange={(e) => onNameInput(e.target.value)}
+                  onBlur={() => setTimeout(() => setMemberHits([]), 150)}
+                />
+                {memberHits.length > 0 && (
+                  <ul className="member-suggest-list">
+                    {memberHits.map((hit) => (
+                      <li key={hit.id}>
+                        <button type="button" className="member-suggest-item" onMouseDown={(e) => e.preventDefault()} onClick={() => pickMember(hit)}>
+                          {hit.displayName}{hit.klassierung ? ` (${hit.klassierung})` : ""}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </td>
               <td><input value={newPlayer.myTennisID} onChange={(e) => setNewPlayer({ ...newPlayer, myTennisID: e.target.value })} /></td>
               <td>{teamSelect(newPlayer.teamId, (teamId) => setNewPlayer({ ...newPlayer, teamId }))}</td>
               <td>
