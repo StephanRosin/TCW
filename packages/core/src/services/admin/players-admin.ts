@@ -11,7 +11,7 @@ import {
 } from "@tcw/shared";
 import type { TcwDatabase } from "../../db/connection.js";
 import { runDatabaseWrite, ValidationError } from "./errors.js";
-import { enrichPlayer } from "./enrich.js";
+import { enrichPlayer, syncPlayerToRegistry } from "./enrich.js";
 
 export interface PlayerInput {
   name: string;
@@ -97,6 +97,14 @@ function parseTeam(displayName: string): { gender: string; category: string; lig
   return { gender, category, liga: rest.join(" ") };
 }
 
+/** Spiegelt den aktuellen Stand eines Kaderspielers als Mitglied ins zentrale Register. */
+function mirrorRosterPlayer(database: TcwDatabase, id: number): void {
+  const row = database.prepare("SELECT name, klassierung, myTennisID FROM players WHERE id = ?").get(id) as
+    | { name: string; klassierung: string | null; myTennisID: string | null }
+    | undefined;
+  if (row) syncPlayerToRegistry(database, { name: row.name, klassierung: row.klassierung, myTennisID: row.myTennisID });
+}
+
 export async function createPlayer(
   database: TcwDatabase,
   input: Partial<PlayerInput>,
@@ -115,6 +123,7 @@ export async function createPlayer(
   if (player.myTennisID === "") {
     await enrichPlayer(database, playerId, myTennisTimeoutMs);
   }
+  mirrorRosterPlayer(database, playerId);
 }
 
 export async function updatePlayer(
@@ -138,6 +147,7 @@ export async function updatePlayer(
         .run({ name: player.name, team_id: player.team_id, captain_status: player.captain_status, id }),
     );
     await enrichPlayer(database, id, myTennisTimeoutMs);
+    mirrorRosterPlayer(database, id);
     return;
   }
 
@@ -148,6 +158,7 @@ export async function updatePlayer(
       )
       .run({ ...player, id }),
   );
+  mirrorRosterPlayer(database, id);
 }
 
 export function deletePlayer(database: TcwDatabase, id: number): void {
