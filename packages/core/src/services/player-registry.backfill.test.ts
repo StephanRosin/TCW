@@ -9,6 +9,9 @@ import { playerNameKey } from "@tcw/shared";
 function seeded(): Database.Database {
   const db = new Database(":memory:");
   db.exec(SCHEMA_SQL);
+  // Spiegelt die ensureColumn-Migration aus openDatabase (connection.ts), da dieser
+  // Test die Schema-SQL direkt anwendet statt openDatabase zu nutzen.
+  db.exec("ALTER TABLE players ADD COLUMN registry_id INTEGER REFERENCES player_registry(id)");
   db.prepare("INSERT INTO teams (gender, category, liga) VALUES ('m','Aktive','1. Liga')").run();
   db.prepare("INSERT INTO players (name, klassierung, myTennisID, team_id) VALUES (?,?,?,1)")
     .run("Markus Rauch", "R4", "https://www.mytennis.ch/de/spieler/177712");
@@ -26,6 +29,13 @@ test("Backfill: Kader wird Mitglied, Turnierspieler non-member, URLs aufloesbar"
   assert.equal(resolveUrlByNameKey(db, playerNameKey("Till Novak")), "https://www.mytennis.ch/de/spieler/19799660");
   const members = listMembers(db).map((m) => m.displayName);
   assert.deepEqual(members, ["Markus Rauch"]);
+  const linked = db
+    .prepare(
+      "SELECT p.registry_id, r.profile_url FROM players p JOIN player_registry r ON r.id = p.registry_id WHERE p.name = 'Markus Rauch'",
+    )
+    .get() as { registry_id: number; profile_url: string } | undefined;
+  assert.ok(linked && linked.registry_id > 0, "players.registry_id gesetzt");
+  assert.equal(linked.profile_url, "https://www.mytennis.ch/de/spieler/177712");
   db.close();
 });
 

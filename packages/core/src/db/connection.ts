@@ -41,6 +41,8 @@ export function openDatabase(options: DatabaseOptions): TcwDatabase {
     database.exec(SCHEMA_SQL);
     // Nachträglich ergänzte Spalten (bestehende Datenbanken).
     ensureColumn(database, "tournament_matches", "result_seen_at", "TEXT");
+    // Harter Fremdschlüssel: welcher Register-Eintrag zu diesem Kaderspieler gehört.
+    ensureColumn(database, "players", "registry_id", "INTEGER REFERENCES player_registry(id)");
   }
   return database;
 }

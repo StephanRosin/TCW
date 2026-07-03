@@ -47,22 +47,28 @@ export async function enrichPlayer(
   database
     .prepare("UPDATE players SET klassierung = ?, myTennisID = ? WHERE id = ?")
     .run(klassierung, best.url, playerId);
-  syncPlayerToRegistry(database, { name: player.name, klassierung, myTennisID: best.url });
+  const registryId = syncPlayerToRegistry(database, { name: player.name, klassierung, myTennisID: best.url });
+  linkPlayerRegistryId(database, playerId, registryId);
   return { klassierung, myTennisID: best.url };
 }
 
-/** Spiegelt einen Kaderspieler ins zentrale Register (Mitglied). */
+/** Spiegelt einen Kaderspieler ins Register (Mitglied) und liefert dessen Register-id. */
 export function syncPlayerToRegistry(
   db: TcwDatabase,
   player: { name: string; klassierung: string | null; myTennisID: string | null },
-): void {
-  upsertPlayer(db, {
+): number {
+  return upsertPlayer(db, {
     name: player.name,
     url: player.myTennisID,
     klassierung: player.klassierung,
     member: true,
     memberSource: "roster",
   });
+}
+
+/** Verknüpft players.registry_id mit dem Register (nur bei gültiger id > 0). */
+export function linkPlayerRegistryId(db: TcwDatabase, playerId: number, registryId: number): void {
+  if (registryId > 0) db.prepare("UPDATE players SET registry_id = ? WHERE id = ?").run(registryId, playerId);
 }
 
 function normalizeUrl(value: string): string {

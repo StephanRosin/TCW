@@ -12,9 +12,10 @@ function tableExists(db: TcwDatabase, name: string): boolean {
 
 export function backfillPlayerRegistry(db: TcwDatabase): { total: number } {
   const run = db.transaction(() => {
-    // 1) Team-Kader -> Mitglied
-    for (const r of db.prepare("SELECT name, klassierung, myTennisID FROM players").all() as Array<{ name: string; klassierung: string | null; myTennisID: string | null }>) {
-      upsertPlayer(db, { name: r.name, url: r.myTennisID, klassierung: r.klassierung, member: true, memberSource: "roster" });
+    // 1) Team-Kader -> Mitglied (und harter FK players.registry_id, sofern gültige id)
+    for (const r of db.prepare("SELECT id, name, klassierung, myTennisID FROM players").all() as Array<{ id: number; name: string; klassierung: string | null; myTennisID: string | null }>) {
+      const regId = upsertPlayer(db, { name: r.name, url: r.myTennisID, klassierung: r.klassierung, member: true, memberSource: "roster" });
+      if (regId > 0) db.prepare("UPDATE players SET registry_id = ? WHERE id = ?").run(regId, r.id);
     }
     // 2) Turnier-Anmeldungen (beide Doppel-Spieler)
     for (const r of db.prepare("SELECT player_name, player_name_2, player_url, player_url_2, license_number, license_number_2, ranking, ranking_2 FROM tournament_players").all() as Array<Record<string, string | null>>) {
