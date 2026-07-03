@@ -100,5 +100,6 @@
   "infos.hint5": "Si prega di arrivare con i mezzi pubblici o di parcheggiare nei posteggi pubblici sotto l'impianto (posti limitati).",
   "infos.hint6": "In caso di pioggia, nel weekend delle finali sono disponibili campi coperti nel centro sportivo Grindel. Anche le partite dei turni precedenti possono essere spostate al coperto per motivi meteo.",
   "infos.hint8": "In generale vale il «gioco senza arbitro»:",
-  "infos.hintPdf": "Scheda informativa (PDF) ↗"
+  "infos.hintPdf": "Scheda informativa (PDF) ↗",
+  "infos.hintPdfUrl": "/giocare-senza-arbitro.pdf"
 }

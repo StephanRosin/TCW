@@ -100,5 +100,6 @@
   "infos.hint5": "Merci de venir en transports publics ou de vous garer sur les places publiques en contrebas des installations (places limitées).",
   "infos.hint6": "En cas de pluie, des courts couverts sont disponibles au centre sportif Grindel le week-end des finales. Des matchs des tours précédents peuvent aussi être déplacés en salle selon la météo.",
   "infos.hint8": "En principe, le « jeu sans arbitre » s'applique :",
-  "infos.hintPdf": "Fiche d'information (PDF) ↗"
+  "infos.hintPdf": "Fiche d'information (PDF) ↗",
+  "infos.hintPdfUrl": "https://www.swisstennis.ch/media/810/2025_officiating_spielohneschiedsrichter_f.pdf"
 }

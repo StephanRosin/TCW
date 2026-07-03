@@ -5,9 +5,6 @@
 import type { JSX } from "react";
 import { useI18n } from "@tcw/tournament-ui";
 
-const OFFICIATING_PDF =
-  "https://www.swisstennis.ch/media/809/2025_officiating_spielohneschiedsrichter_d.pdf";
-
 // WS immer vor MS.
 const TABLEAUX: ReadonlyArray<readonly [string, string, string]> = [
   ["WS", "R1/R5", "infos.tableau32"],
@@ -106,7 +103,7 @@ export function InfosView(): JSX.Element {
           ))}
           <li>
             {t("infos.hint8")}{" "}
-            <a href={OFFICIATING_PDF} target="_blank" rel="noopener noreferrer">
+            <a href={t("infos.hintPdfUrl")} target="_blank" rel="noopener noreferrer">
               {t("infos.hintPdf")}
             </a>
           </li>
