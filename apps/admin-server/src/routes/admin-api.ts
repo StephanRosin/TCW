@@ -49,9 +49,35 @@ function parseId(value: string, label: string): number {
   return Number(value);
 }
 
+interface KlassierungJob {
+  running: boolean;
+  processed: number;
+  total: number;
+  updated: number;
+  unchanged: number;
+  skipped: number;
+  startedAt: string | null;
+  finishedAt: string | null;
+  error: string | null;
+}
+
+const KLASSIERUNG_DELAY_MS = 5000; // ~48 Min über ~571 Spieler; schont MyTennis
+
 export function registerAdminRoutes(app: FastifyInstance, deps: AdminDependencies): void {
   const { database, config } = deps;
   const timeout = config.swisstennisTimeoutMs;
+
+  let klassierungJob: KlassierungJob = {
+    running: false,
+    processed: 0,
+    total: 0,
+    updated: 0,
+    unchanged: 0,
+    skipped: 0,
+    startedAt: null,
+    finishedAt: null,
+    error: null,
+  };
 
   // ----- Teams -----
   app.get("/api/teams", async () => ({ items: listTeams(database) }));
@@ -139,15 +165,43 @@ export function registerAdminRoutes(app: FastifyInstance, deps: AdminDependencie
 
   // ----- Aktionen -----
   app.post("/api/actions/update-klassierung", async () => {
-    const summary = await updateKlassierungenFromMyTennis(database, timeout);
-    const lines = summary.changes.map(
-      (change) => `${change.playerName}: ${change.oldKlassierung || "-"} -> ${change.newKlassierung}`,
-    );
-    lines.push(
-      `Fertig. Aktualisiert: ${summary.updated}, Unverändert: ${summary.unchanged}, Übersprungen: ${summary.skipped}`,
-    );
-    return { ok: true, output: lines.join("\n"), summary };
+    if (klassierungJob.running) {
+      return { started: false, alreadyRunning: true };
+    }
+    klassierungJob = {
+      running: true,
+      processed: 0,
+      total: 0,
+      updated: 0,
+      unchanged: 0,
+      skipped: 0,
+      startedAt: new Date().toISOString(),
+      finishedAt: null,
+      error: null,
+    };
+    // Fire-and-forget: NICHT awaiten, damit die Anfrage sofort zurückkommt.
+    void updateKlassierungenFromMyTennis(database, timeout, {
+      delayMs: KLASSIERUNG_DELAY_MS,
+      onProgress: (processed, total) => {
+        klassierungJob.processed = processed;
+        klassierungJob.total = total;
+      },
+    })
+      .then((summary) => {
+        klassierungJob.updated = summary.updated;
+        klassierungJob.unchanged = summary.unchanged;
+        klassierungJob.skipped = summary.skipped;
+      })
+      .catch((err) => {
+        klassierungJob.error = err instanceof Error ? err.message : String(err);
+      })
+      .finally(() => {
+        klassierungJob.running = false;
+        klassierungJob.finishedAt = new Date().toISOString();
+      });
+    return { started: true };
   });
+  app.get("/api/actions/update-klassierung/status", async () => klassierungJob);
   app.post("/api/actions/import-matches", async () => {
     const count = await deps.matchesImporter.importMatches();
     return { ok: true, count };

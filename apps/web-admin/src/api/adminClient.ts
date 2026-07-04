@@ -27,9 +27,16 @@ function items<T>(url: string): Promise<T[]> {
   return request<{ items: T[] }>(url).then((data) => data.items);
 }
 
-export interface UpdateKlassierungResponse {
-  ok: true;
-  output: string;
+export interface KlassierungStatus {
+  running: boolean;
+  processed: number;
+  total: number;
+  updated: number;
+  unchanged: number;
+  skipped: number;
+  startedAt: string | null;
+  finishedAt: string | null;
+  error: string | null;
 }
 
 export const adminApi = {
@@ -64,8 +71,9 @@ export const adminApi = {
     request("/api/tournaments", { method: "POST", body: JSON.stringify({ items: tournamentItems }) }),
   refreshTournament: (id: number) => request(`/api/tournaments/${id}/refresh`, { method: "POST" }),
 
-  updateKlassierung: () =>
-    request<UpdateKlassierungResponse>("/api/actions/update-klassierung", { method: "POST" }),
+  startKlassierungUpdate: () =>
+    request<{ started: boolean; alreadyRunning?: boolean }>("/api/actions/update-klassierung", { method: "POST" }),
+  klassierungStatus: () => request<KlassierungStatus>("/api/actions/update-klassierung/status"),
   importMatches: () => request<{ ok: true; count: number }>("/api/actions/import-matches", { method: "POST" }),
 
   settings: () => request<SiteSettings>("/api/settings"),

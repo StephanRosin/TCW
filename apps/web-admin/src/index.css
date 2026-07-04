@@ -227,13 +227,21 @@ button.btn:disabled {
   color: var(--ink-500);
   margin-bottom: 1rem;
 }
-pre.output {
-  background: var(--navy-900);
-  color: #d7e6d9;
-  padding: 1rem;
-  border-radius: 8px;
-  white-space: pre-wrap;
-  font-size: 0.85rem;
-  max-height: 24rem;
-  overflow: auto;
+.progress {
+  background: var(--sand-100);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  height: 0.6rem;
+  overflow: hidden;
+  margin: 0.5rem 0 0.25rem;
+}
+.progress__bar {
+  height: 100%;
+  background: var(--navy-700);
+  transition: width 0.3s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .progress__bar {
+    transition: none;
+  }
 }
