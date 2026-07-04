@@ -3,7 +3,7 @@
  * MyTennis-Suche aus (Klassierung/Profil-URL werden übernommen).
  */
 import { useEffect, useRef, useState, type JSX } from "react";
-import { CAPTAIN_STATUS, type AdminTeam } from "@tcw/shared";
+import { CAPTAIN_STATUS, parseMyTennisId, type AdminTeam } from "@tcw/shared";
 import { adminApi } from "../api/adminClient.js";
 import { useAsync } from "../useAsync.js";
 import { useMutation } from "../useMutation.js";
@@ -26,20 +26,20 @@ interface PlayerDraft {
   id: number;
   name: string;
   klassierung: string;
-  myTennisID: string;
+  mytennisId: string;
   teamId: number;
   captainStatus: number;
 }
 
 function emptyPlayer(teamId: number): Omit<PlayerDraft, "id"> {
-  return { name: "", klassierung: "", myTennisID: "", teamId, captainStatus: CAPTAIN_STATUS.none };
+  return { name: "", klassierung: "", mytennisId: "", teamId, captainStatus: CAPTAIN_STATUS.none };
 }
 
 function toBody(player: Omit<PlayerDraft, "id">): Record<string, unknown> {
   return {
     name: player.name,
     klassierung: player.klassierung,
-    myTennisID: player.myTennisID,
+    mytennisId: player.mytennisId,
     team_id: player.teamId,
     captain_status: player.captainStatus,
   };
@@ -88,7 +88,7 @@ export function PlayersAdmin(): JSX.Element {
   };
 
   const pickMember = (hit: MemberHit): void => {
-    setNewPlayer((p) => ({ ...p, name: hit.displayName, klassierung: hit.klassierung ?? "", myTennisID: hit.profileUrl ?? "" }));
+    setNewPlayer((p) => ({ ...p, name: hit.displayName, klassierung: hit.klassierung ?? "", mytennisId: parseMyTennisId(hit.profileUrl) ?? "" }));
     setMemberHits([]);
   };
 
@@ -127,7 +127,7 @@ export function PlayersAdmin(): JSX.Element {
             <tr>
               <th>Klassierung</th>
               <th>Name</th>
-              <th>MyTennis-Link</th>
+              <th>mytennis-ID</th>
               <th>Team</th>
               <th>Captain</th>
               <th>Aktion</th>
@@ -138,7 +138,7 @@ export function PlayersAdmin(): JSX.Element {
               <tr key={player.id}>
                 <td><input value={player.klassierung} onChange={(e) => updateDraft(player.id, "klassierung", e.target.value)} /></td>
                 <td><input value={player.name} onChange={(e) => updateDraft(player.id, "name", e.target.value)} /></td>
-                <td><input value={player.myTennisID} onChange={(e) => updateDraft(player.id, "myTennisID", e.target.value)} /></td>
+                <td><input value={player.mytennisId} inputMode="numeric" placeholder="z. B. 177712" onChange={(e) => updateDraft(player.id, "mytennisId", e.target.value)} /></td>
                 <td>{teamSelect(player.teamId, (teamId) => updateDraft(player.id, "teamId", teamId))}</td>
                 <td>
                   <select value={player.captainStatus} onChange={(e) => updateDraft(player.id, "captainStatus", Number(e.target.value))}>
@@ -174,7 +174,7 @@ export function PlayersAdmin(): JSX.Element {
                   </ul>
                 )}
               </td>
-              <td><input value={newPlayer.myTennisID} onChange={(e) => setNewPlayer({ ...newPlayer, myTennisID: e.target.value })} /></td>
+              <td><input value={newPlayer.mytennisId} inputMode="numeric" placeholder="z. B. 177712" onChange={(e) => setNewPlayer({ ...newPlayer, mytennisId: e.target.value })} /></td>
               <td>{teamSelect(newPlayer.teamId, (teamId) => setNewPlayer({ ...newPlayer, teamId }))}</td>
               <td>
                 <select value={newPlayer.captainStatus} onChange={(e) => setNewPlayer({ ...newPlayer, captainStatus: Number(e.target.value) })}>
