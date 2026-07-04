@@ -360,23 +360,6 @@ const SLOTS = [
   ["s2p2_name", "s2p2_key", "s2p2_url"],
 ] as const;
 
-/** Setzt URLs eigener Spieler (myTennisID) – ohne API-Aufruf. */
-function applyOwnUrls(db: Database.Database): void {
-  const players = db.prepare("SELECT name, myTennisID FROM players WHERE TRIM(myTennisID)<>''").all() as Array<{
-    name: string;
-    myTennisID: string;
-  }>;
-  const ownByKey = new Map<string, string>();
-  for (const p of players) {
-    const url = safeExternalUrl(p.myTennisID);
-    if (url) ownByKey.set(playerNameKey(p.name), url);
-  }
-  for (const [, keyCol, urlCol] of SLOTS) {
-    const update = db.prepare(`UPDATE player_matches SET ${urlCol}=? WHERE ${keyCol}=? AND (${urlCol} IS NULL OR ${urlCol}='')`);
-    for (const [key, url] of ownByKey) update.run(url, key);
-  }
-}
-
 /** Füllt leere Spieler-/Gegner-URL-Slots aus dem zentralen Register (ohne Netz). */
 export function syncOpponentUrlsFromRegistry(db: Database.Database): number {
   let filled = 0;
@@ -496,7 +479,8 @@ export async function syncPlayerMatches(db: Database.Database, config: AppConfig
   const tour = importTournaments(db, year, now);
   log(`Turniere: ${tour} Matches`);
 
-  applyOwnUrls(db);
+  const ownUrls = syncOpponentUrlsFromRegistry(db);
+  log(`Eigene/bekannte URLs aus dem Register befüllt: ${ownUrls}`);
   if (resolveUrls) {
     const urls = await resolveOpponentUrls(db, config, delayMs, maxUrlLookups, log);
     log(`Gegner-URLs aufgelöst: ${urls}`);
@@ -514,9 +498,16 @@ export async function syncPlayerMatches(db: Database.Database, config: AppConfig
 export function suggestPlayers(db: Database.Database, q: string, limit = 10): PlayerSuggestion[] {
   const query = q.trim();
   if (query.length < 3) return [];
+  // Klassierung + Profil-URL kommen aus dem zentralen Register, nicht mehr aus
+  // den (noch vorhandenen, aber veralteten) players-Spalten klassierung/myTennisID.
   const rows = db
-    .prepare("SELECT name, klassierung, myTennisID FROM players WHERE name LIKE ? ORDER BY name")
-    .all(`%${query}%`) as Array<{ name: string; klassierung: string; myTennisID: string }>;
+    .prepare(
+      `SELECT p.name AS name, r.klassierung AS klassierung, r.profile_url AS profile_url
+         FROM players p
+         LEFT JOIN player_registry r ON r.id = p.registry_id
+        WHERE p.name LIKE ? ORDER BY p.name`,
+    )
+    .all(`%${query}%`) as Array<{ name: string; klassierung: string | null; profile_url: string | null }>;
   const byKey = new Map<string, PlayerSuggestion>();
   for (const r of rows) {
     const key = playerNameKey(r.name);
@@ -525,7 +516,7 @@ export function suggestPlayers(db: Database.Database, q: string, limit = 10): Pl
       name: r.name,
       key,
       klassierung: r.klassierung ?? "",
-      url: safeExternalUrl(r.myTennisID) || null,
+      url: safeExternalUrl(r.profile_url) || null,
     });
     if (byKey.size >= limit) break;
   }

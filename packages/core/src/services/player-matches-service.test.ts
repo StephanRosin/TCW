@@ -73,18 +73,37 @@ test("getPlayerMatches dreht das Resultat auf die Perspektive des Spielers (Gast
 test("suggestPlayers ab 3 Zeichen, dedupliziert über Namens-Schlüssel", () => {
   const db = openDatabase({ filePath: ":memory:" });
   db.prepare("INSERT INTO teams (id, gender, category, liga) VALUES (1,'Herren','Aktiv','NLC')").run();
+  const regId = upsertPlayer(db, { name: "Stephan Rosin", url: "https://www.mytennis.ch/de/spieler/19799802", klassierung: "R4" });
   // Gleicher Spieler in zwei Teams → ein Vorschlag.
   db.prepare(
-    "INSERT INTO players (name, klassierung, myTennisID, team_id) VALUES ('Stephan Rosin','R4','https://www.mytennis.ch/de/spieler/19799802',1)",
-  ).run();
+    "INSERT INTO players (name, klassierung, myTennisID, team_id, registry_id) VALUES ('Stephan Rosin','R4','https://www.mytennis.ch/de/spieler/19799802',1,?)",
+  ).run(regId);
   db.prepare(
-    "INSERT INTO players (name, klassierung, myTennisID, team_id) VALUES ('Stephan Rosin','R4','https://www.mytennis.ch/de/spieler/19799802',1)",
-  ).run();
+    "INSERT INTO players (name, klassierung, myTennisID, team_id, registry_id) VALUES ('Stephan Rosin','R4','https://www.mytennis.ch/de/spieler/19799802',1,?)",
+  ).run(regId);
   assert.equal(suggestPlayers(db, "Ro").length, 0); // < 3 Zeichen
   const hits = suggestPlayers(db, "Rosin");
   assert.equal(hits.length, 1);
   assert.equal(hits[0]!.key, playerNameKey("Stephan Rosin"));
   assert.equal(hits[0]!.url, "https://www.mytennis.ch/de/spieler/19799802");
+  db.close();
+});
+
+test("suggestPlayers liest Klassierung + mytennis-URL aus dem Register, nicht aus den players-Spalten", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  db.prepare("INSERT INTO teams (id, gender, category, liga) VALUES (1,'Herren','Aktiv','NLC')").run();
+  // Register-Eintrag mit den "wahren" Werten (Register-Klassierung + Profil-URL).
+  const registryUrl = "https://www.mytennis.ch/de/spieler/177712";
+  const regId = upsertPlayer(db, { name: "Markus Rauch", url: registryUrl, klassierung: "R7" });
+  // players-Spalten bewusst auf ABWEICHENDE Werte setzen: beweist, dass suggestPlayers
+  // diese Spalten NICHT mehr liest, sondern das Register.
+  db.prepare(
+    "INSERT INTO players (name, klassierung, myTennisID, team_id, registry_id) VALUES ('Markus Rauch','R1','',1,?)",
+  ).run(regId);
+  const hits = suggestPlayers(db, "Rauch");
+  assert.equal(hits.length, 1);
+  assert.equal(hits[0]!.klassierung, "R7", "Klassierung muss aus dem Register kommen, nicht aus players.klassierung");
+  assert.equal(hits[0]!.url, registryUrl, "url muss aus dem Register kommen, nicht aus players.myTennisID");
   db.close();
 });
 
