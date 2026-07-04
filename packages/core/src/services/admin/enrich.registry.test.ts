@@ -7,7 +7,7 @@ import { listMembers, upsertPlayer } from "../player-registry.js";
 // enrich.ts schreibt nach dem Setzen von myTennisID zusätzlich ins Register.
 // Da enrichPlayer eine Netzwerksuche macht, testen wir die Register-Spiegelung
 // über die exportierte Hilfsfunktion syncPlayerToRegistry (siehe Implementierung).
-import { applyRegistryKlassierung, syncPlayerToRegistry } from "./enrich.js";
+import { applyRegistryKlassierung, selectKlassierungCandidates, syncPlayerToRegistry } from "./enrich.js";
 
 test("syncPlayerToRegistry: Kaderspieler wird Mitglied mit URL", () => {
   const db = new Database(":memory:");
@@ -70,6 +70,34 @@ test("applyRegistryKlassierung: schreibt Register + Log bei echter Änderung, pl
   // players-Tabelle bleibt komplett unberührt (in diesem Test nie befüllt).
   const playersCount = db.prepare("SELECT COUNT(*) AS n FROM players").get() as { n: number };
   assert.equal(playersCount.n, 0);
+
+  db.close();
+});
+
+test("selectKlassierungCandidates: nur TCW-Mitglieder mit Profil-URL", () => {
+  const db = new Database(":memory:");
+  db.exec(SCHEMA_SQL);
+
+  upsertPlayer(db, {
+    name: "Mia Mitglied",
+    url: "https://www.mytennis.ch/de/spieler/11111",
+    member: true,
+    memberSource: "roster",
+  });
+  upsertPlayer(db, {
+    name: "Nico Nichtmitglied",
+    url: "https://www.mytennis.ch/de/spieler/22222",
+  });
+  upsertPlayer(db, {
+    name: "Ohne Url Mitglied",
+    member: true,
+    memberSource: "roster",
+  });
+
+  const candidates = selectKlassierungCandidates(db);
+  assert.equal(candidates.length, 1);
+  assert.equal(candidates[0]!.display_name, "Mia Mitglied");
+  assert.equal(candidates[0]!.profile_url, "https://www.mytennis.ch/de/spieler/11111");
 
   db.close();
 });

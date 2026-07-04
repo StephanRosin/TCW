@@ -118,20 +118,27 @@ export function applyRegistryKlassierung(db: TcwDatabase, row: RegistryRankRow, 
   return true;
 }
 
+/** Kandidaten fürs Klassierungs-Update: nur TCW-Mitglieder mit Profil-URL. */
+export function selectKlassierungCandidates(db: TcwDatabase): RegistryRankRow[] {
+  return db
+    .prepare(
+      "SELECT id, display_name, profile_url, klassierung FROM player_registry WHERE is_tcw_member = 1 AND trim(coalesce(profile_url,'')) <> '' ORDER BY id",
+    )
+    .all() as RegistryRankRow[];
+}
+
 /**
- * Aktualisiert Klassierungen aller Register-Einträge (`player_registry`) mit
- * gespeicherter MyTennis-URL. `players` wird hierbei nicht mehr gelesen oder
- * geschrieben — die Klassierung lebt ausschließlich im Register.
+ * Aktualisiert Klassierungen aller TCW-Mitglieder im Register (`player_registry`)
+ * mit gespeicherter MyTennis-URL. `players` wird hierbei nicht mehr gelesen oder
+ * geschrieben — die Klassierung lebt ausschließlich im Register. Nicht-Mitglieder
+ * (Turnier-/IC-Gegner, Gäste) werden bewusst nicht aktualisiert, um unnötige
+ * MyTennis-Netzwerkzugriffe zu vermeiden.
  */
 export async function updateKlassierungenFromMyTennis(
   database: TcwDatabase,
   timeoutMs: number,
 ): Promise<RankingUpdateSummary> {
-  const players = database
-    .prepare(
-      "SELECT id, display_name, profile_url, klassierung FROM player_registry WHERE trim(coalesce(profile_url,'')) <> '' ORDER BY id",
-    )
-    .all() as RegistryRankRow[];
+  const players = selectKlassierungCandidates(database);
 
   const summary: RankingUpdateSummary = { updated: 0, unchanged: 0, skipped: 0, changes: [] };
 
