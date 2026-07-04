@@ -93,6 +93,34 @@ TDD: nach Drop existieren die Spalten nicht mehr; Volltest grün.
 - Deploy Mac: (Backup existiert) Sync, Migrations-Script, Frontends bauen, Dienste neu
   starten, Smoke-Test (öffentliche Team-Seite 8092, Admin 8093, Waidcup 8096). Askpass-Protokoll.
 
+## Nachträge (Anforderungsänderung 04.07.)
+
+### Task 2b — Klassierungs-Update: ALLE mit URL + Hintergrund-Job-fähig (core)
+Der Button soll TCW **und** Nicht-TCW aktualisieren (gedrosselt, ~1 h ok).
+- `selectKlassierungCandidates`: WHERE `trim(coalesce(profile_url,''))<>''` **ohne**
+  `is_tcw_member`-Filter (Member-Scope von e0eec5e zurücknehmen). Test entsprechend
+  auf „alle mit URL" umstellen.
+- `updateKlassierungenFromMyTennis(db, timeoutMs, opts?: { delayMs?; onProgress?(processed, total) })`:
+  Kandidatenzahl = total; nach jedem Spieler `onProgress(i+1, total)`; `sleep(delayMs ?? 4000)`
+  zwischen den Netz-Suchen (nicht nach dem letzten). Summary/applyRegistryKlassierung unverändert.
+
+### Task 2c — Admin: Hintergrund-Job + Status-Endpunkt + Fortschritts-UI (admin-server + web-admin)
+- Admin-Prozess: modul-lokaler Job-State `{ running, processed, total, updated, unchanged, skipped, startedAt, finishedAt, error }`.
+- `POST /api/actions/update-klassierung`: startet den Job **fire-and-forget** (nicht awaiten),
+  wenn nicht schon `running`; gibt `{ started: true }` sofort zurück. Job aktualisiert den
+  State via `onProgress`.
+- `GET /api/actions/update-klassierung/status`: liefert den Job-State.
+- web-admin: Button startet den Lauf, pollt `…/status` alle ~3 s, zeigt Balken + „100/571 (16 %)",
+  am Ende die Summary. Kein Blockieren der Maske.
+
+### Task 8 — IC-/Spielermatches-Verlinkung (web-public)
+Die Spielermatches-Ansicht verlinkt Spieler auf ihr mytennis-Profil — **TCW-Spieler UND
+Gegner** — analog Waidcup (Anzeige unverändert, Hover-Unterstreichung). Nutzt die in
+`player_matches` gespeicherten Slot-URLs (`s*_url`, eigene über Kader/Register, Gegner über
+Auflösung). Frontend-Komponente + ggf. `PlayerLink` wiederverwenden.
+
+---
+
 ## Self-Review Notes
 - Reihenfolge sichert: kein Fenster, in dem ein Leser eine gedroppte Spalte liest.
 - Rollback: DB-Backup `ic_teams.rollback-pre-phase3-*` (lokal + Mac + off-box); Code
