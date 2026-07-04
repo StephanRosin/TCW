@@ -11,10 +11,14 @@ import type {
 } from "@tcw/shared";
 
 async function request<TResponse>(url: string, init?: RequestInit): Promise<TResponse> {
-  const response = await fetch(url, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-  });
+  // Content-Type nur bei vorhandenem Body setzen: ein POST OHNE Body mit
+  // "application/json" wird von Fastify als leerer JSON-Body mit 400 abgewiesen
+  // (betraf die body-losen Aktions-Endpunkte wie /api/actions/*).
+  const headers: Record<string, string> = { ...((init?.headers as Record<string, string>) ?? {}) };
+  if (init?.body !== undefined && init?.body !== null) {
+    headers["Content-Type"] = "application/json";
+  }
+  const response = await fetch(url, { ...init, headers });
   const text = await response.text();
   const data = text ? JSON.parse(text) : {};
   if (!response.ok) {
