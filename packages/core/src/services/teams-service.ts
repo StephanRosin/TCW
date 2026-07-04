@@ -25,8 +25,8 @@ interface TeamRow {
 interface PlayerRow {
   id: number;
   name: string;
-  klassierung: string;
-  myTennisID: string;
+  klassierung: string | null;
+  profile_url: string | null;
   team_id: number;
   captain_status: number;
 }
@@ -39,8 +39,8 @@ function toPublicPlayer(row: PlayerRow): PublicPlayer {
   return {
     id: row.id,
     name: row.name,
-    klassierung: row.klassierung,
-    myTennisUrl: safeExternalUrl(row.myTennisID),
+    klassierung: row.klassierung ?? "",
+    myTennisUrl: safeExternalUrl(row.profile_url),
     captainStatus: row.captain_status as CaptainStatus,
   };
 }
@@ -49,8 +49,15 @@ export function getPublicTeams(database: TcwDatabase): PublicTeamsResponse {
   const teamRows = database
     .prepare("SELECT id, gender, category, liga, teamziel, trainingstag FROM teams")
     .all() as TeamRow[];
+  // Klassierung + Profil-URL kommen aus dem zentralen Register, nicht mehr aus
+  // den (noch vorhandenen, aber veralteten) players-Spalten klassierung/myTennisID.
   const playerRows = database
-    .prepare("SELECT id, name, klassierung, myTennisID, team_id, captain_status FROM players")
+    .prepare(
+      `SELECT p.id, p.name, r.klassierung AS klassierung, r.profile_url AS profile_url,
+              p.team_id, p.captain_status
+         FROM players p
+         LEFT JOIN player_registry r ON r.id = p.registry_id`,
+    )
     .all() as PlayerRow[];
 
   const playersByTeam = new Map<number, PublicPlayer[]>();
