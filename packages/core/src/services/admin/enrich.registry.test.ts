@@ -74,7 +74,7 @@ test("applyRegistryKlassierung: schreibt Register + Log bei echter Änderung, pl
   db.close();
 });
 
-test("selectKlassierungCandidates: nur TCW-Mitglieder mit Profil-URL", () => {
+test("selectKlassierungCandidates: alle Register-Einträge mit Profil-URL (Mitglieder und Nicht-Mitglieder)", () => {
   const db = new Database(":memory:");
   db.exec(SCHEMA_SQL);
 
@@ -95,9 +95,9 @@ test("selectKlassierungCandidates: nur TCW-Mitglieder mit Profil-URL", () => {
   });
 
   const candidates = selectKlassierungCandidates(db);
-  assert.equal(candidates.length, 1);
-  assert.equal(candidates[0]!.display_name, "Mia Mitglied");
-  assert.equal(candidates[0]!.profile_url, "https://www.mytennis.ch/de/spieler/11111");
+  assert.equal(candidates.length, 2);
+  const names = candidates.map((c) => c.display_name).sort();
+  assert.deepEqual(names, ["Mia Mitglied", "Nico Nichtmitglied"]);
 
   db.close();
 });

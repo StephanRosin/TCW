@@ -118,64 +118,82 @@ export function applyRegistryKlassierung(db: TcwDatabase, row: RegistryRankRow, 
   return true;
 }
 
-/** Kandidaten fürs Klassierungs-Update: nur TCW-Mitglieder mit Profil-URL. */
+/** Kandidaten fürs Klassierungs-Update: alle Register-Einträge mit Profil-URL. */
 export function selectKlassierungCandidates(db: TcwDatabase): RegistryRankRow[] {
   return db
     .prepare(
-      "SELECT id, display_name, profile_url, klassierung FROM player_registry WHERE is_tcw_member = 1 AND trim(coalesce(profile_url,'')) <> '' ORDER BY id",
+      "SELECT id, display_name, profile_url, klassierung FROM player_registry WHERE trim(coalesce(profile_url,'')) <> '' ORDER BY id",
     )
     .all() as RegistryRankRow[];
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Verarbeitet einen Kandidaten: sucht bei MyTennis und trägt eine geänderte Klassierung in `summary` ein. */
+async function processKlassierungCandidate(
+  database: TcwDatabase,
+  player: RegistryRankRow,
+  timeoutMs: number,
+  summary: RankingUpdateSummary,
+): Promise<void> {
+  const name = splitName(player.display_name);
+  if (!name) {
+    summary.skipped += 1;
+    return;
+  }
+  const hits = await searchPlayers(player.display_name, timeoutMs);
+  const targetUrl = normalizeUrl(player.profile_url);
+  const hit = hits.find((candidate) => normalizeUrl(candidate.url) === targetUrl);
+  if (!hit) {
+    summary.skipped += 1;
+    return;
+  }
+  const newRank = hit.classification.trim().toUpperCase();
+  if (newRank === "") {
+    summary.skipped += 1;
+    return;
+  }
+  const currentRank = (player.klassierung ?? "").trim().toUpperCase();
+  if (newRank === currentRank) {
+    summary.unchanged += 1;
+    return;
+  }
+  const changed = applyRegistryKlassierung(database, player, newRank);
+  if (!changed) {
+    summary.unchanged += 1;
+    return;
+  }
+  summary.updated += 1;
+  summary.changes.push({ playerName: player.display_name, oldKlassierung: currentRank, newKlassierung: newRank });
+}
+
 /**
- * Aktualisiert Klassierungen aller TCW-Mitglieder im Register (`player_registry`)
- * mit gespeicherter MyTennis-URL. `players` wird hierbei nicht mehr gelesen oder
- * geschrieben — die Klassierung lebt ausschließlich im Register. Nicht-Mitglieder
- * (Turnier-/IC-Gegner, Gäste) werden bewusst nicht aktualisiert, um unnötige
- * MyTennis-Netzwerkzugriffe zu vermeiden.
+ * Aktualisiert Klassierungen aller Register-Einträge (`player_registry`) mit
+ * gespeicherter MyTennis-URL — Mitglieder und Nicht-Mitglieder (Turnier-/IC-Gegner,
+ * Gäste) gleichermaßen. `players` wird hierbei nicht mehr gelesen oder
+ * geschrieben — die Klassierung lebt ausschließlich im Register. Die
+ * MyTennis-Suchen werden über `opts.delayMs` gedrosselt, und `opts.onProgress`
+ * wird nach jedem verarbeiteten Kandidaten aufgerufen (für Fortschrittsanzeigen
+ * eines Hintergrundjobs).
  */
 export async function updateKlassierungenFromMyTennis(
   database: TcwDatabase,
   timeoutMs: number,
+  opts?: { delayMs?: number; onProgress?: (processed: number, total: number) => void },
 ): Promise<RankingUpdateSummary> {
   const players = selectKlassierungCandidates(database);
-
+  const total = players.length;
   const summary: RankingUpdateSummary = { updated: 0, unchanged: 0, skipped: 0, changes: [] };
 
-  for (const player of players) {
-    const name = splitName(player.display_name);
-    if (!name) {
-      summary.skipped += 1;
-      continue;
+  for (let index = 0; index < players.length; index += 1) {
+    await processKlassierungCandidate(database, players[index]!, timeoutMs, summary);
+    opts?.onProgress?.(index + 1, total);
+    const isLast = index === players.length - 1;
+    if (!isLast) {
+      await sleep(opts?.delayMs ?? 4000);
     }
-    const hits = await searchPlayers(player.display_name, timeoutMs);
-    const targetUrl = normalizeUrl(player.profile_url);
-    const hit = hits.find((candidate) => normalizeUrl(candidate.url) === targetUrl);
-    if (!hit) {
-      summary.skipped += 1;
-      continue;
-    }
-    const newRank = hit.classification.trim().toUpperCase();
-    if (newRank === "") {
-      summary.skipped += 1;
-      continue;
-    }
-    const currentRank = (player.klassierung ?? "").trim().toUpperCase();
-    if (newRank === currentRank) {
-      summary.unchanged += 1;
-      continue;
-    }
-    const changed = applyRegistryKlassierung(database, player, newRank);
-    if (!changed) {
-      summary.unchanged += 1;
-      continue;
-    }
-    summary.updated += 1;
-    summary.changes.push({
-      playerName: player.display_name,
-      oldKlassierung: currentRank,
-      newKlassierung: newRank,
-    });
   }
   return summary;
 }
