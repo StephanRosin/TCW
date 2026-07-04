@@ -1,11 +1,14 @@
 /**
- * Admin-CRUD für Spieler inklusive automatischer MyTennis-Suche bei neuen
- * Spielern und bei Namensänderungen (dann Klassierung/URL vorher leeren).
+ * Admin-CRUD für Spieler. Klassierung und die numerische mytennis-ID werden
+ * ausschliesslich übers zentrale Register (`player_registry`) gelesen und
+ * geschrieben; die players-Spalten `klassierung`/`myTennisID` werden nicht mehr
+ * angefasst (Drop folgt in Task 6).
  */
 import {
   comparePlayers,
   compareTeamsWithinGender,
   genderRank,
+  myTennisUrlFromId,
   type AdminPlayer,
   type CaptainStatus,
 } from "@tcw/shared";
@@ -16,7 +19,7 @@ import { enrichPlayer, syncPlayerToRegistry, linkPlayerRegistryId } from "./enri
 export interface PlayerInput {
   name: string;
   klassierung: string;
-  myTennisID: string;
+  mytennisId: string;
   team_id: number;
   captain_status: number;
 }
@@ -39,7 +42,8 @@ function validatePlayer(input: Partial<PlayerInput>): PlayerInput {
   return {
     name: String(input.name).trim(),
     klassierung: String(input.klassierung ?? "").trim().toUpperCase(),
-    myTennisID: String(input.myTennisID ?? "").trim(),
+    // Numerische mytennis-ID (keine URL); myTennisUrlFromId verwirft Nicht-Numerisches.
+    mytennisId: String(input.mytennisId ?? "").trim(),
     team_id: teamId,
     captain_status: captainStatus,
   };
@@ -48,8 +52,8 @@ function validatePlayer(input: Partial<PlayerInput>): PlayerInput {
 interface PlayerRow {
   id: number;
   name: string;
-  klassierung: string;
-  myTennisID: string;
+  klassierung: string | null;
+  mytennisId: string | null;
   team_id: number;
   captain_status: number;
   team_gender: string;
@@ -61,8 +65,8 @@ function toAdminPlayer(row: PlayerRow): AdminPlayer {
   return {
     id: row.id,
     name: row.name,
-    klassierung: row.klassierung,
-    myTennisID: row.myTennisID,
+    klassierung: row.klassierung ?? "",
+    mytennisId: row.mytennisId ?? "",
     teamId: row.team_id,
     captainStatus: row.captain_status as CaptainStatus,
     teamDisplay: `${row.team_gender} ${row.team_category} ${row.team_liga}`.replace(/\s+/g, " ").trim(),
@@ -72,9 +76,12 @@ function toAdminPlayer(row: PlayerRow): AdminPlayer {
 export function listPlayers(database: TcwDatabase): AdminPlayer[] {
   const rows = database
     .prepare(
-      `SELECT p.id, p.name, p.klassierung, p.myTennisID, p.team_id, p.captain_status,
+      `SELECT p.id, p.name, r.klassierung AS klassierung, r.mytennis_id AS mytennisId,
+              p.team_id, p.captain_status,
               t.gender AS team_gender, t.category AS team_category, t.liga AS team_liga
-       FROM players p INNER JOIN teams t ON t.id = p.team_id`,
+       FROM players p
+       INNER JOIN teams t ON t.id = p.team_id
+       LEFT JOIN player_registry r ON r.id = p.registry_id`,
     )
     .all() as PlayerRow[];
 
@@ -97,14 +104,24 @@ function parseTeam(displayName: string): { gender: string; category: string; lig
   return { gender, category, liga: rest.join(" ") };
 }
 
-/** Spiegelt den aktuellen Stand eines Kaderspielers als Mitglied ins zentrale Register. */
-function mirrorRosterPlayer(database: TcwDatabase, id: number): void {
-  const row = database.prepare("SELECT name, klassierung, myTennisID FROM players WHERE id = ?").get(id) as
-    | { name: string; klassierung: string | null; myTennisID: string | null }
-    | undefined;
-  if (!row) return;
-  const registryId = syncPlayerToRegistry(database, { name: row.name, klassierung: row.klassierung, myTennisID: row.myTennisID });
-  linkPlayerRegistryId(database, id, registryId);
+/** Sorgt dafür, dass der Kaderspieler als Mitglied im Register steht (auch ohne URL)
+ *  und players.registry_id gesetzt ist. Ohne ID wird per Namenssuche angereichert. */
+async function syncRosterIdentity(
+  database: TcwDatabase,
+  playerId: number,
+  input: { name: string; klassierung: string; mytennisId: string },
+  myTennisTimeoutMs: number,
+): Promise<void> {
+  const url = myTennisUrlFromId(input.mytennisId);
+  // Immer als Mitglied ins Register (auch ohne URL → name-only Mitglied) + harter FK.
+  const regId = syncPlayerToRegistry(database, {
+    name: input.name,
+    klassierung: input.klassierung.trim() === "" ? null : input.klassierung,
+    myTennisID: url,
+  });
+  linkPlayerRegistryId(database, playerId, regId);
+  // Keine ID gepflegt → per Namenssuche URL + Klassierung ergänzen (schreibt ins Register).
+  if (!url) await enrichPlayer(database, playerId, myTennisTimeoutMs);
 }
 
 export async function createPlayer(
@@ -113,19 +130,17 @@ export async function createPlayer(
   myTennisTimeoutMs: number,
 ): Promise<void> {
   const player = validatePlayer(input);
+  // INSERT ohne klassierung/myTennisID — diese leben ausschliesslich im Register.
   const playerId = runDatabaseWrite(() =>
     Number(
       database
         .prepare(
-          "INSERT INTO players (name, klassierung, myTennisID, team_id, captain_status) VALUES (@name, @klassierung, @myTennisID, @team_id, @captain_status)",
+          "INSERT INTO players (name, team_id, captain_status) VALUES (@name, @team_id, @captain_status)",
         )
         .run(player).lastInsertRowid,
     ),
   );
-  if (player.myTennisID === "") {
-    await enrichPlayer(database, playerId, myTennisTimeoutMs);
-  }
-  mirrorRosterPlayer(database, playerId);
+  await syncRosterIdentity(database, playerId, player, myTennisTimeoutMs);
 }
 
 export async function updatePlayer(
@@ -135,32 +150,14 @@ export async function updatePlayer(
   myTennisTimeoutMs: number,
 ): Promise<void> {
   const player = validatePlayer(input);
-  const existing = database.prepare("SELECT name FROM players WHERE id = ?").get(id) as
-    | { name: string }
-    | undefined;
-  const nameChanged = existing !== undefined && existing.name.trim() !== player.name;
-
-  if (nameChanged) {
-    runDatabaseWrite(() =>
-      database
-        .prepare(
-          "UPDATE players SET name = @name, klassierung = '', myTennisID = '', team_id = @team_id, captain_status = @captain_status WHERE id = @id",
-        )
-        .run({ name: player.name, team_id: player.team_id, captain_status: player.captain_status, id }),
-    );
-    await enrichPlayer(database, id, myTennisTimeoutMs);
-    mirrorRosterPlayer(database, id);
-    return;
-  }
-
   runDatabaseWrite(() =>
     database
       .prepare(
-        "UPDATE players SET name = @name, klassierung = @klassierung, myTennisID = @myTennisID, team_id = @team_id, captain_status = @captain_status WHERE id = @id",
+        "UPDATE players SET name = @name, team_id = @team_id, captain_status = @captain_status WHERE id = @id",
       )
-      .run({ ...player, id }),
+      .run({ name: player.name, team_id: player.team_id, captain_status: player.captain_status, id }),
   );
-  mirrorRosterPlayer(database, id);
+  await syncRosterIdentity(database, id, player, myTennisTimeoutMs);
 }
 
 export function deletePlayer(database: TcwDatabase, id: number): void {
