@@ -28,15 +28,21 @@ interface Row {
   mytennis_id: string | null;
   is_tcw_member: number;
   member_source: string | null;
+  display_name: string;
 }
 
 /** Findet eine bestehende Zeile: zuerst per mytennis_id, sonst per name_key. */
 function findExisting(db: TcwDatabase, mytennisId: string | null, nameKey: string): Row | undefined {
   if (mytennisId) {
-    const byId = db.prepare("SELECT id, mytennis_id, is_tcw_member, member_source FROM player_registry WHERE mytennis_id = ?").get(mytennisId) as Row | undefined;
+    const byId = db.prepare("SELECT id, mytennis_id, is_tcw_member, member_source, display_name FROM player_registry WHERE mytennis_id = ?").get(mytennisId) as Row | undefined;
     if (byId) return byId;
   }
-  return db.prepare("SELECT id, mytennis_id, is_tcw_member, member_source FROM player_registry WHERE mytennis_id IS NULL AND name_key = ?").get(nameKey) as Row | undefined;
+  return db.prepare("SELECT id, mytennis_id, is_tcw_member, member_source, display_name FROM player_registry WHERE mytennis_id IS NULL AND name_key = ?").get(nameKey) as Row | undefined;
+}
+
+/** Ein Name ist "echt" (kein Namensschlüssel-Fallback), wenn er sich von seinem eigenen normalisierten Schlüssel unterscheidet. */
+function isRealName(name: string): boolean {
+  return name.trim() !== playerNameKey(name);
 }
 
 /**
@@ -78,6 +84,9 @@ export function upsertPlayer(db: TcwDatabase, input: RegistryUpsert): number {
   const memberSource = resolveMemberSource(memberLocked, wantMember, keepMember, existing?.member_source, input.memberSource);
 
   if (existing) {
+    // Ein Namensschlüssel (oder sonst ein schwacher Name) darf einen bereits vorhandenen
+    // echten Anzeigenamen nie überschreiben — nur ein echter Name aktualisiert display_name.
+    const displayName = isRealName(input.name) ? input.name.trim() : existing.display_name;
     db.prepare(
       `UPDATE player_registry SET
          mytennis_id = COALESCE(?, mytennis_id),
@@ -90,7 +99,7 @@ export function upsertPlayer(db: TcwDatabase, input: RegistryUpsert): number {
          member_source = ?,
          updated_at = datetime('now')
        WHERE id = ?`,
-    ).run(mytennisId, nameKey, input.name.trim(), url, input.klassierung ?? null, input.license ?? null, isMember, memberSource, existing.id);
+    ).run(mytennisId, nameKey, displayName, url, input.klassierung ?? null, input.license ?? null, isMember, memberSource, existing.id);
     return existing.id;
   }
 

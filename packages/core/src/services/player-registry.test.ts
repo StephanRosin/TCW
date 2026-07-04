@@ -145,6 +145,31 @@ test("setMembership: admin schaltet an/aus, Import ueberschreibt admin nicht", (
   db.close();
 });
 
+test("upsertPlayer: ein Namensschlüssel als Name ueberschreibt einen bereits vorhandenen echten Anzeigenamen nicht", () => {
+  const db = freshDb();
+  const url = "https://www.mytennis.ch/de/spieler/800001";
+  upsertPlayer(db, { name: "Manuel Rüede", url });
+  upsertPlayer(db, { name: playerNameKey("Manuel Rüede"), url });
+  const all = rows(db);
+  assert.equal(all.length, 1);
+  assert.equal(all[0]!.display_name, "Manuel Rüede");
+  db.close();
+});
+
+test("upsertPlayer: name_key zuerst (neue Zeile), danach echter Name -> display_name wird der echte Name", () => {
+  const db = freshDb();
+  const url = "https://www.mytennis.ch/de/spieler/800002";
+  upsertPlayer(db, { name: playerNameKey("Manuel Rüede"), url });
+  let all = rows(db);
+  assert.equal(all.length, 1);
+  assert.equal(all[0]!.display_name, playerNameKey("Manuel Rüede"), "neue Zeile: bester verfuegbarer Name ist der Key selbst");
+  upsertPlayer(db, { name: "Manuel Rüede", url });
+  all = rows(db);
+  assert.equal(all.length, 1);
+  assert.equal(all[0]!.display_name, "Manuel Rüede");
+  db.close();
+});
+
 test("listMembers: Filter nach Namensteil, alphabetisch", () => {
   const db = freshDb();
   upsertPlayer(db, { name: "Zoe Adler", member: true, memberSource: "roster" });

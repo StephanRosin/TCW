@@ -4,10 +4,29 @@
  * Turnier-Anmeldungen (Lizenz/URL), dann Begegnungen/Gegner-Cache (URL).
  */
 import { upsertPlayer } from "./player-registry.js";
+import { playerNameKey } from "@tcw/shared";
 import type { TcwDatabase } from "../db/connection.js";
 
 function tableExists(db: TcwDatabase, name: string): boolean {
   return !!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(name);
+}
+
+/**
+ * Sucht zu einem name_key einen echten Namen (unterscheidet sich von seinem eigenen
+ * Namensschlüssel) unter den vier Begegnungs-Slots in player_matches. Liefert null,
+ * falls kein echter Name gefunden wird.
+ */
+function findRealNameForKey(db: TcwDatabase, nameKey: string): string | null {
+  if (!tableExists(db, "player_matches")) return null;
+  for (const slot of ["s1p1", "s1p2", "s2p1", "s2p2"]) {
+    const row = db
+      .prepare(`SELECT ${slot}_name AS name FROM player_matches WHERE ${slot}_key = ? AND ${slot}_name <> '' LIMIT 50`)
+      .all(nameKey) as Array<{ name: string }>;
+    for (const r of row) {
+      if (r.name.trim() !== playerNameKey(r.name)) return r.name;
+    }
+  }
+  return null;
 }
 
 export function backfillPlayerRegistry(db: TcwDatabase): { total: number } {
@@ -52,8 +71,12 @@ export function backfillPlayerRegistry(db: TcwDatabase): { total: number } {
     //    passiert erst nach Backup + Verifikation in einem späteren, manuellen Schritt.
     if (tableExists(db, "opponent_url_cache")) {
       for (const r of db.prepare("SELECT name_key, url FROM opponent_url_cache WHERE url IS NOT NULL").all() as Array<{ name_key: string; url: string }>) {
-        // name_key ist bereits normalisiert; als display_name den Key nutzen, falls kein besserer Name existiert.
-        upsertPlayer(db, { name: r.name_key, url: r.url });
+        // name_key ist nur ein normalisierter Schlüssel, kein Anzeigename: erst versuchen,
+        // über die Begegnungen (player_matches) einen echten Namen zu finden. Nur wenn
+        // keiner existiert, den Key als letzten Ausweg verwenden (upsertPlayer clobbert
+        // damit ohnehin keinen bereits vorhandenen echten Namen mehr, siehe Teil A).
+        const realName = findRealNameForKey(db, r.name_key);
+        upsertPlayer(db, { name: realName ?? r.name_key, url: r.url });
       }
     }
   });
