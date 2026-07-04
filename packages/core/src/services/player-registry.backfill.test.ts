@@ -3,7 +3,7 @@ import { test } from "node:test";
 import Database from "better-sqlite3";
 import { SCHEMA_SQL } from "../db/schema.js";
 import { backfillPlayerRegistry } from "./player-registry-backfill.js";
-import { resolveUrlByNameKey, listMembers } from "./player-registry.js";
+import { resolveUrlByNameKey, listMembers, upsertPlayer } from "./player-registry.js";
 import { playerNameKey } from "@tcw/shared";
 
 function seeded(): Database.Database {
@@ -38,6 +38,44 @@ test("Backfill: Kader wird Mitglied, Turnierspieler non-member, URLs aufloesbar"
     .get() as { registry_id: number; is_tcw_member: number } | undefined;
   assert.ok(linked && linked.registry_id > 0, "players.registry_id gesetzt");
   assert.equal(linked.is_tcw_member, 1, "Kaderspieler ist Mitglied");
+  db.close();
+});
+
+test("Backfill: bereits URL-verknuepfter Kaderspieler erzeugt KEINE Dublette", () => {
+  const db = new Database(":memory:");
+  db.exec(SCHEMA_SQL);
+  db.exec("ALTER TABLE players ADD COLUMN registry_id INTEGER REFERENCES player_registry(id)");
+  db.prepare("INSERT INTO teams (gender, category, liga) VALUES ('m','Aktive','1. Liga')").run();
+
+  // Registerzeile existiert bereits mit URL/mytennis-ID (z. B. aus Turnier-Import/Enrich),
+  // aber noch NICHT als Mitglied.
+  const regId = upsertPlayer(db, { name: "Markus Rauch", url: "https://www.mytennis.ch/de/spieler/177712" });
+  assert.ok(regId > 0);
+
+  // players-Zeile für dieselbe Person ist bereits per hartem FK verknüpft.
+  db.prepare("INSERT INTO players (name, team_id, registry_id) VALUES ('Markus Rauch', 1, ?)").run(regId);
+
+  const nameKey = playerNameKey("Markus Rauch");
+
+  backfillPlayerRegistry(db);
+
+  const rowsAfter1 = db.prepare("SELECT id, is_tcw_member, mytennis_id, profile_url FROM player_registry WHERE name_key = ?").all(nameKey) as Array<{
+    id: number;
+    is_tcw_member: number;
+    mytennis_id: string | null;
+    profile_url: string | null;
+  }>;
+  assert.equal(rowsAfter1.length, 1, "keine Dublette für name_key 'markus rauch'");
+  assert.equal(rowsAfter1[0]!.id, regId, "gleiche Registerzeile wiederverwendet");
+  assert.equal(rowsAfter1[0]!.is_tcw_member, 1, "Registerzeile ist jetzt Mitglied");
+  assert.ok(rowsAfter1[0]!.mytennis_id, "mytennis_id nicht geloescht");
+  assert.ok(rowsAfter1[0]!.profile_url, "profile_url nicht geloescht");
+
+  // Zweiter Lauf: weiterhin keine Dublette (idempotent).
+  backfillPlayerRegistry(db);
+  const rowsAfter2 = db.prepare("SELECT id FROM player_registry WHERE name_key = ?").all(nameKey) as Array<{ id: number }>;
+  assert.equal(rowsAfter2.length, 1, "weiterhin nur eine Zeile nach zweitem Lauf");
+
   db.close();
 });
 

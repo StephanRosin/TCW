@@ -15,9 +15,22 @@ export function backfillPlayerRegistry(db: TcwDatabase): { total: number } {
     // 1) Team-Kader -> Mitglied (und harter FK players.registry_id, sofern gültige id).
     //    Klassierung/URL kommen nicht mehr aus players (Spalten werden gedroppt), sondern
     //    liegen bereits im Register (enrich/Turnier-Import/CM-Sync).
-    for (const r of db.prepare("SELECT id, name FROM players").all() as Array<{ id: number; name: string }>) {
-      const regId = upsertPlayer(db, { name: r.name, member: true, memberSource: "roster" });
-      if (regId > 0) db.prepare("UPDATE players SET registry_id = ? WHERE id = ?").run(regId, r.id);
+    //    WICHTIG: Ist players.registry_id bereits gesetzt (harter FK), NICHT erneut per
+    //    Namensschlüssel upserten — sonst entsteht bei bereits URL-verknüpften Registerzeilen
+    //    eine name-only-Dublette (upsertPlayer matcht name-only nur gegen mytennis_id IS NULL).
+    //    Stattdessen die bestehende Zeile direkt als Mitglied markieren (idempotent, kein Duplikat).
+    for (const r of db.prepare("SELECT id, name, registry_id FROM players").all() as Array<{ id: number; name: string; registry_id: number | null }>) {
+      if (r.registry_id && r.registry_id > 0) {
+        // Schon verknüpft → nur Mitgliedschaft sicherstellen (KEIN Duplikat).
+        // member_source='admin' nie überschreiben; is_tcw_member nie degradieren.
+        db.prepare(
+          "UPDATE player_registry SET is_tcw_member = 1, member_source = COALESCE(member_source, 'roster'), updated_at = datetime('now') WHERE id = ? AND (member_source IS NULL OR member_source <> 'admin')",
+        ).run(r.registry_id);
+      } else {
+        // Noch nicht verknüpft (frische DB): name-only Mitglied anlegen + verknüpfen.
+        const regId = upsertPlayer(db, { name: r.name, member: true, memberSource: "roster" });
+        if (regId > 0) db.prepare("UPDATE players SET registry_id = ? WHERE id = ?").run(regId, r.id);
+      }
     }
     // 2) Turnier-Anmeldungen (beide Doppel-Spieler)
     //    Klassierung kommt nicht mehr aus tournament_players (Spalten ranking/ranking_2
