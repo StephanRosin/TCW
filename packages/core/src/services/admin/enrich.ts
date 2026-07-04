@@ -88,43 +88,61 @@ export interface RankingUpdateSummary {
   changes: RankingUpdateChange[];
 }
 
-interface PlayerRow {
+interface RegistryRankRow {
   id: number;
-  name: string;
-  myTennisID: string;
-  klassierung: string;
+  display_name: string;
+  profile_url: string;
+  klassierung: string | null;
 }
 
-/** Aktualisiert Klassierungen aller Spieler mit gespeicherter MyTennis-URL. */
+/**
+ * Schreibt eine geänderte Klassierung ins Register (`player_registry`) und
+ * protokolliert sie in `ranking_changes`. Bei unveränderter Klassierung wird
+ * nichts geschrieben (Rückgabe `false`). Netzfrei und daher ohne
+ * MyTennis-Netzwerkzugriff testbar.
+ */
+export function applyRegistryKlassierung(db: TcwDatabase, row: RegistryRankRow, newRank: string): boolean {
+  const old = (row.klassierung ?? "").toUpperCase();
+  if (old === newRank.toUpperCase()) return false;
+  const tx = db.transaction(() => {
+    db.prepare("UPDATE player_registry SET klassierung = ?, updated_at = datetime('now') WHERE id = ?").run(
+      newRank,
+      row.id,
+    );
+    db.prepare(
+      `INSERT INTO ranking_changes (player_id, player_name, myTennisID, old_klassierung, new_klassierung)
+       VALUES (?, ?, ?, ?, ?)`,
+    ).run(row.id, row.display_name, row.profile_url, old, newRank);
+  });
+  tx();
+  return true;
+}
+
+/**
+ * Aktualisiert Klassierungen aller Register-Einträge (`player_registry`) mit
+ * gespeicherter MyTennis-URL. `players` wird hierbei nicht mehr gelesen oder
+ * geschrieben — die Klassierung lebt ausschließlich im Register.
+ */
 export async function updateKlassierungenFromMyTennis(
   database: TcwDatabase,
   timeoutMs: number,
 ): Promise<RankingUpdateSummary> {
   const players = database
     .prepare(
-      "SELECT id, name, myTennisID, klassierung FROM players WHERE trim(coalesce(myTennisID,'')) <> '' ORDER BY id",
+      "SELECT id, display_name, profile_url, klassierung FROM player_registry WHERE trim(coalesce(profile_url,'')) <> '' ORDER BY id",
     )
-    .all() as PlayerRow[];
+    .all() as RegistryRankRow[];
 
   const summary: RankingUpdateSummary = { updated: 0, unchanged: 0, skipped: 0, changes: [] };
-  const applyChange = database.transaction((player: PlayerRow, newRank: string) => {
-    database.prepare("UPDATE players SET klassierung = ? WHERE id = ?").run(newRank, player.id);
-    database
-      .prepare(
-        `INSERT INTO ranking_changes (player_id, player_name, myTennisID, old_klassierung, new_klassierung)
-         VALUES (?, ?, ?, ?, ?)`,
-      )
-      .run(player.id, player.name, player.myTennisID, player.klassierung.toUpperCase(), newRank);
-  });
 
   for (const player of players) {
-    const name = splitName(player.name);
+    const name = splitName(player.display_name);
     if (!name) {
       summary.skipped += 1;
       continue;
     }
-    const hits = await searchPlayers(player.name, timeoutMs);
-    const targetUrl = normalizeUrl(player.myTennisID);
+    const hits = await searchPlayers(player.display_name, timeoutMs);
+    const targetUrl = normalizeUrl(player.profile_url);
     const hit = hits.find((candidate) => normalizeUrl(candidate.url) === targetUrl);
     if (!hit) {
       summary.skipped += 1;
@@ -140,10 +158,14 @@ export async function updateKlassierungenFromMyTennis(
       summary.unchanged += 1;
       continue;
     }
-    applyChange(player, newRank);
+    const changed = applyRegistryKlassierung(database, player, newRank);
+    if (!changed) {
+      summary.unchanged += 1;
+      continue;
+    }
     summary.updated += 1;
     summary.changes.push({
-      playerName: player.name,
+      playerName: player.display_name,
       oldKlassierung: currentRank,
       newKlassierung: newRank,
     });
