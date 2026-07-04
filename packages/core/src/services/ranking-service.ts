@@ -32,9 +32,16 @@ function compareRankingChanges(a: RankingChange, b: RankingChange): number {
 }
 
 export function getRankingChanges(database: TcwDatabase): RankingChangesResponse {
+  // Öffentlich nur echte Klassierungsänderungen von TCW-Mitgliedern:
+  //  - nur Mitglieder (Join übers Register per Profil-URL, is_tcw_member = 1),
+  //  - nur echte Änderungen (alte Klassierung nicht leer → sonst war es ein
+  //    erstmaliges Erfassen, keine Änderung).
   const rows = database
     .prepare(
-      "SELECT id, player_name, myTennisID, old_klassierung, new_klassierung, changed_at FROM ranking_changes",
+      `SELECT rc.id, rc.player_name, rc.myTennisID, rc.old_klassierung, rc.new_klassierung, rc.changed_at
+         FROM ranking_changes rc
+         JOIN player_registry r ON r.profile_url = rc.myTennisID AND r.is_tcw_member = 1
+        WHERE TRIM(COALESCE(rc.old_klassierung, '')) <> ''`,
     )
     .all() as RankingChangeRow[];
 
