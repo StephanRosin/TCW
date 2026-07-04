@@ -44,9 +44,6 @@ export async function enrichPlayer(
     return null;
   }
   const klassierung = best.classification.trim().toUpperCase();
-  database
-    .prepare("UPDATE players SET klassierung = ?, myTennisID = ? WHERE id = ?")
-    .run(klassierung, best.url, playerId);
   const registryId = syncPlayerToRegistry(database, { name: player.name, klassierung, myTennisID: best.url });
   linkPlayerRegistryId(database, playerId, registryId);
   return { klassierung, myTennisID: best.url };

@@ -25,17 +25,20 @@ test("Backfill: Kader wird Mitglied, Turnierspieler non-member, URLs aufloesbar"
   const db = seeded();
   const result = backfillPlayerRegistry(db);
   assert.ok(result.total >= 2);
-  assert.equal(resolveUrlByNameKey(db, playerNameKey("Markus Rauch")), "https://www.mytennis.ch/de/spieler/177712");
+  // Kader-URL kommt nicht mehr aus players.myTennisID (Backfill liest dort nur noch
+  // id/name) — sie landet über enrich/CM-Sync separat im Register.
   assert.equal(resolveUrlByNameKey(db, playerNameKey("Till Novak")), "https://www.mytennis.ch/de/spieler/19799660");
   const members = listMembers(db).map((m) => m.displayName);
   assert.deepEqual(members, ["Markus Rauch"]);
+  // Kader-URL kommt beim Backfill nicht mehr aus players.myTennisID — geprüft wird
+  // nur noch, dass der Kaderspieler Mitglied ist und registry_id gesetzt wurde.
   const linked = db
     .prepare(
-      "SELECT p.registry_id, r.profile_url FROM players p JOIN player_registry r ON r.id = p.registry_id WHERE p.name = 'Markus Rauch'",
+      "SELECT p.registry_id, r.is_tcw_member FROM players p JOIN player_registry r ON r.id = p.registry_id WHERE p.name = 'Markus Rauch'",
     )
-    .get() as { registry_id: number; profile_url: string } | undefined;
+    .get() as { registry_id: number; is_tcw_member: number } | undefined;
   assert.ok(linked && linked.registry_id > 0, "players.registry_id gesetzt");
-  assert.equal(linked.profile_url, "https://www.mytennis.ch/de/spieler/177712");
+  assert.equal(linked.is_tcw_member, 1, "Kaderspieler ist Mitglied");
   db.close();
 });
 

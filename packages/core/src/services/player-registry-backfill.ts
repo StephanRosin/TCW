@@ -12,9 +12,11 @@ function tableExists(db: TcwDatabase, name: string): boolean {
 
 export function backfillPlayerRegistry(db: TcwDatabase): { total: number } {
   const run = db.transaction(() => {
-    // 1) Team-Kader -> Mitglied (und harter FK players.registry_id, sofern gültige id)
-    for (const r of db.prepare("SELECT id, name, klassierung, myTennisID FROM players").all() as Array<{ id: number; name: string; klassierung: string | null; myTennisID: string | null }>) {
-      const regId = upsertPlayer(db, { name: r.name, url: r.myTennisID, klassierung: r.klassierung, member: true, memberSource: "roster" });
+    // 1) Team-Kader -> Mitglied (und harter FK players.registry_id, sofern gültige id).
+    //    Klassierung/URL kommen nicht mehr aus players (Spalten werden gedroppt), sondern
+    //    liegen bereits im Register (enrich/Turnier-Import/CM-Sync).
+    for (const r of db.prepare("SELECT id, name FROM players").all() as Array<{ id: number; name: string }>) {
+      const regId = upsertPlayer(db, { name: r.name, member: true, memberSource: "roster" });
       if (regId > 0) db.prepare("UPDATE players SET registry_id = ? WHERE id = ?").run(regId, r.id);
     }
     // 2) Turnier-Anmeldungen (beide Doppel-Spieler)

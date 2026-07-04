@@ -149,24 +149,20 @@ test("loadTournamentEvents liest ranking aus dem Register (aktuell), nicht aus d
     },
   ];
 
-  // Import spiegelt "R1" als Snapshot in tournament_players.ranking und ins Register.
+  // Import spiegelt "R1" nur noch als Klassierung ins Register (tournament_players
+  // hat seit Task 4 keine ranking-Spalte mehr befüllt).
   replaceTournamentData(database, 158138, "Waidcup", events, new Date().toISOString());
 
   // Das Register wird danach unabhängig aktualisiert (z. B. durch einen CM-Import) –
-  // die aktuelle Klassierung weicht jetzt vom Turnier-Snapshot ab.
+  // die aktuelle Klassierung weicht jetzt vom Import-Wert ab.
   database
     .prepare("UPDATE player_registry SET klassierung = 'R7' WHERE name_key = ?")
     .run(playerNameKey("Till Novak"));
 
-  const snapshotRow = database
-    .prepare("SELECT ranking FROM tournament_players WHERE tournament_id = 158138 AND player_key = 'k1'")
-    .get() as { ranking: string } | undefined;
-  assert.equal(snapshotRow?.ranking, "R1", "Snapshot in tournament_players bleibt unverändert");
-
   const { events: loadedEvents } = loadTournamentEvents(database, 158138);
   const player = loadedEvents[0]?.players.find((p) => p.playerKey === "k1");
   assert.ok(player, "Registrierung muss trotz LEFT JOIN erhalten bleiben");
-  assert.equal(player!.ranking, "R7", "ranking muss aus dem Register (aktuell) kommen, nicht aus dem Snapshot");
+  assert.equal(player!.ranking, "R7", "ranking muss aus dem Register (aktuell) kommen, nicht aus einem Snapshot");
 
   database.close();
 });

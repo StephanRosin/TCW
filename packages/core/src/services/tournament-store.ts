@@ -194,8 +194,8 @@ export function replaceTournamentData(
      VALUES (@tournament_id, @event_id, @tournament_name, @event_name, @discipline, @source_descr, @sort_order, @updated_at)`,
   );
   const insertPlayer = database.prepare(
-    `INSERT OR IGNORE INTO tournament_players (tournament_id, event_id, player_key, player_name, player_name_2, license_number, license_number_2, player_url, player_url_2, confirmed, ranking, ranking_2, registered_on, note, sort_order)
-     VALUES (@tournament_id, @event_id, @player_key, @player_name, @player_name_2, @license_number, @license_number_2, @player_url, @player_url_2, @confirmed, @ranking, @ranking_2, @registered_on, @note, @sort_order_player)`,
+    `INSERT OR IGNORE INTO tournament_players (tournament_id, event_id, player_key, player_name, player_name_2, license_number, license_number_2, player_url, player_url_2, confirmed, registered_on, note, sort_order)
+     VALUES (@tournament_id, @event_id, @player_key, @player_name, @player_name_2, @license_number, @license_number_2, @player_url, @player_url_2, @confirmed, @registered_on, @note, @sort_order_player)`,
   );
   const selectExistingMatches = database.prepare(
     `SELECT match_key, event_id, tournament_name, event_name, mode, pool_name, round_name,
@@ -256,8 +256,6 @@ export function replaceTournamentData(
           player_url: player.playerUrl || null,
           player_url_2: player.playerUrl2 || null,
           confirmed: player.confirmed,
-          ranking: player.ranking,
-          ranking_2: player.ranking2,
           registered_on: player.registeredOn,
           sort_order_player: player.sortOrder,
           note: player.note,
