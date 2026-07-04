@@ -194,8 +194,8 @@ export function replaceTournamentData(
      VALUES (@tournament_id, @event_id, @tournament_name, @event_name, @discipline, @source_descr, @sort_order, @updated_at)`,
   );
   const insertPlayer = database.prepare(
-    `INSERT OR IGNORE INTO tournament_players (tournament_id, event_id, player_key, player_name, player_name_2, license_number, license_number_2, player_url, player_url_2, confirmed, ranking, ranking_2, registered_on, note, sort_order)
-     VALUES (@tournament_id, @event_id, @player_key, @player_name, @player_name_2, @license_number, @license_number_2, @player_url, @player_url_2, @confirmed, @ranking, @ranking_2, @registered_on, @note, @sort_order_player)`,
+    `INSERT OR IGNORE INTO tournament_players (tournament_id, event_id, player_key, player_name, player_name_2, license_number, license_number_2, player_url, player_url_2, confirmed, registered_on, note, sort_order)
+     VALUES (@tournament_id, @event_id, @player_key, @player_name, @player_name_2, @license_number, @license_number_2, @player_url, @player_url_2, @confirmed, @registered_on, @note, @sort_order_player)`,
   );
   const selectExistingMatches = database.prepare(
     `SELECT match_key, event_id, tournament_name, event_name, mode, pool_name, round_name,
@@ -256,8 +256,6 @@ export function replaceTournamentData(
           player_url: player.playerUrl || null,
           player_url_2: player.playerUrl2 || null,
           confirmed: player.confirmed,
-          ranking: player.ranking,
-          ranking_2: player.ranking2,
           registered_on: player.registeredOn,
           sort_order_player: player.sortOrder,
           note: player.note,
@@ -389,10 +387,20 @@ export function loadTournamentEvents(
   let latestUpdate = "";
   const events: TournamentEventView[] = eventRows.map((eventRow) => {
     latestUpdate = eventRow.updated_at > latestUpdate ? eventRow.updated_at : latestUpdate;
+    // ranking/ranking_2 kommen aus dem zentralen Register (aktuelle Klassierung),
+    // nicht mehr aus dem Import-Snapshot in tournament_players. LEFT JOIN, damit
+    // eine (noch) fehlende Verknüpfung (registry_id NULL) die Registrierung nicht
+    // aus der Liste wirft – die Klassierung ist dann einfach leer.
     const players = database
       .prepare(
-        `SELECT player_key, player_name, player_name_2, ranking, ranking_2, player_url, player_url_2, confirmed, registered_on, note
-         FROM tournament_players WHERE tournament_id = ? AND event_id = ? ORDER BY sort_order ASC`,
+        `SELECT tp.player_key, tp.player_name, tp.player_name_2,
+                r.klassierung  AS ranking,
+                r2.klassierung AS ranking_2,
+                tp.player_url, tp.player_url_2, tp.confirmed, tp.registered_on, tp.note
+         FROM tournament_players tp
+         LEFT JOIN player_registry r  ON r.id  = tp.registry_id
+         LEFT JOIN player_registry r2 ON r2.id = tp.registry_id_2
+         WHERE tp.tournament_id = ? AND tp.event_id = ? ORDER BY tp.sort_order ASC`,
       )
       .all(tournamentId, eventRow.event_id) as Array<Record<string, unknown>>;
     const matches = database

@@ -12,15 +12,32 @@ function tableExists(db: TcwDatabase, name: string): boolean {
 
 export function backfillPlayerRegistry(db: TcwDatabase): { total: number } {
   const run = db.transaction(() => {
-    // 1) Team-Kader -> Mitglied (und harter FK players.registry_id, sofern gültige id)
-    for (const r of db.prepare("SELECT id, name, klassierung, myTennisID FROM players").all() as Array<{ id: number; name: string; klassierung: string | null; myTennisID: string | null }>) {
-      const regId = upsertPlayer(db, { name: r.name, url: r.myTennisID, klassierung: r.klassierung, member: true, memberSource: "roster" });
-      if (regId > 0) db.prepare("UPDATE players SET registry_id = ? WHERE id = ?").run(regId, r.id);
+    // 1) Team-Kader -> Mitglied (und harter FK players.registry_id, sofern gültige id).
+    //    Klassierung/URL kommen nicht mehr aus players (Spalten werden gedroppt), sondern
+    //    liegen bereits im Register (enrich/Turnier-Import/CM-Sync).
+    //    WICHTIG: Ist players.registry_id bereits gesetzt (harter FK), NICHT erneut per
+    //    Namensschlüssel upserten — sonst entsteht bei bereits URL-verknüpften Registerzeilen
+    //    eine name-only-Dublette (upsertPlayer matcht name-only nur gegen mytennis_id IS NULL).
+    //    Stattdessen die bestehende Zeile direkt als Mitglied markieren (idempotent, kein Duplikat).
+    for (const r of db.prepare("SELECT id, name, registry_id FROM players").all() as Array<{ id: number; name: string; registry_id: number | null }>) {
+      if (r.registry_id && r.registry_id > 0) {
+        // Schon verknüpft → nur Mitgliedschaft sicherstellen (KEIN Duplikat).
+        // member_source='admin' nie überschreiben; is_tcw_member nie degradieren.
+        db.prepare(
+          "UPDATE player_registry SET is_tcw_member = 1, member_source = COALESCE(member_source, 'roster'), updated_at = datetime('now') WHERE id = ? AND (member_source IS NULL OR member_source <> 'admin')",
+        ).run(r.registry_id);
+      } else {
+        // Noch nicht verknüpft (frische DB): name-only Mitglied anlegen + verknüpfen.
+        const regId = upsertPlayer(db, { name: r.name, member: true, memberSource: "roster" });
+        if (regId > 0) db.prepare("UPDATE players SET registry_id = ? WHERE id = ?").run(regId, r.id);
+      }
     }
     // 2) Turnier-Anmeldungen (beide Doppel-Spieler)
-    for (const r of db.prepare("SELECT player_name, player_name_2, player_url, player_url_2, license_number, license_number_2, ranking, ranking_2 FROM tournament_players").all() as Array<Record<string, string | null>>) {
-      if (r.player_name) upsertPlayer(db, { name: r.player_name, url: r.player_url, license: r.license_number, klassierung: r.ranking });
-      if (r.player_name_2) upsertPlayer(db, { name: r.player_name_2, url: r.player_url_2, license: r.license_number_2, klassierung: r.ranking_2 });
+    //    Klassierung kommt nicht mehr aus tournament_players (Spalten ranking/ranking_2
+    //    gedroppt) — ohne klassierung-Param behält upsertPlayer den bestehenden Register-Wert.
+    for (const r of db.prepare("SELECT player_name, player_name_2, player_url, player_url_2, license_number, license_number_2 FROM tournament_players").all() as Array<Record<string, string | null>>) {
+      if (r.player_name) upsertPlayer(db, { name: r.player_name, url: r.player_url, license: r.license_number });
+      if (r.player_name_2) upsertPlayer(db, { name: r.player_name_2, url: r.player_url_2, license: r.license_number_2 });
     }
     // 3) Begegnungen (Spieler + Gegner)
     if (tableExists(db, "player_matches")) {

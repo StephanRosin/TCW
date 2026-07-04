@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { playerNameKey, type TournamentMatchStatus } from "@tcw/shared";
 import { openDatabase, type TcwDatabase } from "../db/connection.js";
-import { replaceTournamentData, type EventImport } from "./tournament-store.js";
+import { loadTournamentEvents, replaceTournamentData, type EventImport } from "./tournament-store.js";
 
 function registration(playerKey: string, note: string | null) {
   return {
@@ -113,6 +113,57 @@ test("Turnier-Import setzt tournament_players.registry_id (weicher Link)", () =>
     .get() as { registry_id: number; profile_url: string } | undefined;
   assert.ok(row && row.registry_id > 0);
   assert.equal(row.profile_url, "https://www.mytennis.ch/de/spieler/19799660");
+  database.close();
+});
+
+test("loadTournamentEvents liest ranking aus dem Register (aktuell), nicht aus dem Import-Snapshot", () => {
+  const database = openDatabase({ filePath: ":memory:" });
+  const events: EventImport[] = [
+    {
+      meta: { eventId: 1, eventName: "MS", discipline: "MS", mode: "Draw", matchTypeId: 1, sortOrder: 1 },
+      registrations: [
+        {
+          playerKey: "k1",
+          playerName: "Till Novak",
+          playerName2: null,
+          firstName: "Till",
+          lastName: "Novak",
+          firstName2: "",
+          lastName2: "",
+          licenseNumber: "1",
+          licenseNumber2: null,
+          confirmed: 1,
+          ranking: "R1",
+          ranking2: null,
+          registeredOn: "",
+          registeredOnSort: "",
+          note: null,
+          sortOrder: 0,
+          playerUrl: "https://www.mytennis.ch/de/spieler/19799660",
+          playerUrl2: "",
+        },
+      ],
+      matches: [],
+      pools: [],
+      bracket: null,
+    },
+  ];
+
+  // Import spiegelt "R1" nur noch als Klassierung ins Register (tournament_players
+  // hat seit Task 4 keine ranking-Spalte mehr befüllt).
+  replaceTournamentData(database, 158138, "Waidcup", events, new Date().toISOString());
+
+  // Das Register wird danach unabhängig aktualisiert (z. B. durch einen CM-Import) –
+  // die aktuelle Klassierung weicht jetzt vom Import-Wert ab.
+  database
+    .prepare("UPDATE player_registry SET klassierung = 'R7' WHERE name_key = ?")
+    .run(playerNameKey("Till Novak"));
+
+  const { events: loadedEvents } = loadTournamentEvents(database, 158138);
+  const player = loadedEvents[0]?.players.find((p) => p.playerKey === "k1");
+  assert.ok(player, "Registrierung muss trotz LEFT JOIN erhalten bleiben");
+  assert.equal(player!.ranking, "R7", "ranking muss aus dem Register (aktuell) kommen, nicht aus einem Snapshot");
+
   database.close();
 });
 

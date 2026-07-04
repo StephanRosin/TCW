@@ -20,6 +20,7 @@
   ],
   "scripts": {
     "migrate": "tsx scripts/migrate.ts",
+    "migrate:drop-redundant": "tsx scripts/drop-redundant-columns.ts",
     "import:live": "tsx scripts/import-live-snapshot.ts",
     "refresh:tournaments": "tsx scripts/refresh-tournaments.ts",
     "backfill:player-matches": "tsx scripts/backfill-player-matches.ts",

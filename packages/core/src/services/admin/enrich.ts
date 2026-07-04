@@ -44,9 +44,6 @@ export async function enrichPlayer(
     return null;
   }
   const klassierung = best.classification.trim().toUpperCase();
-  database
-    .prepare("UPDATE players SET klassierung = ?, myTennisID = ? WHERE id = ?")
-    .run(klassierung, best.url, playerId);
   const registryId = syncPlayerToRegistry(database, { name: player.name, klassierung, myTennisID: best.url });
   linkPlayerRegistryId(database, playerId, registryId);
   return { klassierung, myTennisID: best.url };
@@ -88,65 +85,112 @@ export interface RankingUpdateSummary {
   changes: RankingUpdateChange[];
 }
 
-interface PlayerRow {
+interface RegistryRankRow {
   id: number;
-  name: string;
-  myTennisID: string;
-  klassierung: string;
+  display_name: string;
+  profile_url: string;
+  klassierung: string | null;
 }
 
-/** Aktualisiert Klassierungen aller Spieler mit gespeicherter MyTennis-URL. */
+/**
+ * Schreibt eine geänderte Klassierung ins Register (`player_registry`) und
+ * protokolliert sie in `ranking_changes`. Bei unveränderter Klassierung wird
+ * nichts geschrieben (Rückgabe `false`). Netzfrei und daher ohne
+ * MyTennis-Netzwerkzugriff testbar.
+ */
+export function applyRegistryKlassierung(db: TcwDatabase, row: RegistryRankRow, newRank: string): boolean {
+  const old = (row.klassierung ?? "").toUpperCase();
+  if (old === newRank.toUpperCase()) return false;
+  const tx = db.transaction(() => {
+    db.prepare("UPDATE player_registry SET klassierung = ?, updated_at = datetime('now') WHERE id = ?").run(
+      newRank,
+      row.id,
+    );
+    db.prepare(
+      `INSERT INTO ranking_changes (player_id, player_name, myTennisID, old_klassierung, new_klassierung)
+       VALUES (?, ?, ?, ?, ?)`,
+    ).run(row.id, row.display_name, row.profile_url, old, newRank);
+  });
+  tx();
+  return true;
+}
+
+/** Kandidaten fürs Klassierungs-Update: alle Register-Einträge mit Profil-URL. */
+export function selectKlassierungCandidates(db: TcwDatabase): RegistryRankRow[] {
+  return db
+    .prepare(
+      "SELECT id, display_name, profile_url, klassierung FROM player_registry WHERE trim(coalesce(profile_url,'')) <> '' ORDER BY id",
+    )
+    .all() as RegistryRankRow[];
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Verarbeitet einen Kandidaten: sucht bei MyTennis und trägt eine geänderte Klassierung in `summary` ein. */
+async function processKlassierungCandidate(
+  database: TcwDatabase,
+  player: RegistryRankRow,
+  timeoutMs: number,
+  summary: RankingUpdateSummary,
+): Promise<void> {
+  const name = splitName(player.display_name);
+  if (!name) {
+    summary.skipped += 1;
+    return;
+  }
+  const hits = await searchPlayers(player.display_name, timeoutMs);
+  const targetUrl = normalizeUrl(player.profile_url);
+  const hit = hits.find((candidate) => normalizeUrl(candidate.url) === targetUrl);
+  if (!hit) {
+    summary.skipped += 1;
+    return;
+  }
+  const newRank = hit.classification.trim().toUpperCase();
+  if (newRank === "") {
+    summary.skipped += 1;
+    return;
+  }
+  const currentRank = (player.klassierung ?? "").trim().toUpperCase();
+  if (newRank === currentRank) {
+    summary.unchanged += 1;
+    return;
+  }
+  const changed = applyRegistryKlassierung(database, player, newRank);
+  if (!changed) {
+    summary.unchanged += 1;
+    return;
+  }
+  summary.updated += 1;
+  summary.changes.push({ playerName: player.display_name, oldKlassierung: currentRank, newKlassierung: newRank });
+}
+
+/**
+ * Aktualisiert Klassierungen aller Register-Einträge (`player_registry`) mit
+ * gespeicherter MyTennis-URL — Mitglieder und Nicht-Mitglieder (Turnier-/IC-Gegner,
+ * Gäste) gleichermaßen. `players` wird hierbei nicht mehr gelesen oder
+ * geschrieben — die Klassierung lebt ausschließlich im Register. Die
+ * MyTennis-Suchen werden über `opts.delayMs` gedrosselt, und `opts.onProgress`
+ * wird nach jedem verarbeiteten Kandidaten aufgerufen (für Fortschrittsanzeigen
+ * eines Hintergrundjobs).
+ */
 export async function updateKlassierungenFromMyTennis(
   database: TcwDatabase,
   timeoutMs: number,
+  opts?: { delayMs?: number; onProgress?: (processed: number, total: number) => void },
 ): Promise<RankingUpdateSummary> {
-  const players = database
-    .prepare(
-      "SELECT id, name, myTennisID, klassierung FROM players WHERE trim(coalesce(myTennisID,'')) <> '' ORDER BY id",
-    )
-    .all() as PlayerRow[];
-
+  const players = selectKlassierungCandidates(database);
+  const total = players.length;
   const summary: RankingUpdateSummary = { updated: 0, unchanged: 0, skipped: 0, changes: [] };
-  const applyChange = database.transaction((player: PlayerRow, newRank: string) => {
-    database.prepare("UPDATE players SET klassierung = ? WHERE id = ?").run(newRank, player.id);
-    database
-      .prepare(
-        `INSERT INTO ranking_changes (player_id, player_name, myTennisID, old_klassierung, new_klassierung)
-         VALUES (?, ?, ?, ?, ?)`,
-      )
-      .run(player.id, player.name, player.myTennisID, player.klassierung.toUpperCase(), newRank);
-  });
 
-  for (const player of players) {
-    const name = splitName(player.name);
-    if (!name) {
-      summary.skipped += 1;
-      continue;
+  for (let index = 0; index < players.length; index += 1) {
+    await processKlassierungCandidate(database, players[index]!, timeoutMs, summary);
+    opts?.onProgress?.(index + 1, total);
+    const isLast = index === players.length - 1;
+    if (!isLast) {
+      await sleep(opts?.delayMs ?? 4000);
     }
-    const hits = await searchPlayers(player.name, timeoutMs);
-    const targetUrl = normalizeUrl(player.myTennisID);
-    const hit = hits.find((candidate) => normalizeUrl(candidate.url) === targetUrl);
-    if (!hit) {
-      summary.skipped += 1;
-      continue;
-    }
-    const newRank = hit.classification.trim().toUpperCase();
-    if (newRank === "") {
-      summary.skipped += 1;
-      continue;
-    }
-    const currentRank = (player.klassierung ?? "").trim().toUpperCase();
-    if (newRank === currentRank) {
-      summary.unchanged += 1;
-      continue;
-    }
-    applyChange(player, newRank);
-    summary.updated += 1;
-    summary.changes.push({
-      playerName: player.name,
-      oldKlassierung: currentRank,
-      newKlassierung: newRank,
-    });
   }
   return summary;
 }

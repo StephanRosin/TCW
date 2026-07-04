@@ -352,7 +352,7 @@ export interface AdminPlayer {
   id: number;
   name: string;
   klassierung: string;
-  myTennisID: string;
+  mytennisId: string;
   teamId: number;
   captainStatus: CaptainStatus;
   teamDisplay: string;
