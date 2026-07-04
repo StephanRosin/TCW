@@ -13,8 +13,7 @@ function seeded(): Database.Database {
   // Test die Schema-SQL direkt anwendet statt openDatabase zu nutzen.
   db.exec("ALTER TABLE players ADD COLUMN registry_id INTEGER REFERENCES player_registry(id)");
   db.prepare("INSERT INTO teams (gender, category, liga) VALUES ('m','Aktive','1. Liga')").run();
-  db.prepare("INSERT INTO players (name, klassierung, myTennisID, team_id) VALUES (?,?,?,1)")
-    .run("Markus Rauch", "R4", "https://www.mytennis.ch/de/spieler/177712");
+  db.prepare("INSERT INTO players (name, team_id) VALUES (?,1)").run("Markus Rauch");
   db.prepare("INSERT INTO tournaments (name, swisstennis_tournament_id, registration_url, active, sort_order) VALUES ('T',158138,'',1,1)").run();
   db.prepare("INSERT INTO tournament_events (tournament_id,event_id,tournament_name,event_name,discipline,sort_order,updated_at) VALUES (158138,1,'T','MS','MS',1,datetime('now'))").run();
   db.prepare("INSERT INTO tournament_players (tournament_id,event_id,player_key,player_name,player_url,license_number) VALUES (158138,1,'k1','Till Novak','https://www.mytennis.ch/de/spieler/19799660','12345')").run();

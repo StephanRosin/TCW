@@ -22,8 +22,8 @@ CREATE TABLE IF NOT EXISTS teams (
 CREATE TABLE IF NOT EXISTS players (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
-  klassierung TEXT NOT NULL DEFAULT '',
-  myTennisID TEXT NOT NULL DEFAULT '',
+  -- Klassierung und Profil-URL (myTennisID) liegen zentral im player_registry
+  -- (Single Source of Truth); die früheren Spalten hier wurden in Phase 3 entfernt.
   team_id INTEGER REFERENCES teams(id) ON DELETE CASCADE,
   captain_status INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -145,8 +145,8 @@ CREATE TABLE IF NOT EXISTS tournament_players (
   player_url TEXT,
   player_url_2 TEXT,
   confirmed INTEGER NOT NULL DEFAULT 0,
-  ranking TEXT,
-  ranking_2 TEXT,
+  -- Klassierung (ranking/ranking_2) liegt zentral im player_registry; die früheren
+  -- Spalten hier wurden in Phase 3 entfernt (Werte kommen jetzt über den Registry-Join).
   registered_on TEXT,
   note TEXT,
   sort_order INTEGER NOT NULL DEFAULT 0,

@@ -20,9 +20,11 @@ export function backfillPlayerRegistry(db: TcwDatabase): { total: number } {
       if (regId > 0) db.prepare("UPDATE players SET registry_id = ? WHERE id = ?").run(regId, r.id);
     }
     // 2) Turnier-Anmeldungen (beide Doppel-Spieler)
-    for (const r of db.prepare("SELECT player_name, player_name_2, player_url, player_url_2, license_number, license_number_2, ranking, ranking_2 FROM tournament_players").all() as Array<Record<string, string | null>>) {
-      if (r.player_name) upsertPlayer(db, { name: r.player_name, url: r.player_url, license: r.license_number, klassierung: r.ranking });
-      if (r.player_name_2) upsertPlayer(db, { name: r.player_name_2, url: r.player_url_2, license: r.license_number_2, klassierung: r.ranking_2 });
+    //    Klassierung kommt nicht mehr aus tournament_players (Spalten ranking/ranking_2
+    //    gedroppt) — ohne klassierung-Param behält upsertPlayer den bestehenden Register-Wert.
+    for (const r of db.prepare("SELECT player_name, player_name_2, player_url, player_url_2, license_number, license_number_2 FROM tournament_players").all() as Array<Record<string, string | null>>) {
+      if (r.player_name) upsertPlayer(db, { name: r.player_name, url: r.player_url, license: r.license_number });
+      if (r.player_name_2) upsertPlayer(db, { name: r.player_name_2, url: r.player_url_2, license: r.license_number_2 });
     }
     // 3) Begegnungen (Spieler + Gegner)
     if (tableExists(db, "player_matches")) {

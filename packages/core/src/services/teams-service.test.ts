@@ -23,11 +23,11 @@ test("getPublicTeams liest Klassierung + mytennis-URL aus dem Register, nicht au
     klassierung: "R7",
   });
 
-  // players-Spalten bewusst auf ABWEICHENDE Werte setzen: beweist, dass
-  // getPublicTeams diese Spalten NICHT mehr liest, sondern das Register.
+  // Spieler nur noch über registry_id ans Register gebunden: Klassierung/URL kommen
+  // ausschließlich aus dem Register (die früheren players-Spalten wurden gedroppt).
   db.prepare(
-    "INSERT INTO players (name, klassierung, myTennisID, team_id, captain_status, registry_id) VALUES (?, ?, ?, ?, ?, ?)",
-  ).run("Markus Rauch", "R1", "", teamId, 0, registryId);
+    "INSERT INTO players (name, team_id, captain_status, registry_id) VALUES (?, ?, ?, ?)",
+  ).run("Markus Rauch", teamId, 0, registryId);
 
   const result = getPublicTeams(db);
   const team = [...result.damen, ...result.herren].find((t) => t.id === teamId);
@@ -53,8 +53,8 @@ test("getPublicTeams: NULL registry_id liefert leere Klassierung/URL statt den S
   );
 
   db.prepare(
-    "INSERT INTO players (name, klassierung, myTennisID, team_id, captain_status, registry_id) VALUES (?, ?, ?, ?, ?, NULL)",
-  ).run("Ohne Register", "R3", "https://www.mytennis.ch/de/spieler/1", teamId, 0);
+    "INSERT INTO players (name, team_id, captain_status, registry_id) VALUES (?, ?, ?, NULL)",
+  ).run("Ohne Register", teamId, 0);
 
   const result = getPublicTeams(db);
   const team = [...result.damen, ...result.herren].find((t) => t.id === teamId);
