@@ -14,9 +14,10 @@ const PUBLIC_CONTENT_SECURITY_POLICY = [
   "object-src 'none'",
   "base-uri 'self'",
   "frame-ancestors 'self'",
-  // Nur die eingebettete Google-Maps-Karte auf der Standort-Seite; wir selbst
-  // bleiben durch frame-ancestors 'self' weiterhin gegen Framing geschützt.
-  "frame-src https://www.google.com",
+  // 'self' für den eingebetteten 3D-Rundgang (/tcw3d im iframe der Waidcup-Seite),
+  // dazu die Google-Maps-Karte auf der Standort-Seite; wir selbst bleiben durch
+  // frame-ancestors 'self' weiterhin gegen fremdes Framing geschützt.
+  "frame-src 'self' https://www.google.com",
 ].join("; ");
 
 const COMMON_SECURITY_HEADERS: Record<string, string> = {
