@@ -14,6 +14,7 @@ Altsystem bleibt unberührt.
 | --- | --- | --- | --- |
 | Public | 8092 | `ch.tcw.ic-claude-public` | <http://<MAC_MINI_LAN_IP>:8092> |
 | Admin | 8093 | `ch.tcw.ic-claude-admin` | <http://<MAC_MINI_LAN_IP>:8093> |
+| Waidcup | 8096 | `ch.tcw.waidcup-public` | <http://<MAC_MINI_LAN_IP>:8096> |
 
 - **App-Verzeichnis:** `<APP_DIR>`
 - **Datenbank (eigen):** `<APP_DIR>/data/ic_teams.sqlite`
@@ -27,23 +28,48 @@ Altsystem bleibt unberührt.
 - Der Admin-Prozess führt die **Hintergrund-Jobs** aus (stündlicher
   ClubResult-Import der Spieltermine, Turnier-Polling – je mit Jitter).
 
+### Waidcup-Seite (eigenständige 3D-Tour-Website)
+
+Die Waidcup-Seite (`apps/waidcup-server` + Frontend `apps/waidcup-public`) läuft
+als **dritter Dienst** im **selben App-Verzeichnis**
+`<APP_DIR>` (dasselbe Monorepo, dieselbe
+`ic_teams.sqlite` **read-only**) – ein Prozess, ein Port.
+
+- **LaunchAgent:** `ch.tcw.waidcup-public` (`RunAtLoad` + `KeepAlive`).
+- **Port / URL:** `8096` → <http://<MAC_MINI_LAN_IP>:8096>.
+- **Start-Wrapper:** `bin/run-waidcup.sh` (setzt PATH/Port/DB-Pfad, startet
+  `waidcup-server` via `tsx` aus `src` – **kein Backend-Build nötig**).
+- **Frontend:** `waidcup-server` liefert das gebaute `apps/waidcup-public/dist`
+  (fastifyStatic) plus die API unter `/api/waidcup/*`. Frontend-Änderungen
+  brauchen daher ein `vite build` (siehe „Update Waidcup"), Backend-Änderungen nur
+  einen Neustart.
+- **Logs:** `logs/waidcup.out.log`, `logs/waidcup.err.log`.
+- **3D-Rundgang:** liegt als committeter Snapshot unter
+  `apps/waidcup-public/public/tcw3d/` (aus dem separaten `3DTCW`-Repo). Lokal mit
+  `npm run sync:tcw3d` aktualisieren; der Snapshot wird **mitcommittet** und
+  einfach als statische Dateien mitdeployt (Mac ist file-synced, kein Git).
+
 ## Betrieb
 
 ```bash
 # Status
 launchctl print gui/$(id -u)/ch.tcw.ic-claude-public | grep -E "state|pid|last exit code"
 launchctl print gui/$(id -u)/ch.tcw.ic-claude-admin  | grep -E "state|pid|last exit code"
+launchctl list | grep -i waidcup   # ch.tcw.waidcup-public: PID  Exit-Code  Label
 
 # Neustart
 launchctl kickstart -k gui/$(id -u)/ch.tcw.ic-claude-public
 launchctl kickstart -k gui/$(id -u)/ch.tcw.ic-claude-admin
+launchctl kickstart -k gui/$(id -u)/ch.tcw.waidcup-public
 
 # Stoppen / Entladen
 launchctl bootout gui/$(id -u)/ch.tcw.ic-claude-public
 launchctl bootout gui/$(id -u)/ch.tcw.ic-claude-admin
+launchctl bootout gui/$(id -u)/ch.tcw.waidcup-public
 
 # Logs
 tail -f <APP_DIR>/logs/admin.out.log
+tail -f <APP_DIR>/logs/waidcup.out.log
 ```
 
 ## Update (Code ändern)
@@ -53,6 +79,41 @@ tail -f <APP_DIR>/logs/admin.out.log
    `export PATH="$HOME/.local/node22/bin:$PATH" && npm run build` auf dem Mac.
 3. Betroffenen LaunchAgent per `launchctl kickstart -k …` neu starten.
 4. Verifizieren (siehe Checks unten).
+
+## Update Waidcup (Code ändern)
+
+SSH/SCP zum Mac läuft über **Passwort-Authentifizierung** (kein Key hinterlegt;
+Passwort nicht im Repo). Konkreter Ablauf für eine Frontend-Änderung an der
+Waidcup-Seite (z. B. den 3D-Tour-Screens):
+
+1. **Lokal** testen und bauen:
+   ```bash
+   cd apps/waidcup-public
+   npm test        # node --import tsx --test
+   npm run build   # tsc -b && vite build
+   ```
+2. **Geänderte Quelldateien** per `scp` ins gleiche Pfadlayout unter
+   `<APP_DIR>/` übertragen (nur die geänderten
+   Dateien, z. B. `apps/waidcup-public/src/features/tour/*.ts(x)`). Bei
+   3D-Rundgang-Updates den **ganzen** Snapshot `apps/waidcup-public/public/tcw3d/`
+   übertragen (vorher lokal `npm run sync:tcw3d`).
+3. **Auf dem Mac** das Frontend neu bauen (nur bei Frontend-Änderungen nötig;
+   reine Backend-Änderungen an `waidcup-server` laufen via `tsx` ohne Build):
+   ```bash
+   export PATH="$HOME/.local/node22/bin:$PATH"
+   cd <APP_DIR>/apps/waidcup-public && npm run build
+   ```
+4. **Dienst neu starten** (bei reinen `dist`-Änderungen streng genommen optional,
+   da fastifyStatic sofort die neuen Dateien liefert – zur Sicherheit trotzdem):
+   ```bash
+   launchctl kickstart -k gui/$(id -u)/ch.tcw.waidcup-public
+   ```
+5. **Verifizieren:**
+   ```bash
+   curl http://<MAC_MINI_LAN_IP>:8096/api/health                 # {"ok":true,"service":"waidcup",…}
+   curl http://<MAC_MINI_LAN_IP>:8096/api/waidcup/order-of-play   # {"today":[…]}
+   curl -o /dev/null -w "%{http_code}\n" http://<MAC_MINI_LAN_IP>:8096/  # 200 (Frontend)
+   ```
 
 ## Healthchecks / Akzeptanz (verifiziert)
 
