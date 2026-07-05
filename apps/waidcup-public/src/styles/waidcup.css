@@ -952,6 +952,16 @@
   padding: 3rem 1rem;
   text-align: center;
 }
+.tour__title {
+  margin: 0;
+  font-size: 1.6rem;
+  color: var(--text);
+}
+.tour__lead {
+  margin: 0;
+  max-width: 40rem;
+  color: var(--text-muted);
+}
 .tour__start {
   padding: 0.9rem 1.8rem;
   font-size: 1.1rem;
