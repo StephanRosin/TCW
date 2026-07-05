@@ -48,7 +48,7 @@ function push(tcw: TcwScreenApi, index: number, canvas: HTMLCanvasElement, model
   tcw.setScreen(index, canvas);
 }
 
-export function useScreenDriver(getWindow: () => Window | null, t: Translate, active: boolean): void {
+export function useScreenDriver(getWindow: () => Window | null, t: Translate, language: string, active: boolean): void {
   useEffect(() => {
     if (!active) return;
     let cancelled = false;
@@ -66,7 +66,7 @@ export function useScreenDriver(getWindow: () => Window | null, t: Translate, ac
         // Order of Play = Tagesspielplan (orderOfPlay().today); Live = Jetzt/Danach.
         const [oop, live] = await Promise.all([waidcupApi.orderOfPlay(), waidcupApi.live()]);
         if (cancelled || !oopCanvas || !liveCanvas) return;
-        push(tcw, SCREEN_INDEX.orderofplay, oopCanvas, buildOrderOfPlayModel(oop.today, t));
+        push(tcw, SCREEN_INDEX.orderofplay, oopCanvas, buildOrderOfPlayModel(oop.today, t, language));
         push(tcw, SCREEN_INDEX.live, liveCanvas, buildLiveModel(live, t));
       } catch {
         // Netz-/API-Fehler: Screens behalten ihren letzten Stand, kein Absturz.
@@ -108,5 +108,5 @@ export function useScreenDriver(getWindow: () => Window | null, t: Translate, ac
       if (refreshTimer) clearInterval(refreshTimer);
       if (readyTimer) clearInterval(readyTimer);
     };
-  }, [getWindow, t, active]);
+  }, [getWindow, t, language, active]);
 }

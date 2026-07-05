@@ -9,13 +9,13 @@ import { useIsMobile } from "../../hooks/useIsMobile.js";
 import { useScreenDriver } from "./screenDriver.js";
 
 export function TourView(): JSX.Element {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [started, setStarted] = useState(false);
   const [failed, setFailed] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const getWindow = useCallback(() => iframeRef.current?.contentWindow ?? null, []);
-  useScreenDriver(getWindow, t, started && !failed);
+  useScreenDriver(getWindow, t, language, started && !failed);
   const isMobile = useIsMobile();
 
   if (isMobile) {

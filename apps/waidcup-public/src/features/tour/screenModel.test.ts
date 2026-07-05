@@ -7,7 +7,6 @@ import {
   buildLocationModel,
   buildOrderOfPlayModel,
   BOARD_COLUMNS,
-  MAX_DAY_ROWS,
 } from "./screenModel.js";
 
 // Übersetzungs-Stub: gibt den Key zurück, damit Tests keys statt Texte prüfen.
@@ -37,58 +36,56 @@ test("buildInfosModel: Text-Layout, Light, mit Turnierdauer", () => {
   assert.ok(model.textLines!.some((l) => l.text === "infos.dateDurationValue"));
 });
 
-test("buildOrderOfPlayModel: Tagesliste, EINE Sektion ohne Jetzt/Danach", () => {
-  const model = buildOrderOfPlayModel([match("1", "09:00", ["Ann A"], ["Bea B"])], t);
+test("buildOrderOfPlayModel: Raster-Layout (grid), Light, mit Datums-Untertitel", () => {
+  const model = buildOrderOfPlayModel([match("1", "09:00", ["Ann A"], ["Bea B"])], t, "de");
   assert.equal(model.theme, "light");
-  assert.equal(model.layout, "table");
-  assert.equal(model.sections!.length, 1, "keine Jetzt/Danach-Aufteilung");
-  assert.equal(model.sections![0]!.heading, "", "keine Sektionsüberschrift");
-  assert.deepEqual(model.sections![0]!.rows[0], ["1", "09:00", "Ann A vs Bea B"]);
+  assert.equal(model.layout, "grid");
+  assert.ok(model.grid, "grid vorhanden");
+  // 18. Juli 2026 ist ein Samstag.
+  assert.match(model.grid!.subtitle, /Samstag.*18.*Juli.*2026/);
 });
 
-test("buildOrderOfPlayModel: Doppel wird zweizeilig (ein Paar pro Zeile)", () => {
-  const dbl: WaidcupLiveMatch = {
-    court: "1",
-    eventName: "Herren Doppel",
-    side1Names: ["A A", "C C"],
-    side2Names: ["B B", "D D"],
-    scheduledDate: "2026-07-18",
-    scheduledTime: "09:00",
-  };
-  const model = buildOrderOfPlayModel([dbl], t);
-  const matchCell = model.sections![0]!.rows[0]![2]!;
-  assert.equal(matchCell, "A A / C C\nvs B B / D D");
-  assert.ok(matchCell.includes("\n"), "Doppel-Matchup ist zweizeilig");
+test("buildOrderOfPlayModel: mindestens Courts 1-6 als Spalten", () => {
+  const model = buildOrderOfPlayModel([match("1", "09:00", ["A"], ["B"])], t, "de");
+  assert.deepEqual(model.grid!.courts, [1, 2, 3, 4, 5, 6]);
 });
 
-test("buildOrderOfPlayModel: nach Platz 1-6, dann Uhrzeit sortiert", () => {
-  const day = [
-    match("2", "11:00", ["B2"], ["b2"]),
-    match("1", "10:30", ["A2"], ["a2"]),
-    match("1", "09:00", ["A1"], ["a1"]),
-  ];
-  const model = buildOrderOfPlayModel(day, t);
+test("buildOrderOfPlayModel: höhere Platznummer erweitert die Spalten", () => {
+  const model = buildOrderOfPlayModel([match("8", "09:00", ["A"], ["B"])], t, "de");
+  assert.deepEqual(model.grid!.courts, [1, 2, 3, 4, 5, 6, 7, 8]);
+});
+
+test("buildOrderOfPlayModel: Match landet in Court-Spalte und Zeit-Block", () => {
+  const model = buildOrderOfPlayModel([match("2", "10:30", ["Weiss Xenia (R5)"], ["Roth Lea (R6)"])], t, "de");
+  const block = model.grid!.blocks.find((b) => b.time === "10:30")!;
+  // Court 2 = Index 1; Spieler mit vorangestelltem Ranking, "vs" dazwischen.
+  assert.deepEqual(block.cells[1], ["(R5) Weiss Xenia", "vs", "(R6) Roth Lea"]);
+  assert.equal(block.cells[0], null, "Court 1 in diesem Block leer");
+});
+
+test("buildOrderOfPlayModel: Doppel listet alle vier Spieler zeilenweise", () => {
+  const dbl = match("1", "09:00", ["A A (R4)", "C C (R5)"], ["B B (R4)", "D D (R6)"]);
+  const model = buildOrderOfPlayModel([dbl], t, "de");
+  const cell = model.grid!.blocks[0]!.cells[0]!;
+  assert.deepEqual(cell, ["(R4) A A", "(R5) C C", "vs", "(R4) B B", "(R6) D D"]);
+});
+
+test("buildOrderOfPlayModel: Zeit-Blöcke aufsteigend sortiert", () => {
+  const model = buildOrderOfPlayModel(
+    [match("1", "11:00", ["A"], ["a"]), match("1", "09:00", ["B"], ["b"]), match("2", "10:00", ["C"], ["c"])],
+    t,
+    "de",
+  );
   assert.deepEqual(
-    model.sections![0]!.rows.map((r) => [r[0], r[1]]),
-    [
-      ["1", "09:00"],
-      ["1", "10:30"],
-      ["2", "11:00"],
-    ],
+    model.grid!.blocks.map((b) => b.time),
+    ["09:00", "10:00", "11:00"],
   );
 });
 
-test("buildOrderOfPlayModel: leerer Tag zeigt Hinweis-Note statt Zeilen", () => {
-  const model = buildOrderOfPlayModel([], t);
-  assert.equal(model.sections![0]!.rows.length, 0);
-  assert.equal(model.sections![0]!.note, "orderOfPlay.empty");
-});
-
-test("buildOrderOfPlayModel: über MAX_DAY_ROWS gekürzt, Note zeigt Rest", () => {
-  const many = Array.from({ length: MAX_DAY_ROWS + 3 }, (_, i) => match("1", `${10 + i}:00`, ["X"], ["Y"]));
-  const model = buildOrderOfPlayModel(many, t);
-  assert.equal(model.sections![0]!.rows.length, MAX_DAY_ROWS);
-  assert.equal(model.sections![0]!.note, "+3");
+test("buildOrderOfPlayModel: leerer Tag zeigt Hinweis, keine Blöcke", () => {
+  const model = buildOrderOfPlayModel([], t, "de");
+  assert.equal(model.grid!.blocks.length, 0);
+  assert.equal(model.grid!.empty, "orderOfPlay.empty");
 });
 
 test("buildLiveModel: Light, breite Spalten ohne Kategorie (3 Spalten)", () => {
