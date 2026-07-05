@@ -3,6 +3,10 @@
  * das von der 3D-App exponierte window.__tcw (same-origin im iframe), malt pro
  * Screen ein Canvas und ruft __tcw.setScreen(index, canvas). Standort/Infos
  * werden einmalig gesetzt, Order of Play und Live alle 20 s neu gemalt.
+ *
+ * Die Canvases werden im Dokument des IFRAMES erzeugt (win.document): setScreen
+ * prüft den Quelltyp per `instanceof HTMLCanvasElement` in seiner eigenen Realm –
+ * ein im Eltern-Dokument erzeugtes Canvas würde als „unsupported source" abgelehnt.
  */
 import { useEffect } from "react";
 import { waidcupApi } from "../../api/client.js";
@@ -51,13 +55,16 @@ export function useScreenDriver(getWindow: () => Window | null, t: Translate, ac
     let refreshTimer: ReturnType<typeof setInterval> | null = null;
     let readyTimer: ReturnType<typeof setInterval> | null = null;
 
-    const oopCanvas = createScreenCanvas();
-    const liveCanvas = createScreenCanvas();
+    // Persistente Canvases für die dynamischen Screens; erst in start() im
+    // iframe-Dokument erzeugt (siehe Modulkommentar).
+    let oopCanvas: HTMLCanvasElement | null = null;
+    let liveCanvas: HTMLCanvasElement | null = null;
 
     async function refreshDynamic(tcw: TcwScreenApi): Promise<void> {
+      if (!oopCanvas || !liveCanvas) return;
       try {
         const [oop, live] = await Promise.all([waidcupApi.orderOfPlay(), waidcupApi.live()]);
-        if (cancelled) return;
+        if (cancelled || !oopCanvas || !liveCanvas) return;
         push(tcw, SCREEN_INDEX.orderofplay, oopCanvas, buildOrderOfPlayModel(oop.today, t));
         push(tcw, SCREEN_INDEX.live, liveCanvas, buildLiveModel(live, t));
       } catch {
@@ -65,11 +72,14 @@ export function useScreenDriver(getWindow: () => Window | null, t: Translate, ac
       }
     }
 
-    async function start(tcw: TcwScreenApi): Promise<void> {
-      await (document.fonts?.ready ?? Promise.resolve());
+    async function start(tcw: TcwScreenApi, win: Window): Promise<void> {
+      const doc = win.document;
+      oopCanvas = createScreenCanvas(doc);
+      liveCanvas = createScreenCanvas(doc);
+      await (doc.fonts?.ready ?? Promise.resolve());
       if (cancelled) return;
-      push(tcw, SCREEN_INDEX.location, createScreenCanvas(), buildLocationModel(t));
-      push(tcw, SCREEN_INDEX.infos, createScreenCanvas(), buildInfosModel(t));
+      push(tcw, SCREEN_INDEX.location, createScreenCanvas(doc), buildLocationModel(t));
+      push(tcw, SCREEN_INDEX.infos, createScreenCanvas(doc), buildInfosModel(t));
       await refreshDynamic(tcw);
       if (cancelled) return;
       refreshTimer = setInterval(() => {
@@ -80,11 +90,12 @@ export function useScreenDriver(getWindow: () => Window | null, t: Translate, ac
 
     const deadline = Date.now() + READY_TIMEOUT_MS;
     readyTimer = setInterval(() => {
-      const tcw = tcwOf(getWindow());
-      if (tcw) {
+      const win = getWindow();
+      const tcw = tcwOf(win);
+      if (tcw && win) {
         if (readyTimer) clearInterval(readyTimer);
         readyTimer = null;
-        void start(tcw);
+        void start(tcw, win);
       } else if (Date.now() > deadline && readyTimer) {
         clearInterval(readyTimer);
         readyTimer = null; // 3D-App ohne Screen-API: Tour läuft, Screens bleiben dunkel.

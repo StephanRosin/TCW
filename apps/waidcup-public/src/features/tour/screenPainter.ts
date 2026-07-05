@@ -22,8 +22,11 @@ interface Palette {
 const DARK: Palette = { bg: "#0d1420", fg: "#f2f5fb", muted: "#9fb0c8", accent: "#7fc4ff", rule: "#26364d" };
 const LIGHT: Palette = { bg: "#f7f9fc", fg: "#101722", muted: "#4a5666", accent: "#0a66c2", rule: "#d3dae4" };
 
-export function createScreenCanvas(): HTMLCanvasElement {
-  const canvas = document.createElement("canvas");
+// `doc` erlaubt, das Canvas im Dokument des iframes zu erzeugen: die setScreen-
+// API der 3D-App prüft `instanceof HTMLCanvasElement` in ihrer eigenen Realm,
+// weshalb ein im Eltern-Dokument erzeugtes Canvas dort abgelehnt würde.
+export function createScreenCanvas(doc: Document = document): HTMLCanvasElement {
+  const canvas = doc.createElement("canvas");
   canvas.width = SCREEN_W;
   canvas.height = SCREEN_H;
   return canvas;
