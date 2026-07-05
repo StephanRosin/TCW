@@ -161,13 +161,13 @@ export function buildScoreboard(scene, x, z, rotY = 0) {
   const red = new THREE.MeshStandardMaterial({ color: 0xd12f2f, roughness: 0.4 });
   const beadGeo = new THREE.SphereGeometry(0.045, 14, 10);
 
-  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 1.8, 10), metalMat);
-  post.position.set(0, 0.9, 0); post.castShadow = true; g.add(post);
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 2.4, 10), metalMat);
+  post.position.set(0, 1.2, 0); post.castShadow = true; g.add(post);
 
   const beamW = 1.5, beamH = 0.16, beamD = 0.14;
 
   // Kopfzeile „TCW | Gast" oben über den beiden Kugelbalken.
-  const headerH = 0.24, headerY = 1.66;
+  const headerH = 0.24, headerY = 2.26;
   const header = new THREE.Mesh(new THREE.BoxGeometry(beamW, headerH, 0.05), darkMat);
   header.position.set(0, headerY, 0); header.castShadow = true; g.add(header);
   const label = new THREE.Mesh(
@@ -198,8 +198,8 @@ export function buildScoreboard(scene, x, z, rotY = 0) {
     }
   };
 
-  buildBeam(1.42, 2);  // oberer Balken (Sätze): 2 Kugeln pro Seite
-  buildBeam(1.18, 6);  // unterer Balken (Spiele): 6 Kugeln pro Seite
+  buildBeam(2.02, 2);  // oberer Balken (Sätze): 2 Kugeln pro Seite
+  buildBeam(1.78, 6);  // unterer Balken (Spiele): 6 Kugeln pro Seite
 }
 
 /**
