@@ -111,5 +111,7 @@
   "orderOfPlay.copy": "Für E-Mail kopieren",
   "orderOfPlay.copied": "Kopiert",
   "orderOfPlay.empty": "Heute sind keine Partien angesetzt.",
-  "orderOfPlay.copyHint": "Doppelklick: Order of Play für morgen für die E-Mail kopieren"
+  "orderOfPlay.copyHint": "Doppelklick: Order of Play für morgen für die E-Mail kopieren",
+  "board.now": "Jetzt",
+  "board.next": "Danach"
 }

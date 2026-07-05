@@ -111,5 +111,7 @@
   "orderOfPlay.copy": "Copier pour e-mail",
   "orderOfPlay.copied": "Copié",
   "orderOfPlay.empty": "Aucun match programmé aujourd'hui.",
-  "orderOfPlay.copyHint": "Double-clic : copier l'order of play de demain pour l'e-mail"
+  "orderOfPlay.copyHint": "Double-clic : copier l'order of play de demain pour l'e-mail",
+  "board.now": "Maintenant",
+  "board.next": "Ensuite"
 }

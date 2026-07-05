@@ -111,5 +111,7 @@
   "orderOfPlay.copy": "Copy for email",
   "orderOfPlay.copied": "Copied",
   "orderOfPlay.empty": "No matches scheduled today.",
-  "orderOfPlay.copyHint": "Double-click: copy tomorrow's order of play for email"
+  "orderOfPlay.copyHint": "Double-click: copy tomorrow's order of play for email",
+  "board.now": "Now",
+  "board.next": "Next"
 }

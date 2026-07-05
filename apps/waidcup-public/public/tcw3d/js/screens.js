@@ -7,8 +7,8 @@ import { addBox, PLATEAU } from './collision.js';
 const SCREEN_X = [-15, -19.5, -24, -28.5];
 const SCREEN_Z = -25.8;
 const PANEL_W = 2.2;
-const PANEL_H = PANEL_W / (16 / 9);   // ~1.24, true 16:9
-const PANEL_Y = 1.8;                  // local height above the terrace floor
+const PANEL_H = PANEL_W * 1.1;              // ~2.42, hochkant – reicht fast bis zum Boden (mehr Platz für Inhalt)
+const PANEL_Y = PANEL_H / 2 + 0.12;        // Unterkante ~0.12 über dem Terrassenboden
 
 /**
  * Four free-standing display screens on the tennis-club terrace, each a
@@ -47,15 +47,10 @@ export function buildScreens(scene) {
     g.add(panel);
     panels.push(panel);
 
-    // Stand: center pole up to the panel's bottom edge + a wide foot for stability.
-    const poleBottom = PANEL_Y - PANEL_H / 2;
-    const pole = new THREE.Mesh(new THREE.BoxGeometry(0.12, poleBottom, 0.08), standMat);
-    pole.position.set(0, poleBottom / 2, 0);
-    pole.castShadow = true; g.add(pole);
-
-    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.06, 0.4), standMat);
-    foot.position.set(0, 0.03, 0);
-    foot.castShadow = true; g.add(foot);
+    // Das bodennahe Panel steht auf einem flachen Sockel (keine hohe Stange mehr).
+    const base = new THREE.Mesh(new THREE.BoxGeometry(PANEL_W + 0.3, 0.12, 0.5), standMat);
+    base.position.set(0, 0.06, 0);
+    base.castShadow = true; base.receiveShadow = true; g.add(base);
 
     addBox(x - 1.1, SCREEN_Z - 0.15, x + 1.1, SCREEN_Z + 0.15);
   }

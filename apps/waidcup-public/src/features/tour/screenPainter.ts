@@ -1,13 +1,14 @@
 /**
- * Zeichnet ein ScreenModel als „Anzeigetafel" auf ein 1024×576-Canvas, das die
- * 3D-App als Textur auf einen In-World-Screen legt. Zwei Layouts: Fliesstext
- * (Standort/Infos) und Match-Tabelle (Order of Play/Live). Bewusst schlicht und
- * kontraststark für gute Lesbarkeit aus der Distanz in der 3D-Szene.
+ * Zeichnet ein ScreenModel als „Anzeigetafel" auf ein 1000×1100-Canvas
+ * (Hochformat, passend zu den bodennahen Screens der 3D-Szene). Zwei Layouts:
+ * Fliesstext (Standort/Infos) und Match-Tabelle in Sektionen „Jetzt"/„Danach"
+ * (Order of Play/Live). Bewusst schlicht und kontraststark (Light-Mode) für
+ * gute Lesbarkeit aus der Distanz.
  */
 import type { ScreenModel, TextLine } from "./screenModel.js";
 
-export const SCREEN_W = 1024;
-export const SCREEN_H = 576;
+export const SCREEN_W = 1000;
+export const SCREEN_H = 1100;
 const PAD = 48;
 const FONT = "'Segoe UI', system-ui, -apple-system, sans-serif";
 
@@ -87,27 +88,46 @@ function paintText(ctx: CanvasRenderingContext2D, model: ScreenModel, p: Palette
 }
 
 function paintTable(ctx: CanvasRenderingContext2D, model: ScreenModel, p: Palette, startY: number): void {
-  const columns = model.columns ?? [];
-  ctx.font = `600 20px ${FONT}`;
-  ctx.fillStyle = p.muted;
-  for (const col of columns) ctx.fillText(col.header, col.x, startY);
-  let y = startY + 40;
-  ctx.font = `400 24px ${FONT}`;
-  for (const row of model.rows ?? []) {
-    ctx.fillStyle = p.fg;
-    row.forEach((cell, i) => {
-      const col = columns[i];
-      if (!col) return;
-      const next = columns[i + 1];
-      const maxWidth = (next ? next.x : SCREEN_W - PAD) - col.x - 12;
-      ctx.fillText(ellipsize(ctx, cell, maxWidth), col.x, y);
-    });
-    y += 42;
-  }
-  if (model.note) {
+  let y = startY;
+  for (const section of model.sections ?? []) {
+    // Sektionsüberschrift („Jetzt" / „Danach").
+    ctx.fillStyle = p.accent;
+    ctx.font = `700 30px ${FONT}`;
+    ctx.fillText(section.heading, PAD, y);
+    y += 44;
+
+    // Spaltenköpfe.
+    ctx.font = `600 22px ${FONT}`;
     ctx.fillStyle = p.muted;
-    ctx.font = `400 20px ${FONT}`;
-    ctx.fillText(model.note, PAD, y);
+    for (const col of section.columns) ctx.fillText(col.header, col.x, y);
+    y += 36;
+
+    if (section.rows.length === 0) {
+      ctx.fillStyle = p.muted;
+      ctx.font = `400 24px ${FONT}`;
+      ctx.fillText(section.note ?? "", PAD, y);
+      y += 40;
+    } else {
+      ctx.font = `400 26px ${FONT}`;
+      for (const row of section.rows) {
+        ctx.fillStyle = p.fg;
+        row.forEach((cell, i) => {
+          const col = section.columns[i];
+          if (!col) return;
+          const next = section.columns[i + 1];
+          const maxWidth = (next ? next.x : SCREEN_W - PAD) - col.x - 12;
+          ctx.fillText(ellipsize(ctx, cell, maxWidth), col.x, y);
+        });
+        y += 40;
+      }
+      if (section.note) {
+        ctx.fillStyle = p.muted;
+        ctx.font = `400 22px ${FONT}`;
+        ctx.fillText(section.note, PAD, y);
+        y += 32;
+      }
+    }
+    y += 34; // Abstand zwischen den Sektionen
   }
 }
 

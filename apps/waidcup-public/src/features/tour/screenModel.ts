@@ -2,6 +2,9 @@
  * Reine Model-Builder für die vier In-World-Screens der 3D-Tour. Sie liefern
  * ein layout-neutrales ScreenModel (Text- oder Tabellen-Tafel), das der
  * Canvas-Painter zeichnet. Keine DOM-/Canvas-Abhängigkeit -> unit-testbar.
+ *
+ * Alle Screens werden im Light-Mode gezeichnet. Tabellen-Screens sind in
+ * Sektionen unterteilt ("Jetzt"/"Danach"), jede Sektion nach Platz sortiert.
  */
 import type { WaidcupLiveMatch, WaidcupLiveResponse } from "@tcw/shared";
 import { WAIDCUP_ADDRESS_LINES } from "./address.js";
@@ -18,25 +21,37 @@ export interface TableColumn {
   x: number;
 }
 
-export interface ScreenModel {
-  title: string;
-  theme: "dark" | "light";
-  layout: "text" | "table";
-  textLines?: TextLine[];
-  columns?: TableColumn[];
-  rows?: string[][];
+export interface TableSection {
+  heading: string;
+  columns: TableColumn[];
+  rows: string[][];
   note?: string;
 }
 
-/** Spalten der Match-Tafeln (x in Canvas-Pixeln bei 1024 Breite, 48 Rand). */
+export interface ScreenModel {
+  title: string;
+  theme: "light" | "dark";
+  layout: "text" | "table";
+  textLines?: TextLine[];
+  sections?: TableSection[];
+}
+
+/** Spalten der Order-of-Play-Tafel (x in Canvas-Pixeln bei 1000 Breite, 48 Rand). */
 export const BOARD_COLUMNS: TableColumn[] = [
   { header: "kiosk.colCourt", x: 48 },
-  { header: "kiosk.colTime", x: 168 },
-  { header: "kiosk.colMatch", x: 300 },
-  { header: "kiosk.colEvent", x: 760 },
+  { header: "kiosk.colTime", x: 150 },
+  { header: "kiosk.colMatch", x: 280 },
+  { header: "kiosk.colEvent", x: 720 },
 ];
 
-export const MAX_TABLE_ROWS = 8;
+/** Live nutzt die volle Breite für die Namen (keine Kategorie-Spalte). */
+export const LIVE_COLUMNS: TableColumn[] = [
+  { header: "kiosk.colCourt", x: 48 },
+  { header: "kiosk.colTime", x: 150 },
+  { header: "kiosk.colMatch", x: 280 },
+];
+
+export const MAX_SECTION_ROWS = 6;
 
 function matchup(m: WaidcupLiveMatch): string {
   return `${m.side1Names.join("/")} vs ${m.side2Names.join("/")}`;
@@ -46,14 +61,39 @@ function matchRow(m: WaidcupLiveMatch): string[] {
   return [m.court, m.scheduledTime, matchup(m), m.eventName];
 }
 
-function tableModel(title: string, theme: "dark" | "light", matches: WaidcupLiveMatch[], t: Translate): ScreenModel {
-  const columns = BOARD_COLUMNS.map((c) => ({ ...c, header: t(c.header) }));
-  if (matches.length === 0) {
-    return { title, theme, layout: "table", columns, rows: [], note: t("orderOfPlay.empty") };
+/** Platznummer aus dem Platz-String ("Platz 2" -> 2), für die 1-6-Sortierung. */
+function courtSortKey(court: string): number {
+  const digits = court.match(/\d+/);
+  return digits ? Number(digits[0]) : Number.MAX_SAFE_INTEGER;
+}
+
+function buildSection(
+  heading: string,
+  columns: TableColumn[],
+  matches: WaidcupLiveMatch[],
+  t: Translate,
+): TableSection {
+  const sorted = [...matches].sort((a, b) => courtSortKey(a.court) - courtSortKey(b.court));
+  if (sorted.length === 0) {
+    return { heading, columns, rows: [], note: t("live.empty") };
   }
-  const rows = matches.slice(0, MAX_TABLE_ROWS).map(matchRow);
-  const overflow = matches.length - rows.length;
-  return { title, theme, layout: "table", columns, rows, note: overflow > 0 ? `+${overflow}` : undefined };
+  const rows = sorted.slice(0, MAX_SECTION_ROWS).map(matchRow);
+  const overflow = sorted.length - rows.length;
+  return { heading, columns, rows, note: overflow > 0 ? `+${overflow}` : undefined };
+}
+
+/** Zwei Sektionen "Jetzt" (laufend) und "Danach" (als Nächstes) aus dem Live-Feed. */
+function buildBoard(title: string, columns: TableColumn[], live: WaidcupLiveResponse, t: Translate): ScreenModel {
+  const cols = columns.map((c) => ({ ...c, header: t(c.header) }));
+  return {
+    title,
+    theme: "light",
+    layout: "table",
+    sections: [
+      buildSection(t("board.now"), cols, live.now, t),
+      buildSection(t("board.next"), cols, live.upcoming, t),
+    ],
+  };
 }
 
 export function buildLocationModel(t: Translate): ScreenModel {
@@ -66,7 +106,7 @@ export function buildLocationModel(t: Translate): ScreenModel {
     { text: t("location.parkingTitle"), emphasis: true },
     { text: t("location.parkingText") },
   ];
-  return { title: t("nav.location"), theme: "dark", layout: "text", textLines };
+  return { title: t("nav.location"), theme: "light", layout: "text", textLines };
 }
 
 export function buildInfosModel(t: Translate): ScreenModel {
@@ -81,14 +121,17 @@ export function buildInfosModel(t: Translate): ScreenModel {
     { text: "" },
     { text: t("infos.hintsTitle"), emphasis: true },
     { text: t("infos.hint1") },
+    { text: t("infos.hint4") },
+    { text: t("infos.hint5") },
+    { text: t("infos.hint6") },
   ];
-  return { title: t("nav.infos"), theme: "dark", layout: "text", textLines };
+  return { title: t("nav.infos"), theme: "light", layout: "text", textLines };
 }
 
-export function buildOrderOfPlayModel(matches: WaidcupLiveMatch[], t: Translate): ScreenModel {
-  return tableModel(t("nav.orderOfPlay"), "dark", matches, t);
+export function buildOrderOfPlayModel(live: WaidcupLiveResponse, t: Translate): ScreenModel {
+  return buildBoard(t("nav.orderOfPlay"), BOARD_COLUMNS, live, t);
 }
 
 export function buildLiveModel(live: WaidcupLiveResponse, t: Translate): ScreenModel {
-  return tableModel(t("nav.live"), "light", [...live.now, ...live.upcoming], t);
+  return buildBoard(t("nav.live"), LIVE_COLUMNS, live, t);
 }

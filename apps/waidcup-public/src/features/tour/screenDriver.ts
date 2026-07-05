@@ -63,9 +63,11 @@ export function useScreenDriver(getWindow: () => Window | null, t: Translate, ac
     async function refreshDynamic(tcw: TcwScreenApi): Promise<void> {
       if (!oopCanvas || !liveCanvas) return;
       try {
-        const [oop, live] = await Promise.all([waidcupApi.orderOfPlay(), waidcupApi.live()]);
+        // Beide Board-Screens („Order of Play" mit Jetzt/Danach und „Live")
+        // speisen sich aus dem Live-Feed (now = Jetzt, upcoming = Danach).
+        const live = await waidcupApi.live();
         if (cancelled || !oopCanvas || !liveCanvas) return;
-        push(tcw, SCREEN_INDEX.orderofplay, oopCanvas, buildOrderOfPlayModel(oop.today, t));
+        push(tcw, SCREEN_INDEX.orderofplay, oopCanvas, buildOrderOfPlayModel(live, t));
         push(tcw, SCREEN_INDEX.live, liveCanvas, buildLiveModel(live, t));
       } catch {
         // Netz-/API-Fehler: Screens behalten ihren letzten Stand, kein Absturz.

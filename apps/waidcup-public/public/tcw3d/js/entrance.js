@@ -212,10 +212,11 @@ export function buildEntrance(scene) {
     addBox(tx - trunkR * 1.5, tz - trunkR * 1.5, tx + trunkR * 1.5, tz + trunkR * 1.5);
   }
 
-  // On free paving ~5 m in front of the arch (opening centered at x=-12,
-  // z=-24), facing it straight on — clear of the plaza greenery bed, which
-  // stays east of x=-2 and north of z=-23.6 (>1.5 m from this spot).
-  const startPos = new THREE.Vector3(-7, 0, -24.0);
-  const lookTarget = new THREE.Vector3(-20, 0, -24.0);
+  // Weiter hinten (östlich) neben dem Büsche-Beet, Blick nach Westen auf das
+  // Platz-Tor (x=-31.2, z=-18). Der Standpunkt liegt südlich der Büsche
+  // (Beet bis z=-23.6) im offenen Bereich; die Terrassen-Screens (z=-25.8)
+  // liegen dabei links im Blickfeld.
+  const startPos = new THREE.Vector3(-3.0, 0, -24.0);
+  const lookTarget = new THREE.Vector3(-31.2, 0, -18.5);
   return { startPos, lookTarget };
 }
