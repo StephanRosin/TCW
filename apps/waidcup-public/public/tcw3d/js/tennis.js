@@ -29,7 +29,7 @@ let _lineMat, _netMat, _ballMat, _brushMat;
 
 function lineMaterial() {
   if (_lineMat) return _lineMat;
-  const ppm = 24;                       // pixels per metre
+  const ppm = 32;                       // pixels per metre (höher = schärfere Linien)
   const pad = 0.6;                       // metre margin around court
   const W = Math.round((COURT_W + pad * 2) * ppm);
   const H = Math.round((COURT_L + pad * 2) * ppm);
@@ -63,13 +63,15 @@ function lineMaterial() {
   line(0, hL, 0, hL - 0.3);
 
   const tex = new THREE.CanvasTexture(c);
-  tex.anisotropy = 8;
-  // Opaque-with-cutout instead of alpha-blended: as a `transparent: true`
-  // material this competed in the transparent-sort pass with the clubhouse
-  // window glass and could lose (lines disappearing when viewed through a
-  // pane). alphaTest gives a hard cutout with normal opaque depth writes —
-  // the lines plane sits at y=0.035 above the clay, so no z-fighting.
-  _lineMat = new THREE.MeshBasicMaterial({ map: tex, alphaTest: 0.5, transparent: false });
+  // Hohe Anisotropie: Linien werden im flachen Blickwinkel (aus Augenhöhe den
+  // Platz entlang) sonst stark minifiziert und verschwinden.
+  tex.anisotropy = 16;
+  // Opaque-with-cutout statt alpha-blended (kein Transparent-Sort-Konflikt mit
+  // dem Klubhaus-Glas). Der alphaTest-Schwellwert ist bewusst niedrig (0.2):
+  // mit 0.5 fielen aus der Distanz mipgemittelte, dünne Linien unter die
+  // Schwelle und wurden verworfen (verschwanden/wirkten gestrichelt). Der Linien-
+  // Layer liegt bei y=0.035 über dem Sand, daher kein Z-Fighting.
+  _lineMat = new THREE.MeshBasicMaterial({ map: tex, alphaTest: 0.2, transparent: false });
   _lineMat._planeW = COURT_W + pad * 2;
   _lineMat._planeH = COURT_L + pad * 2;
   return _lineMat;
