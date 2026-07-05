@@ -104,7 +104,7 @@ function paintTable(ctx: CanvasRenderingContext2D, model: ScreenModel, p: Palett
   if (model.note) {
     ctx.fillStyle = p.muted;
     ctx.font = `400 20px ${FONT}`;
-    ctx.fillText(model.note, PAD, SCREEN_H - PAD);
+    ctx.fillText(model.note, PAD, y);
   }
 }
 

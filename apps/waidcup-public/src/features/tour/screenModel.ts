@@ -36,7 +36,7 @@ export const BOARD_COLUMNS: TableColumn[] = [
   { header: "kiosk.colEvent", x: 760 },
 ];
 
-export const MAX_TABLE_ROWS = 9;
+export const MAX_TABLE_ROWS = 8;
 
 function matchup(m: WaidcupLiveMatch): string {
   return `${m.side1Names.join("/")} vs ${m.side2Names.join("/")}`;
