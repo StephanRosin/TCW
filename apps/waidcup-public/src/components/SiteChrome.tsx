@@ -7,6 +7,8 @@ import { LanguageSwitch, ThemeSwitch, useI18n } from "@tcw/tournament-ui";
 
 const DIRECTOR_PHONE = "41798500326";
 import { NAV_ITEMS, type MainView } from "../app/navigation.js";
+import { filterNavForViewport } from "../app/navFilter.js";
+import { useIsMobile } from "../hooks/useIsMobile.js";
 
 export function SiteHeader(): JSX.Element {
   const { t } = useI18n();
@@ -50,10 +52,12 @@ export function TabBar({
   onSelect: (view: MainView) => void;
 }): JSX.Element {
   const { t } = useI18n();
+  const isMobile = useIsMobile();
+  const items = filterNavForViewport(NAV_ITEMS, isMobile);
   return (
     <nav className="tabbar" aria-label={t("nav.sections")}>
       <div className="container tabbar__inner" role="tablist">
-        {NAV_ITEMS.map((item) => (
+        {items.map((item) => (
           <button
             key={item.view}
             type="button"
