@@ -128,6 +128,78 @@ export function buildBenchBackless(scene, x, z, rotY = 0, y = 0) {
   addBox(x - halfX, z - halfZ, x + halfX, z + halfZ);
 }
 
+/** Beschriftungs-Textur „Gast | TCW" für den Zählapparat (weiss auf dunkel). */
+function scoreboardLabelTexture() {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 48;
+  const g = c.getContext('2d');
+  g.fillStyle = '#161a20'; g.fillRect(0, 0, 512, 48);
+  g.font = 'bold 30px Arial'; g.textBaseline = 'middle'; g.textAlign = 'center';
+  g.fillStyle = '#ffffff';
+  g.fillText('TCW', 138, 26);
+  g.fillText('Gast', 374, 26);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  return t;
+}
+
+/**
+ * Tennis-Zählapparat neben der Bank (Referenz: Abakus-Zähler): hoher Pfosten mit
+ * zwei horizontalen Balken; durch jeden Balken läuft ein Draht mit Schiebekugeln,
+ * der an beiden Enden herausragt. Beschriftung „Gast | TCW"; Kugeln links gelb
+ * (Gast), rechts rot (TCW).
+ */
+export function buildScoreboard(scene, x, z, rotY = 0) {
+  const g = new THREE.Group();
+  g.position.set(x, 0, z);
+  g.rotation.y = rotY;
+  scene.add(g);
+
+  const metalMat = new THREE.MeshStandardMaterial({ color: 0x8a8f96, metalness: 0.7, roughness: 0.4 });
+  const darkMat = new THREE.MeshStandardMaterial({ color: 0x1a1e24, roughness: 0.6, metalness: 0.2 });
+  const yellow = new THREE.MeshStandardMaterial({ color: 0xf2b100, roughness: 0.4 });
+  const red = new THREE.MeshStandardMaterial({ color: 0xd12f2f, roughness: 0.4 });
+  const beadGeo = new THREE.SphereGeometry(0.045, 14, 10);
+
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 1.8, 10), metalMat);
+  post.position.set(0, 0.9, 0); post.castShadow = true; g.add(post);
+
+  const beamW = 1.5, beamH = 0.22, beamD = 0.14;
+
+  const buildBeam = (y, zOff, withLabel, perSideCount) => {
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(beamW, beamH, beamD), darkMat);
+    beam.position.set(0, y, zOff); beam.castShadow = true; g.add(beam);
+
+    if (withLabel) {
+      const label = new THREE.Mesh(
+        new THREE.PlaneGeometry(beamW, beamH * 0.55),
+        new THREE.MeshBasicMaterial({ map: scoreboardLabelTexture(), toneMapped: false }),
+      );
+      label.position.set(0, y + beamH * 0.2, zOff + beamD / 2 + 0.002); g.add(label);
+    }
+
+    const beadY = y - beamH * 0.16, beadZ = zOff + beamD / 2 + 0.03, wireLen = beamW + 0.5;
+    const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, wireLen, 6), metalMat);
+    wire.rotation.z = Math.PI / 2; wire.position.set(0, beadY, beadZ); g.add(wire);
+    for (const ex of [-wireLen / 2, wireLen / 2]) {
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 6), metalMat);
+      cap.position.set(ex, beadY, beadZ); g.add(cap);
+    }
+
+    // Kugeln zur Mitte geschoben: links rot (TCW), rechts gelb (Gast).
+    const spacing = 0.095, gapMid = 0.06;
+    for (let b = 0; b < perSideCount; b++) {
+      const left = new THREE.Mesh(beadGeo, red);
+      left.position.set(-gapMid - b * spacing, beadY, beadZ); left.castShadow = true; g.add(left);
+      const right = new THREE.Mesh(beadGeo, yellow);
+      right.position.set(gapMid + b * spacing, beadY, beadZ); right.castShadow = true; g.add(right);
+    }
+  };
+
+  buildBeam(1.5, 0, true, 6);        // unterer Balken (Spiele): 6 Kugeln pro Seite
+  buildBeam(1.74, -0.06, false, 2);  // oberer Balken (Sätze): 2 Kugeln pro Seite
+}
+
 /**
  * The raised terrace plateau north of the courts (deepened): a solid
  * platform (+1.5 m) carrying the clubhouse, entrance portal and terrace

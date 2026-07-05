@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { addBox } from './collision.js';
 import { pbr, loadTex } from './textures.js';
-import { wood, metalDark, buildBenchBackless, buildUmbrella } from './props.js';
+import { wood, metalDark, buildBenchBackless, buildUmbrella, buildScoreboard } from './props.js';
 
 // --- Regulation court dimensions (metres) ---
 const COURT_L = 23.77;   // baseline to baseline (along local Z)
@@ -173,39 +173,47 @@ function buildGateFrame(group, x, z, width, height) {
  * Shared perimeter fence around the whole enclosure (windscreen + chain-link).
  * North side is built as two segments so the gate opening is visually open.
  */
+// Netz-Textur (Maschendraht-Optik) – lazy erzeugt und für alle Netze/Zäune geteilt.
+let _netCanvas = null;
+function netCanvas() {
+  if (_netCanvas) return _netCanvas;
+  const c = document.createElement('canvas');
+  c.width = 128; c.height = 64;
+  const g = c.getContext('2d');
+  g.clearRect(0, 0, 128, 64);
+  g.strokeStyle = 'rgba(18,26,18,0.85)'; g.lineWidth = 2;
+  for (let i = 0; i <= 16; i++) { g.beginPath(); g.moveTo(i * 8, 0); g.lineTo(i * 8, 64); g.stroke(); }
+  for (let j = 0; j <= 8; j++) { g.beginPath(); g.moveTo(0, j * 8); g.lineTo(128, j * 8); g.stroke(); }
+  _netCanvas = c;
+  return c;
+}
+
+/** Netzwand als Plane mit gekachelter Maschentextur (~1 Masche/m), unrotiert. */
+function netMesh(len, height) {
+  const tex = new THREE.CanvasTexture(netCanvas());
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.repeat.set(len, height);
+  const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.05, side: THREE.DoubleSide, roughness: 1 });
+  return new THREE.Mesh(new THREE.PlaneGeometry(len, height), mat);
+}
+
 function buildEnclosureFence(group) {
   const { minX, maxX, minZ, maxZ, h } = ENC;
-  const screenH = 2.2;
-  const screenMat = new THREE.MeshStandardMaterial({ color: 0x2f6d42, roughness: 0.95, side: THREE.DoubleSide });
-  const linkMat = new THREE.MeshStandardMaterial({ color: 0x9aa39a, roughness: 0.8, metalness: 0.4, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
   const postMat = new THREE.MeshStandardMaterial({ color: 0x3a3f3a, roughness: 0.7, metalness: 0.3 });
 
-  // `withScreen = false` → chain-link only, full height (used on the north/clubhouse
-  // side so the courts stay visible from the terrace — no green windscreen there).
-  const buildSide = (x1, z1, x2, z2, withScreen = true) => {
+  // Umzäunung als Netzwand (früher Glas-/Windschutzwand) über die volle Höhe h;
+  // der 5. Parameter (früher withScreen) wird nicht mehr gebraucht.
+  const buildSide = (x1, z1, x2, z2) => {
     const len = Math.hypot(x2 - x1, z2 - z1);
     if (len <= 0.01) return;
     const mx = (x1 + x2) / 2, mz = (z1 + z2) / 2;
     const angle = Math.atan2(z2 - z1, x2 - x1);
 
-    if (withScreen) {
-      // green windscreen (lower)
-      const screen = new THREE.Mesh(new THREE.PlaneGeometry(len, screenH), screenMat);
-      screen.position.set(mx, screenH / 2, mz);
-      screen.rotation.y = -angle;
-      group.add(screen);
-      // chain-link (upper)
-      const link = new THREE.Mesh(new THREE.PlaneGeometry(len, h - screenH), linkMat);
-      link.position.set(mx, screenH + (h - screenH) / 2, mz);
-      link.rotation.y = -angle;
-      group.add(link);
-    } else {
-      // chain-link only, full height — courts stay visible from this side.
-      const link = new THREE.Mesh(new THREE.PlaneGeometry(len, h), linkMat);
-      link.position.set(mx, h / 2, mz);
-      link.rotation.y = -angle;
-      group.add(link);
-    }
+    const net = netMesh(len, h);
+    net.position.set(mx, h / 2, mz);
+    net.rotation.y = -angle;
+    group.add(net);
 
     // Posts every ~4 m along the segment.
     const postStep = 4;
@@ -443,6 +451,29 @@ function addCourtDetails(group, cx, index) {
  * aerial layout): one continuous clay surface, per-court line markings + nets,
  * a shared perimeter fence with one north-side gate gap, and 5 floodlight masts.
  */
+/**
+ * Trennnetz zwischen zwei Plätzen: eine `height` m hohe Netzwand entlang Z mit
+ * einer `gap` m breiten Lücke in der Mitte. Pfosten an den Enden und Lücken-
+ * rändern; Kollider entlang der beiden Segmente.
+ */
+function buildCourtDivider(group, x, { height = 2, gap = 5, zEnd = 15 } = {}) {
+  const postMat = new THREE.MeshStandardMaterial({ color: 0x3a3f3a, metalness: 0.4, roughness: 0.6 });
+  const halfGap = gap / 2;
+  const segs = [[-zEnd, -halfGap], [halfGap, zEnd]];
+  for (const [z0, z1] of segs) {
+    const len = z1 - z0, cz = (z0 + z1) / 2;
+    const net = netMesh(len, height);
+    net.rotation.y = Math.PI / 2;   // Ebene entlang Z (Normale = X, Richtung Plätze)
+    net.position.set(x, height / 2, cz);
+    group.add(net);
+    addBox(x - 0.08, z0, x + 0.08, z1);
+  }
+  for (const z of [-zEnd, -halfGap, halfGap, zEnd]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, height + 0.1, 8), postMat);
+    post.position.set(x, (height + 0.1) / 2, z); post.castShadow = true; group.add(post);
+  }
+}
+
 export function buildCourtRow(scene) {
   const group = new THREE.Group();
   scene.add(group);
@@ -464,25 +495,22 @@ export function buildCourtRow(scene) {
     addCourtDetails(group, cx, i);
   }
 
-  // Backless benches + red umbrellas centred in the corridor between adjacent courts.
-  // Bench runs lengthwise along Z (rotY = 90°). A gap that doubles as a gate's
-  // walkable corridor gets its furniture pushed back (z=2/4.5 instead of
-  // 0/2.5) so the gate->court walking line stays clear.
+  // Bank (Z-Achse, rotY = 90°) in jeder Platzlücke; Schirm direkt an das eine
+  // Bankende, Punkteanzeige (Abakus) an das andere.
   for (let i = 0; i < courtX.length - 1; i++) {
     const gapX = (courtX[i] + courtX[i + 1]) / 2;
-    const isGateGap = GATE_X.some((gx) => Math.abs(gapX - gx) < 3);
-    // Bank überall gleich ausrichten (z=0), auch in der Tor-Lücke; nur der
-    // Schirm weicht dort zurück, damit die Tor->Platz-Laufachse frei bleibt.
-    const benchZ = 0, umbrellaZ = isGateGap ? 4.5 : 2.5;
-    buildBenchBackless(group, gapX, benchZ, Math.PI / 2);
-    buildUmbrella(group, gapX, umbrellaZ, 0xc03030);
+    buildBenchBackless(group, gapX, 0, Math.PI / 2);
+    buildUmbrella(group, gapX, 1.15, 0xc03030);
+    // Anzeige um 90° gedreht: zeigt zum Platz (nach +X / östlich anliegender Platz).
+    buildScoreboard(group, gapX, -1.15, Math.PI / 2);
   }
 
   // Extra pair east of court 6, in the corridor between the court and the
   // east fence (x 44.5..48.8: court 6's doubles line ends at 44.485, the
   // east fence collider sits at 48.7).
   buildBenchBackless(group, 46.6, 0, Math.PI / 2);
-  buildUmbrella(group, 46.6, 2.5, 0xc03030);
+  buildUmbrella(group, 46.6, 1.15, 0xc03030);
+  buildScoreboard(group, 46.6, -1.15, -Math.PI / 2); // zeigt nach -X auf Platz 6
 
   buildEnclosureFence(group);
   addFenceColliders();
@@ -496,6 +524,9 @@ export function buildCourtRow(scene) {
   for (const x of [-COURT_PITCH * 2, 0, COURT_PITCH * 2]) {
     buildFloodlight(scene, x, ENC.maxZ + 0.8, 14);
   }
+
+  // Trennnetz (2 m hoch, ~5 m Lücke in der Mitte) zwischen Platz 4 und 5.
+  buildCourtDivider(group, (courtX[3] + courtX[4]) / 2);
 
   return { courtX };
 }
