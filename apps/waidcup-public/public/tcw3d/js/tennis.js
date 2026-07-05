@@ -152,17 +152,18 @@ function buildGateFrame(group, x, z, width, height) {
 let _netCanvas = null;
 function netCanvas() {
   if (_netCanvas) return _netCanvas;
+  const N = 128;
   const c = document.createElement('canvas');
-  c.width = 64; c.height = 64;
+  c.width = N; c.height = N;
   const g = c.getContext('2d');
-  g.clearRect(0, 0, 64, 64);
-  g.strokeStyle = 'rgba(18,26,18,0.85)'; g.lineWidth = 2;
-  // Zwei Scharen 45°-Diagonalen bilden Rautenmaschen; auf dem quadratischen
-  // Canvas nahtlos kachelbar (RepeatWrapping).
-  const s = 8;
-  for (let k = -64; k < 128; k += s) {
-    g.beginPath(); g.moveTo(k, 0); g.lineTo(k + 64, 64); g.stroke();   // Steigung +1
-    g.beginPath(); g.moveTo(k + 64, 0); g.lineTo(k, 64); g.stroke();   // Steigung -1
+  g.clearRect(0, 0, N, N);
+  g.strokeStyle = 'rgba(18,26,18,0.8)'; g.lineWidth = 3;   // dünnere Drähte (relativ zur Masche)
+  // Zwei Scharen 45°-Diagonalen bilden grössere Rautenmaschen; auf dem
+  // quadratischen Canvas nahtlos kachelbar (RepeatWrapping).
+  const s = 32;
+  for (let k = -N; k < 2 * N; k += s) {
+    g.beginPath(); g.moveTo(k, 0); g.lineTo(k + N, N); g.stroke();   // Steigung +1
+    g.beginPath(); g.moveTo(k + N, 0); g.lineTo(k, N); g.stroke();   // Steigung -1
   }
   _netCanvas = c;
   return c;
