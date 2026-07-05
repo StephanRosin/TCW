@@ -109,16 +109,22 @@ function paintTable(ctx: CanvasRenderingContext2D, model: ScreenModel, p: Palett
       y += 40;
     } else {
       ctx.font = `400 26px ${FONT}`;
+      const LINE_H = 30;
       for (const row of section.rows) {
         ctx.fillStyle = p.fg;
+        // Zellen können mehrzeilig sein (Doppel: ein Paar pro Zeile).
+        const cellLines = row.map((cell) => cell.split("\n"));
+        const maxLines = Math.max(1, ...cellLines.map((lines) => lines.length));
         row.forEach((cell, i) => {
           const col = section.columns[i];
           if (!col) return;
           const next = section.columns[i + 1];
           const maxWidth = (next ? next.x : SCREEN_W - PAD) - col.x - 12;
-          ctx.fillText(ellipsize(ctx, cell, maxWidth), col.x, y);
+          cellLines[i]!.forEach((line, li) => {
+            ctx.fillText(ellipsize(ctx, line, maxWidth), col.x, y + li * LINE_H);
+          });
         });
-        y += 40;
+        y += maxLines * LINE_H + 10;
       }
       if (section.note) {
         ctx.fillStyle = p.muted;

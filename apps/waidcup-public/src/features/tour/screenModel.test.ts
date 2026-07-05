@@ -6,7 +6,7 @@ import {
   buildLiveModel,
   buildLocationModel,
   buildOrderOfPlayModel,
-  LIVE_COLUMNS,
+  BOARD_COLUMNS,
   MAX_SECTION_ROWS,
 } from "./screenModel.js";
 
@@ -44,8 +44,23 @@ test("buildOrderOfPlayModel: Light, zwei Sektionen Jetzt/Danach", () => {
   assert.equal(model.sections!.length, 2);
   assert.equal(model.sections![0]!.heading, "board.now");
   assert.equal(model.sections![1]!.heading, "board.next");
-  // Match-Zelle "a/b vs c/d"; Order of Play hat die Kategorie-Spalte (4 Zellen).
-  assert.deepEqual(model.sections![0]!.rows[0], ["1", "09:00", "Ann A vs Bea B", "Herren R1/R5"]);
+  // Einzel: einzeilige Match-Zelle; drei Spalten (Platz, Uhrzeit, Match).
+  assert.deepEqual(model.sections![0]!.rows[0], ["1", "09:00", "Ann A vs Bea B"]);
+});
+
+test("buildOrderOfPlayModel: Doppel wird zweizeilig (ein Paar pro Zeile)", () => {
+  const dbl: WaidcupLiveMatch = {
+    court: "1",
+    eventName: "Herren Doppel",
+    side1Names: ["A A", "C C"],
+    side2Names: ["B B", "D D"],
+    scheduledDate: "2026-07-18",
+    scheduledTime: "09:00",
+  };
+  const model = buildOrderOfPlayModel(live([dbl], []), t);
+  const matchCell = model.sections![0]!.rows[0]![2]!;
+  assert.equal(matchCell, "A A / C C\nvs B B / D D");
+  assert.ok(matchCell.includes("\n"), "Doppel-Matchup ist zweizeilig");
 });
 
 test("buildOrderOfPlayModel: jede Sektion nach Platz 1-6 sortiert", () => {
@@ -71,7 +86,7 @@ test("buildLiveModel: Light, breite Spalten ohne Kategorie (3 Spalten)", () => {
   const model = buildLiveModel(live([match("2", "11:00", ["Now1"], ["Now2"])], [match("3", "12:00", ["Up1"], ["Up2"])]), t);
   assert.equal(model.theme, "light");
   assert.equal(model.sections!.length, 2);
-  assert.equal(model.sections![0]!.columns.length, LIVE_COLUMNS.length);
+  assert.equal(model.sections![0]!.columns.length, BOARD_COLUMNS.length);
   assert.equal(model.sections![0]!.columns.length, 3, "keine Kategorie-Spalte");
   assert.equal(model.sections![0]!.rows[0]![2], "Now1 vs Now2");
   assert.equal(model.sections![1]!.rows[0]![2], "Up1 vs Up2");

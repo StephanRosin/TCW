@@ -36,29 +36,33 @@ export interface ScreenModel {
   sections?: TableSection[];
 }
 
-/** Spalten der Order-of-Play-Tafel (x in Canvas-Pixeln bei 1000 Breite, 48 Rand). */
+/**
+ * Board-Spalten bei 1000px Canvasbreite (48 Rand): Platz, Uhrzeit, Match. Die
+ * Match-Spalte nutzt die volle Restbreite (kein Kategorie-Feld), damit die
+ * Namen ausgeschrieben Platz haben – für Order of Play wie für Live.
+ */
 export const BOARD_COLUMNS: TableColumn[] = [
   { header: "kiosk.colCourt", x: 48 },
-  { header: "kiosk.colTime", x: 150 },
-  { header: "kiosk.colMatch", x: 280 },
-  { header: "kiosk.colEvent", x: 720 },
-];
-
-/** Live nutzt die volle Breite für die Namen (keine Kategorie-Spalte). */
-export const LIVE_COLUMNS: TableColumn[] = [
-  { header: "kiosk.colCourt", x: 48 },
-  { header: "kiosk.colTime", x: 150 },
-  { header: "kiosk.colMatch", x: 280 },
+  { header: "kiosk.colTime", x: 160 },
+  { header: "kiosk.colMatch", x: 300 },
 ];
 
 export const MAX_SECTION_ROWS = 6;
 
+/**
+ * Matchup-Text. Einzel bleibt einzeilig ("A vs B"); Doppel wird zweizeilig
+ * (ein Paar pro Zeile), damit die vier Namen nicht abgeschnitten werden. Der
+ * Zeilenumbruch ("\n") wird vom Painter interpretiert.
+ */
 function matchup(m: WaidcupLiveMatch): string {
-  return `${m.side1Names.join("/")} vs ${m.side2Names.join("/")}`;
+  const side1 = m.side1Names.join(" / ");
+  const side2 = m.side2Names.join(" / ");
+  const isDoubles = m.side1Names.length > 1 || m.side2Names.length > 1;
+  return isDoubles ? `${side1}\nvs ${side2}` : `${side1} vs ${side2}`;
 }
 
 function matchRow(m: WaidcupLiveMatch): string[] {
-  return [m.court, m.scheduledTime, matchup(m), m.eventName];
+  return [m.court, m.scheduledTime, matchup(m)];
 }
 
 /** Platznummer aus dem Platz-String ("Platz 2" -> 2), für die 1-6-Sortierung. */
@@ -133,5 +137,5 @@ export function buildOrderOfPlayModel(live: WaidcupLiveResponse, t: Translate): 
 }
 
 export function buildLiveModel(live: WaidcupLiveResponse, t: Translate): ScreenModel {
-  return buildBoard(t("nav.live"), LIVE_COLUMNS, live, t);
+  return buildBoard(t("nav.live"), BOARD_COLUMNS, live, t);
 }
