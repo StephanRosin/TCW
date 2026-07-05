@@ -13,6 +13,7 @@
   "tour.start": "Start 3D tour",
   "tour.startHint": "Walk through the club virtually. The tour needs a mouse and keyboard.",
   "tour.loadError": "The 3D tour could not be loaded.",
+  "tour.desktopOnly": "The 3D tour is only available on desktop (mouse and keyboard required).",
   "footer.imprint": "Imprint: Stephan Rosin",
   "footer.language": "Language",
   "language.de": "Deutsch",

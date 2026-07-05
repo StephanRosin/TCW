@@ -13,6 +13,7 @@
   "tour.start": "Démarrer la visite 3D",
   "tour.startHint": "Parcourez le club virtuellement. La visite nécessite une souris et un clavier.",
   "tour.loadError": "La visite 3D n'a pas pu être chargée.",
+  "tour.desktopOnly": "La visite 3D n'est disponible que sur ordinateur (souris et clavier requis).",
   "footer.imprint": "Impressum : Stephan Rosin",
   "footer.language": "Langue",
   "language.de": "Deutsch",

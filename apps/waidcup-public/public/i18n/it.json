@@ -13,6 +13,7 @@
   "tour.start": "Avvia il tour 3D",
   "tour.startHint": "Esplora il club virtualmente. Il tour richiede mouse e tastiera.",
   "tour.loadError": "Impossibile caricare il tour 3D.",
+  "tour.desktopOnly": "Il tour 3D è disponibile solo su desktop (mouse e tastiera necessari).",
   "footer.imprint": "Impressum: Stephan Rosin",
   "footer.language": "Lingua",
   "language.de": "Deutsch",

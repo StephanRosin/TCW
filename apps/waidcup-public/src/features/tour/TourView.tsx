@@ -5,6 +5,7 @@
  */
 import { useCallback, useRef, useState, type JSX } from "react";
 import { useI18n } from "@tcw/tournament-ui";
+import { useIsMobile } from "../../hooks/useIsMobile.js";
 import { useScreenDriver } from "./screenDriver.js";
 
 export function TourView(): JSX.Element {
@@ -15,6 +16,16 @@ export function TourView(): JSX.Element {
 
   const getWindow = useCallback(() => iframeRef.current?.contentWindow ?? null, []);
   useScreenDriver(getWindow, t, started && !failed);
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <section className="tour tour--intro">
+        <h2 className="tour__title">{t("nav.tour")}</h2>
+        <p className="tour__lead">{t("tour.desktopOnly")}</p>
+      </section>
+    );
+  }
 
   if (!started) {
     return (
