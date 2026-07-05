@@ -25,57 +25,7 @@ const GATE_H = 2.2;
 const GATE_X = [-31.2];
 
 // Shared materials / textures (built once, reused across all 6 courts).
-let _lineMat, _netMat, _ballMat, _brushMat;
-
-function lineMaterial() {
-  if (_lineMat) return _lineMat;
-  const ppm = 32;                       // pixels per metre (höher = schärfere Linien)
-  const pad = 0.6;                       // metre margin around court
-  const W = Math.round((COURT_W + pad * 2) * ppm);
-  const H = Math.round((COURT_L + pad * 2) * ppm);
-  const c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const g = c.getContext('2d');
-  g.clearRect(0, 0, W, H);
-  g.translate(W / 2, H / 2);           // origin at court centre
-  g.strokeStyle = '#f4f4f0';
-  g.lineWidth = Math.max(2, 0.05 * ppm);
-  g.lineCap = 'square';
-
-  const m = (v) => v * ppm;
-  const dW = COURT_W / 2, sW = SINGLES_W / 2, hL = COURT_L / 2, svc = SERVICE_FROM_NET;
-
-  const rect = (x, y, w, h) => g.strokeRect(m(x), m(y), m(w), m(h));
-  const line = (x1, y1, x2, y2) => { g.beginPath(); g.moveTo(m(x1), m(y1)); g.lineTo(m(x2), m(y2)); g.stroke(); };
-
-  // Doubles boundary
-  rect(-dW, -hL, COURT_W, COURT_L);
-  // Singles sidelines
-  line(-sW, -hL, -sW, hL);
-  line(sW, -hL, sW, hL);
-  // Service lines
-  line(-sW, -svc, sW, -svc);
-  line(-sW, svc, sW, svc);
-  // Centre service line
-  line(0, -svc, 0, svc);
-  // Centre marks on baselines
-  line(0, -hL, 0, -hL + 0.3);
-  line(0, hL, 0, hL - 0.3);
-
-  const tex = new THREE.CanvasTexture(c);
-  // Hohe Anisotropie: Linien werden im flachen Blickwinkel (aus Augenhöhe den
-  // Platz entlang) sonst stark minifiziert und verschwinden.
-  tex.anisotropy = 16;
-  // Opaque-with-cutout statt alpha-blended (kein Transparent-Sort-Konflikt mit
-  // dem Klubhaus-Glas). Der alphaTest-Schwellwert ist bewusst niedrig (0.2):
-  // mit 0.5 fielen aus der Distanz mipgemittelte, dünne Linien unter die
-  // Schwelle und wurden verworfen (verschwanden/wirkten gestrichelt). Der Linien-
-  // Layer liegt bei y=0.035 über dem Sand, daher kein Z-Fighting.
-  _lineMat = new THREE.MeshBasicMaterial({ map: tex, alphaTest: 0.2, transparent: false });
-  _lineMat._planeW = COURT_W + pad * 2;
-  _lineMat._planeH = COURT_L + pad * 2;
-  return _lineMat;
-}
+let _netMat, _ballMat, _brushMat;
 
 function netMaterial() {
   if (_netMat) return _netMat;
@@ -113,14 +63,37 @@ function brushMaterial() {
   return _brushMat;
 }
 
+/**
+ * Spielfeldlinien als flache Geometrie-Streifen (statt einer Linientextur): so
+ * werden sie auch aus der Distanz/bei flachem Blickwinkel immer durchgehend
+ * gerastert (mit MSAA), ohne das Mipmap-Verschwinden/Stricheln einer Textur.
+ */
+function buildCourtLines(group, cx) {
+  const lw = 0.05;                        // Linienbreite (m)
+  const dW = COURT_W / 2, sW = SINGLES_W / 2, hL = COURT_L / 2, svc = SERVICE_FROM_NET;
+  const mat = new THREE.MeshBasicMaterial({ color: 0xf4f4f0 });
+  const strip = (x, z, w, l) => {
+    const s = new THREE.Mesh(new THREE.PlaneGeometry(w, l), mat);
+    s.rotation.x = -Math.PI / 2;         // flach auf den Platz legen
+    s.position.set(cx + x, 0.036, z);
+    group.add(s);
+  };
+  strip(0, -hL, COURT_W + lw, lw);        // Grundlinie Nord
+  strip(0, hL, COURT_W + lw, lw);         // Grundlinie Süd
+  strip(-dW, 0, lw, COURT_L);             // Doppel-Seitenlinie West
+  strip(dW, 0, lw, COURT_L);              // Doppel-Seitenlinie Ost
+  strip(-sW, 0, lw, COURT_L);             // Einzel-Seitenlinie West
+  strip(sW, 0, lw, COURT_L);              // Einzel-Seitenlinie Ost
+  strip(0, -svc, SINGLES_W, lw);          // Aufschlaglinie Nord
+  strip(0, svc, SINGLES_W, lw);           // Aufschlaglinie Süd
+  strip(0, 0, lw, 2 * svc);               // T-/Mittellinie
+  strip(0, -hL + 0.15, lw, 0.3);          // Mittelmarke Grundlinie Nord
+  strip(0, hL - 0.15, lw, 0.3);           // Mittelmarke Grundlinie Süd
+}
+
 /** Line markings + net for one court centred at world x = cx (net runs along X at z = 0). */
 function addCourtMarkings(group, cx) {
-  const lm = lineMaterial();
-  const lines = new THREE.Mesh(new THREE.PlaneGeometry(lm._planeW, lm._planeH), lm);
-  lines.rotation.x = -Math.PI / 2;
-  lines.position.set(cx, 0.035, 0);
-  group.add(lines);
-
+  buildCourtLines(group, cx);
   addNet(group, cx);
 }
 
