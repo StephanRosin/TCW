@@ -128,6 +128,8 @@ export function buildInfosModel(t: Translate): ScreenModel {
     { text: t("infos.hint4") },
     { text: t("infos.hint5") },
     { text: t("infos.hint6") },
+    // hint8 + Merkblatt-Hinweis als Text (der PDF-Link ist auf der Wand nicht klickbar).
+    { text: `${t("infos.hint8")} ${t("infos.hintPdf")}` },
   ];
   return { title: t("nav.infos"), theme: "light", layout: "text", textLines };
 }
