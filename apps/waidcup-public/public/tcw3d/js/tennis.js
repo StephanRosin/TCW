@@ -501,8 +501,9 @@ export function buildCourtRow(scene) {
     const gapX = (courtX[i] + courtX[i + 1]) / 2;
     buildBenchBackless(group, gapX, 0, Math.PI / 2);
     buildUmbrella(group, gapX, 1.15, 0xc03030);
-    // Anzeige um 90° gedreht: zeigt zum Platz (nach +X / östlich anliegender Platz).
-    buildScoreboard(group, gapX, -1.15, Math.PI / 2);
+    // Anzeige zeigt nach -X in den westlich anliegenden Platz – so hat jeder
+    // der Plätze 1-6 eine ihm zugewandte Tafel.
+    buildScoreboard(group, gapX, -1.15, -Math.PI / 2);
   }
 
   // Extra pair east of court 6, in the corridor between the court and the
@@ -525,8 +526,8 @@ export function buildCourtRow(scene) {
     buildFloodlight(scene, x, ENC.maxZ + 0.8, 14);
   }
 
-  // Trennnetz (2 m hoch, ~5 m Lücke in der Mitte) zwischen Platz 4 und 5.
-  buildCourtDivider(group, (courtX[3] + courtX[4]) / 2);
+  // Trennnetz (2 m hoch, ~7 m Lücke in der Mitte) zwischen Platz 4 und 5.
+  buildCourtDivider(group, (courtX[3] + courtX[4]) / 2, { gap: 7 });
 
   return { courtX };
 }
