@@ -471,7 +471,9 @@ export function buildCourtRow(scene) {
   for (let i = 0; i < courtX.length - 1; i++) {
     const gapX = (courtX[i] + courtX[i + 1]) / 2;
     const isGateGap = GATE_X.some((gx) => Math.abs(gapX - gx) < 3);
-    const benchZ = isGateGap ? 2 : 0, umbrellaZ = isGateGap ? 4.5 : 2.5;
+    // Bank überall gleich ausrichten (z=0), auch in der Tor-Lücke; nur der
+    // Schirm weicht dort zurück, damit die Tor->Platz-Laufachse frei bleibt.
+    const benchZ = 0, umbrellaZ = isGateGap ? 4.5 : 2.5;
     buildBenchBackless(group, gapX, benchZ, Math.PI / 2);
     buildUmbrella(group, gapX, umbrellaZ, 0xc03030);
   }

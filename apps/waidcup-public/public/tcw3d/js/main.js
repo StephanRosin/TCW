@@ -54,7 +54,7 @@ const { startPos, lookTarget } = buildEntrance(scene);
 const screenPanels = buildScreens(scene);
 
 // --- Forest ring ---
-buildForest(scene, 650, 75, 220);
+buildForest(scene, 1000, 64, 230);
 
 // --- Player ---
 const player = createPlayer(camera, renderer.domElement, startPos, lookTarget);

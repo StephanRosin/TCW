@@ -524,10 +524,10 @@ function buildRailing(scene, minX, maxX, z, baseY) {
  * the facade beyond the window band (a logo rondell, a sign board, ...).
  * Returns the footprint so the caller can add its own furniture/terrace.
  */
-function buildLongBuilding(scene, cx, cz, { signage } = {}) {
+function buildLongBuilding(scene, cx, cz, { signage, floors = 1 } = {}) {
   const p = PLATEAU;
   const baseY = p.h;   // 1.5 — plateau top
-  const bw = 42, bd = 7, bh = 3.6;
+  const bw = 42, bd = 7, floorH = 3.6, bh = floorH * floors;
   const southZ = cz + bd / 2;   // facing the courts, +Z
   const northZ = cz - bd / 2;   // back of the building
 
@@ -546,27 +546,48 @@ function buildLongBuilding(scene, cx, cz, { signage } = {}) {
   // Flat overhanging roof
   const roof = new THREE.Mesh(new THREE.BoxGeometry(bw + 1, 0.25, bd + 1),
     new THREE.MeshStandardMaterial({ color: 0x3c3630, roughness: 0.8 }));
-  roof.position.set(cx, 5.2, cz);
+  roof.position.set(cx, baseY + bh + 0.1, cz);
   roof.castShadow = true; scene.add(roof);
 
-  // White window band along the south facade (local y 1.6..2.6 -> world 3.1..4.1)
-  const bandMat = new THREE.MeshStandardMaterial({ color: 0xf4f2ec, roughness: 0.6, emissive: 0x2a281f, emissiveIntensity: 0.12 });
-  const band = new THREE.Mesh(new THREE.PlaneGeometry(38, 1.0), bandMat);
-  band.position.set(cx, baseY + 2.1, southZ + 0.02);
-  scene.add(band);
+  // Satteldach oben drauf (First entlang der Längsseite). Als Dreiecks-Prisma
+  // per ExtrudeGeometry gebaut, mit leichtem Dach- und Giebelüberstand.
+  const roofPeak = 2.4;
+  const halfD = bd / 2 + 0.6;
+  const gableLen = bw + 1.2;
+  const gableShape = new THREE.Shape();
+  gableShape.moveTo(-halfD, 0);
+  gableShape.lineTo(halfD, 0);
+  gableShape.lineTo(0, roofPeak);
+  gableShape.lineTo(-halfD, 0);
+  const gableGeo = new THREE.ExtrudeGeometry(gableShape, { depth: gableLen, bevelEnabled: false });
+  gableGeo.translate(0, 0, -gableLen / 2);
+  gableGeo.rotateY(Math.PI / 2);
+  const gable = new THREE.Mesh(gableGeo, new THREE.MeshStandardMaterial({ color: 0x6b4a38, roughness: 0.85 }));
+  gable.position.set(cx, baseY + bh + 0.2, cz);
+  gable.castShadow = true; gable.receiveShadow = true;
+  scene.add(gable);
 
   // Darker glass insets over the band. depthWrite: false + a later
   // renderOrder keeps this transparent pane from competing unpredictably
   // with other transparent objects (e.g. the court lines/net used to lose
   // that sort and disappear when viewed through the glass).
+  const bandMat = new THREE.MeshStandardMaterial({ color: 0xf4f2ec, roughness: 0.6, emissive: 0x2a281f, emissiveIntensity: 0.12 });
   const glassMat = new THREE.MeshStandardMaterial({ color: 0x6fa0c8, roughness: 0.2, metalness: 0.3, transparent: true, opacity: 0.65, depthWrite: false });
   const insetCount = 7, insetW = 3.6, bandW = 38;
-  for (let i = 0; i < insetCount; i++) {
-    const t = (i + 0.5) / insetCount - 0.5;
-    const inset = new THREE.Mesh(new THREE.PlaneGeometry(insetW, 0.8), glassMat);
-    inset.position.set(cx + t * bandW, baseY + 2.1, southZ + 0.03);
-    inset.renderOrder = 1;
-    scene.add(inset);
+  // Fensterband + Glaseinsätze nur im Erdgeschoss – die obere Etage (falls
+  // vorhanden) bleibt bewusst fensterlos.
+  {
+    const bandY = baseY + 2.1;
+    const band = new THREE.Mesh(new THREE.PlaneGeometry(38, 1.0), bandMat);
+    band.position.set(cx, bandY, southZ + 0.02);
+    scene.add(band);
+    for (let i = 0; i < insetCount; i++) {
+      const t = (i + 0.5) / insetCount - 0.5;
+      const inset = new THREE.Mesh(new THREE.PlaneGeometry(insetW, 0.8), glassMat);
+      inset.position.set(cx + t * bandW, bandY, southZ + 0.03);
+      inset.renderOrder = 1;
+      scene.add(inset);
+    }
   }
 
   signage?.(scene, cx, baseY, southZ);
@@ -600,6 +621,7 @@ export function buildClubhouse(scene) {
   const bx = -23.4, bz = -39.5;
 
   const { baseY } = buildLongBuilding(scene, bx, bz, {
+    floors: 2,
     signage: (scene, cx, baseY, southZ) => {
       // TCW logo rondell on the south facade (faces +Z toward the courts, no
       // rotation needed) — true colours, no tinting/transparency.
@@ -816,22 +838,24 @@ export function buildRestaurant(scene) {
  * edge, cheap insurance everywhere else since the ground is flat there).
  */
 export function buildForest(scene, count = 650, innerR = 75, outerR = 220) {
-  // Conifer: trunk cone stack — we approximate with a single tall cone + trunk merged look.
-  const coniferGeo = new THREE.ConeGeometry(2.4, 9, 7);
-  coniferGeo.translate(0, 5.4, 0);
-  const coniferMat = new THREE.MeshStandardMaterial({ color: 0x2b4d2a, roughness: 1, flatShading: true });
+  // Mischwald: ausschliesslich runde Laubbaum-Kronen (keine Nadelbäume/Tannen),
+  // in drei Grössen für Form- und Höhenvariation – insgesamt deutlich höher.
+  // (Die drei Slot-Namen bleiben aus Kompatibilität, meinen aber alle Laubbäume.)
+  const coniferGeo = new THREE.IcosahedronGeometry(4.0, 0);
+  coniferGeo.translate(0, 9.5, 0);
+  const coniferMat = new THREE.MeshStandardMaterial({ color: 0x3f7532, roughness: 1, flatShading: true });
 
-  const broadGeo = new THREE.IcosahedronGeometry(3.2, 0);
-  broadGeo.translate(0, 6.5, 0);
-  const broadMat = new THREE.MeshStandardMaterial({ color: 0x3f7532, roughness: 1, flatShading: true });
+  const broadGeo = new THREE.IcosahedronGeometry(3.3, 0);
+  broadGeo.translate(0, 8, 0);
+  const broadMat = new THREE.MeshStandardMaterial({ color: 0x4c8a3a, roughness: 1, flatShading: true });
 
-  // Tall spruce: a slender, much taller cone for height variety at the tree line.
-  const spruceGeo = new THREE.ConeGeometry(1.6, 13, 7);
-  spruceGeo.translate(0, 7.5, 0);
-  const spruceMat = new THREE.MeshStandardMaterial({ color: 0x24402a, roughness: 1, flatShading: true });
+  // Grosse, hohe Krone für markante Höhe an der Baumgrenze.
+  const spruceGeo = new THREE.IcosahedronGeometry(5.2, 0);
+  spruceGeo.translate(0, 12.5, 0);
+  const spruceMat = new THREE.MeshStandardMaterial({ color: 0x356a2c, roughness: 1, flatShading: true });
 
-  const trunkGeo = new THREE.CylinderGeometry(0.28, 0.36, 4, 6);
-  trunkGeo.translate(0, 2, 0);
+  const trunkGeo = new THREE.CylinderGeometry(0.3, 0.44, 7, 6);
+  trunkGeo.translate(0, 3.5, 0);
   const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5b4127, roughness: 1 });
 
   // 8-10 individual trees close behind the south/west fence (outside the
@@ -868,7 +892,7 @@ export function buildForest(scene, count = 650, innerR = 75, outerR = 220) {
 
   let ci = 0, bi = 0, si = 0, ti = 0;
   const placeTree = (i, x, z) => {
-    const s = 0.7 + rand(i + 3.1) * 0.9;
+    const s = 0.95 + rand(i + 3.1) * 0.9;
     const rot = rand(i + 5.5) * Math.PI * 2;
 
     dummy.position.set(x, groundHeight(x, z), z);
@@ -880,15 +904,15 @@ export function buildForest(scene, count = 650, innerR = 75, outerR = 220) {
     const typeRoll = rand(i + 9.9);
     if (typeRoll < 0.4) {
       conifer.setMatrixAt(ci, dummy.matrix);
-      setVariedColor(conifer, ci, 0x2b4d2a, i + 11.2);
+      setVariedColor(conifer, ci, 0x3f7532, i + 11.2);
       ci++;
     } else if (typeRoll < 0.72) {
       broad.setMatrixAt(bi, dummy.matrix);
-      setVariedColor(broad, bi, 0x3f7532, i + 11.2);
+      setVariedColor(broad, bi, 0x4c8a3a, i + 11.2);
       bi++;
     } else {
       spruce.setMatrixAt(si, dummy.matrix);
-      setVariedColor(spruce, si, 0x24402a, i + 11.2);
+      setVariedColor(spruce, si, 0x356a2c, i + 11.2);
       si++;
     }
   };
