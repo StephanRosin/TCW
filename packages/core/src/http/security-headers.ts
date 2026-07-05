@@ -4,9 +4,16 @@
  * Framework-unabhängig als einfache Schlüssel/Wert-Tabelle, damit beide Server
  * (Fastify) sie über einen onSend-Hook setzen können.
  */
+// SHA-256 der inline <script type="importmap"> des 3D-Rundgangs
+// (apps/waidcup-public/public/tcw3d/index.html). Erlaubt genau dieses eine
+// Inline-Skript unter strenger CSP (kein 'unsafe-inline'); ohne die Importmap
+// kann die 3D-App den Bare-Specifier "three" nicht auflösen. Ein Guard-Test
+// berechnet den Hash aus der index.html neu (bricht bei künftigem Drift).
+export const TCW3D_IMPORTMAP_HASH = "sha256-xYMmED1D3yo68reiI6d0pzfkimg21wG1wTBh9Sl7jVQ=";
+
 const PUBLIC_CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
-  "script-src 'self'",
+  `script-src 'self' '${TCW3D_IMPORTMAP_HASH}'`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self'",
