@@ -29,25 +29,11 @@ let _netMat, _ballMat, _brushMat;
 
 function netMaterial() {
   if (_netMat) return _netMat;
-  const c = document.createElement('canvas');
-  c.width = 256; c.height = 64;
-  const g = c.getContext('2d');
-  g.clearRect(0, 0, 256, 64);
-  // fine mesh
-  g.strokeStyle = 'rgba(20,20,20,0.55)';
-  g.lineWidth = 1;
-  for (let x = 0; x <= 256; x += 5) { g.beginPath(); g.moveTo(x, 6); g.lineTo(x, 64); g.stroke(); }
-  for (let y = 6; y <= 64; y += 5) { g.beginPath(); g.moveTo(0, y); g.lineTo(256, y); g.stroke(); }
-  // white top band
-  g.fillStyle = '#f2f2ee';
-  g.fillRect(0, 0, 256, 6);
-  const tex = new THREE.CanvasTexture(c);
-  tex.wrapS = THREE.RepeatWrapping;
-  tex.repeat.set(10, 1);
-  // Same opaque-with-cutout treatment as the court lines, so the net
-  // doesn't lose the transparent-sort race against the clubhouse window
-  // glass either.
-  _netMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, alphaTest: 0.4, transparent: false });
+  // Halbtransparentes dunkles Netz statt feiner Maschentextur: die feine
+  // Maschen-Cutout-Textur wurde aus Distanz/flachem Winkel zu einem pixeligen
+  // Dither-„Balken" minifiziert. depthWrite:false, damit Objekte dahinter
+  // durchscheinen; renderOrder wird beim Mesh gesetzt.
+  _netMat = new THREE.MeshBasicMaterial({ color: 0x161616, transparent: true, opacity: 0.4, side: THREE.DoubleSide, depthWrite: false });
   return _netMat;
 }
 
@@ -104,7 +90,17 @@ function addNet(group, cx) {
   // Net fabric
   const net = new THREE.Mesh(new THREE.PlaneGeometry(halfLen * 2, netH), netMaterial());
   net.position.set(cx, netH / 2, 0);
+  net.renderOrder = 1;
   group.add(net);
+
+  // White tape top (Kopfband)
+  const topTape = new THREE.Mesh(
+    new THREE.BoxGeometry(halfLen * 2, 0.06, 0.03),
+    new THREE.MeshBasicMaterial({ color: 0xf2f2ee })
+  );
+  topTape.position.set(cx, netH, 0);
+  topTape.castShadow = true;
+  group.add(topTape);
 
   // White tape reinforcement bottom
   const band = new THREE.Mesh(
@@ -127,6 +123,10 @@ function addNet(group, cx) {
     new THREE.MeshBasicMaterial({ color: 0xf2f2ee }));
   strap.position.set(cx, netH / 2, 0);
   group.add(strap);
+
+  // Kollision: dünne Box entlang des Netzes, damit man nicht hindurchlaufen kann
+  // (um das Netz herum bleibt über die Platzlücken frei).
+  addBox(cx - halfLen, -0.06, cx + halfLen, 0.06);
 }
 
 /** Visual door frame (uprights + lintel) marking a gate opening in the fence. */
@@ -295,7 +295,7 @@ function bannerTexture({ text, bg = '#1c5c34', fg = '#ffffff', sub = '' }) {
 const WAIDCUP_BANNER = { text: 'WAIDCUP', sub: '18.–26. Juli 2026', bg: '#3d8f3d' };
 
 // Windscreen band is 2.2 m tall (see buildEnclosureFence) — banners sit centred in it.
-const BANNER_Y = 1.2;
+const BANNER_Y = ENC.h * 0.8;   // ~2/3 der erhöhten Zaunhöhe (fenceH = h*1.2)
 const SCREEN_OFFSET = 0.06;   // clearance off the windscreen, toward the court interior
 
 function makeBannerMesh(banner, w = 6, h = 1.5) {
