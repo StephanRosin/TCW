@@ -153,17 +153,22 @@ let _netCanvas = null;
 function netCanvas() {
   if (_netCanvas) return _netCanvas;
   const c = document.createElement('canvas');
-  c.width = 128; c.height = 64;
+  c.width = 64; c.height = 64;
   const g = c.getContext('2d');
-  g.clearRect(0, 0, 128, 64);
+  g.clearRect(0, 0, 64, 64);
   g.strokeStyle = 'rgba(18,26,18,0.85)'; g.lineWidth = 2;
-  for (let i = 0; i <= 16; i++) { g.beginPath(); g.moveTo(i * 8, 0); g.lineTo(i * 8, 64); g.stroke(); }
-  for (let j = 0; j <= 8; j++) { g.beginPath(); g.moveTo(0, j * 8); g.lineTo(128, j * 8); g.stroke(); }
+  // Zwei Scharen 45°-Diagonalen bilden Rautenmaschen; auf dem quadratischen
+  // Canvas nahtlos kachelbar (RepeatWrapping).
+  const s = 8;
+  for (let k = -64; k < 128; k += s) {
+    g.beginPath(); g.moveTo(k, 0); g.lineTo(k + 64, 64); g.stroke();   // Steigung +1
+    g.beginPath(); g.moveTo(k + 64, 0); g.lineTo(k, 64); g.stroke();   // Steigung -1
+  }
   _netCanvas = c;
   return c;
 }
 
-/** Netzwand als Plane mit gekachelter Maschentextur (~1 Masche/m), unrotiert. */
+/** Netzwand als Plane mit gekachelter Rautenmaschen-Textur, unrotiert. */
 function netMesh(len, height) {
   const tex = new THREE.CanvasTexture(netCanvas());
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
@@ -175,18 +180,18 @@ function netMesh(len, height) {
 
 function buildEnclosureFence(group) {
   const { minX, maxX, minZ, maxZ, h } = ENC;
+  const fenceH = h * 1.2;   // Zäune 20% höher als die Grundhöhe h
   const postMat = new THREE.MeshStandardMaterial({ color: 0x3a3f3a, roughness: 0.7, metalness: 0.3 });
 
-  // Umzäunung als Netzwand (früher Glas-/Windschutzwand) über die volle Höhe h;
-  // der 5. Parameter (früher withScreen) wird nicht mehr gebraucht.
+  // Umzäunung als Rautennetz-Wand über die volle (erhöhte) Höhe fenceH.
   const buildSide = (x1, z1, x2, z2) => {
     const len = Math.hypot(x2 - x1, z2 - z1);
     if (len <= 0.01) return;
     const mx = (x1 + x2) / 2, mz = (z1 + z2) / 2;
     const angle = Math.atan2(z2 - z1, x2 - x1);
 
-    const net = netMesh(len, h);
-    net.position.set(mx, h / 2, mz);
+    const net = netMesh(len, fenceH);
+    net.position.set(mx, fenceH / 2, mz);
     net.rotation.y = -angle;
     group.add(net);
 
@@ -196,23 +201,34 @@ function buildEnclosureFence(group) {
     for (let i = 0; i <= n; i++) {
       const t = i / n;
       const px = x1 + (x2 - x1) * t, pz = z1 + (z2 - z1) * t;
-      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, h, 8), postMat);
-      p.position.set(px, h / 2, pz);
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, fenceH, 8), postMat);
+      p.position.set(px, fenceH / 2, pz);
       p.castShadow = true;
       group.add(p);
     }
   };
 
-  // South, west, east — full, unbroken sides with windscreen + chain-link.
+  // South, west, east — durchgehende Seiten.
   buildSide(minX, maxZ, maxX, maxZ);   // south
   buildSide(minX, minZ, minX, maxZ);   // west
   buildSide(maxX, minZ, maxX, maxZ);   // east
 
-  // North (clubhouse side) — chain-link only, two segments open at the gate.
-  buildSide(minX, minZ, GATE_X[0] - GATE_W / 2, minZ, false);
-  buildSide(GATE_X[0] + GATE_W / 2, minZ, maxX, minZ, false);
+  // North (Klubhaus-Seite) — zwei Segmente, an der Tor-Lücke offen.
+  buildSide(minX, minZ, GATE_X[0] - GATE_W / 2, minZ);
+  buildSide(GATE_X[0] + GATE_W / 2, minZ, maxX, minZ);
 
   for (const gx of GATE_X) buildGateFrame(group, gx, minZ, GATE_W, GATE_H);
+
+  // Über der Tor-Öffnung (am Ende der Treppe) läuft der Zaun oben weiter – nur
+  // die Durchgangshöhe (GATE_H) bleibt offen.
+  const topH = fenceH - GATE_H;
+  if (topH > 0.05) {
+    for (const gx of GATE_X) {
+      const top = netMesh(GATE_W, topH);
+      top.position.set(gx, GATE_H + topH / 2, minZ);   // Nordseite entlang X -> keine Rotation
+      group.add(top);
+    }
+  }
 }
 
 /** Perimeter collision boxes, with one 2.2 m gate gap in the north side. */
