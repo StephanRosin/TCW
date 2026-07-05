@@ -84,12 +84,23 @@ export function createPlayer(camera, dom, startPos, lookAt) {
     wasLocked = locked;
   });
 
+  // Pointer Lock möglichst ohne OS-Mausbeschleunigung anfordern
+  // (unadjustedMovement = rohe 1:1-Bewegung). Unterstützt der Browser die
+  // Option nicht, wird auf normalen Pointer Lock zurückgefallen; scheitert auch
+  // das (z. B. im Frame verweigert), greift weiterhin der Drag-Look.
+  function requestLock() {
+    if (!dom.requestPointerLock) return;
+    Promise.resolve(dom.requestPointerLock({ unadjustedMovement: true })).catch((err) => {
+      if (err && err.name === 'NotSupportedError') {
+        Promise.resolve(dom.requestPointerLock()).catch(() => {});
+      }
+    });
+  }
+
   function start() {
     started = true;
     document.body.classList.add('locked');
-    // Attempt pointer lock; harmless if the frame denies it (drag mode still works).
-    const p = dom.requestPointerLock?.();
-    if (p && typeof p.catch === 'function') p.catch(() => {});
+    requestLock();
   }
   function stop() {
     if (!started) return;
