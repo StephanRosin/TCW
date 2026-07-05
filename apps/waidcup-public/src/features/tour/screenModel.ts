@@ -48,6 +48,8 @@ export const BOARD_COLUMNS: TableColumn[] = [
 ];
 
 export const MAX_SECTION_ROWS = 6;
+/** Maximale Zeilen im Tagesspielplan (Order of Play, eine Liste). */
+export const MAX_DAY_ROWS = 14;
 
 /**
  * Matchup-Text. Einzel bleibt einzeilig ("A vs B"); Doppel wird zweizeilig
@@ -134,10 +136,28 @@ export function buildInfosModel(t: Translate): ScreenModel {
   return { title: t("nav.infos"), theme: "light", layout: "text", textLines };
 }
 
-export function buildOrderOfPlayModel(live: WaidcupLiveResponse, t: Translate): ScreenModel {
-  return buildBoard(t("nav.orderOfPlay"), BOARD_COLUMNS, live, t);
+/**
+ * Order of Play = Tagesspielplan: alle Matches des Tages als EINE Liste (kein
+ * Jetzt/Danach – das ist dem Live-Board vorbehalten). Sortiert nach Platz 1-6,
+ * innerhalb eines Platzes nach Uhrzeit.
+ */
+export function buildOrderOfPlayModel(today: WaidcupLiveMatch[], t: Translate): ScreenModel {
+  const cols = BOARD_COLUMNS.map((c) => ({ ...c, header: t(c.header) }));
+  const sorted = [...today].sort(
+    (a, b) => courtSortKey(a.court) - courtSortKey(b.court) || a.scheduledTime.localeCompare(b.scheduledTime),
+  );
+  const rows = sorted.slice(0, MAX_DAY_ROWS).map(matchRow);
+  const overflow = sorted.length - rows.length;
+  const note = sorted.length === 0 ? t("orderOfPlay.empty") : overflow > 0 ? `+${overflow}` : undefined;
+  return {
+    title: t("nav.orderOfPlay"),
+    theme: "light",
+    layout: "table",
+    sections: [{ heading: "", columns: cols, rows, note }],
+  };
 }
 
+/** Live-Board: zwei Sektionen „Jetzt" (laufend) und „Danach" (als Nächstes). */
 export function buildLiveModel(live: WaidcupLiveResponse, t: Translate): ScreenModel {
   return buildBoard(t("nav.live"), BOARD_COLUMNS, live, t);
 }

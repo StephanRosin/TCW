@@ -90,11 +90,14 @@ function paintText(ctx: CanvasRenderingContext2D, model: ScreenModel, p: Palette
 function paintTable(ctx: CanvasRenderingContext2D, model: ScreenModel, p: Palette, startY: number): void {
   let y = startY;
   for (const section of model.sections ?? []) {
-    // Sektionsüberschrift („Jetzt" / „Danach").
-    ctx.fillStyle = p.accent;
-    ctx.font = `700 30px ${FONT}`;
-    ctx.fillText(section.heading, PAD, y);
-    y += 44;
+    // Sektionsüberschrift („Jetzt" / „Danach") – bei leerer Überschrift entfällt sie
+    // (z. B. der einspaltige Tagesspielplan Order of Play).
+    if (section.heading) {
+      ctx.fillStyle = p.accent;
+      ctx.font = `700 30px ${FONT}`;
+      ctx.fillText(section.heading, PAD, y);
+      y += 44;
+    }
 
     // Spaltenköpfe.
     ctx.font = `600 22px ${FONT}`;
