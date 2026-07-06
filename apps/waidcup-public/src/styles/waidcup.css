@@ -553,12 +553,49 @@
   .live-board__event {
     display: none;
   }
-  /* Header-Steuerelemente umbrechen lassen, damit Partner-Logo + Kontakt +
-     Switches auf schmalen Screens nicht über den Rand laufen (Logo etwas kleiner). */
+  /* Mobile: 2×2-Raster im Header. Reihe 1: Stadt-Zürich-Logo neben der
+     Sprachauswahl, Reihe 2: Kontakt neben der Themeauswahl. `display: contents`
+     löst den Switches-Wrapper auf, damit Sprache/Theme eigene Rasterzellen sind;
+     `align-items: stretch` gibt beiden Zellen einer Reihe dieselbe Höhe. */
   .site-header__controls {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: auto auto;
     justify-content: flex-end;
-    row-gap: 0.4rem;
+    align-items: stretch;
+    gap: 0.35rem 0.4rem;
+  }
+  .site-header__switches {
+    display: contents;
+  }
+  /* Kontakt-Button kompakter, damit beide Rasterspalten auf schmale Screens
+     passen (Höhe kommt aus der Reihe und bleibt gleich zur Themeauswahl).
+     `.site-header__controls`-Präfix erhöht die Spezifität über die späteren
+     Basis-Regeln (sonst gewinnen die wegen gleicher Spezifität + Reihenfolge). */
+  .site-header__controls .header-cta.header-cta--whatsapp {
+    padding-inline: 0.8rem;
+    gap: 0.4rem;
+  }
+  .site-header__controls .header-cta .header-cta__label {
+    font-size: 1rem;
+  }
+  .site-header__controls .header-cta__icon {
+    height: 1.9em;
+  }
+  .header-partner {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .site-header__switches .lang-switch {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .header-cta--whatsapp {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .site-header__switches .theme-switch {
+    grid-column: 2;
+    grid-row: 2;
   }
   .header-partner__logo {
     height: 22px;
