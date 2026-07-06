@@ -71,8 +71,11 @@ export function groundHeight(x, z) {
 }
 
 /** Register an axis-aligned box collider (world coordinates). */
-export function addBox(minX, minZ, maxX, maxZ) {
-  colliders.push({ minX, minZ, maxX, maxZ });
+// `top` = Oberkante der Box (Default Infinity = volle Wand). Der Spieler
+// (resolveCollisions) ignoriert `top`; nur die Ballphysik nutzt sie, damit
+// niedrige Objekte (Netze, Bänke) überflogen werden können.
+export function addBox(minX, minZ, maxX, maxZ, top = Infinity) {
+  colliders.push({ minX, minZ, maxX, maxZ, top });
 }
 
 /** Add a thin wall between two points (only horizontal/vertical walls). */

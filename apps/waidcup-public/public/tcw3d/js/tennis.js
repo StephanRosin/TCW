@@ -126,7 +126,7 @@ function addNet(group, cx) {
 
   // Kollision: dünne Box entlang des Netzes, damit man nicht hindurchlaufen kann
   // (um das Netz herum bleibt über die Platzlücken frei).
-  addBox(cx - halfLen, -0.06, cx + halfLen, 0.06);
+  addBox(cx - halfLen, -0.06, cx + halfLen, 0.06, netH);   // netH ≈ 1.07: Ball fliegt drüber
 }
 
 /** Visual door frame (uprights + lintel) marking a gate opening in the fence. */
@@ -458,7 +458,7 @@ function buildCourtDivider(group, x, { height = 2, gap = 5, zEnd = 15 } = {}) {
     net.rotation.y = Math.PI / 2;   // Ebene entlang Z (Normale = X, Richtung Plätze)
     net.position.set(x, height / 2, cz);
     group.add(net);
-    addBox(x - 0.08, z0, x + 0.08, z1);
+    addBox(x - 0.08, z0, x + 0.08, z1, height);   // Trennnetz-Höhe (Default 2 m)
   }
   for (const z of [-zEnd, -halfGap, halfGap, zEnd]) {
     const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, height + 0.1, 8), postMat);

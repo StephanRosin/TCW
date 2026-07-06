@@ -125,7 +125,7 @@ export function buildBenchBackless(scene, x, z, rotY = 0, y = 0) {
   // Local footprint half-extents (X=0.9, Z=0.3) rotated by rotY into an axis-aligned box.
   const halfX = Math.abs(0.9 * Math.cos(rotY)) + Math.abs(0.3 * Math.sin(rotY));
   const halfZ = Math.abs(0.9 * Math.sin(rotY)) + Math.abs(0.3 * Math.cos(rotY));
-  addBox(x - halfX, z - halfZ, x + halfX, z + halfZ);
+  addBox(x - halfX, z - halfZ, x + halfX, z + halfZ, y + 0.48);   // Sitzhöhe: Ball kann auf der Bank landen
 }
 
 /** Kopfzeilen-Textur „TCW | Gast" für den Zählapparat (weiss auf dunkel). */

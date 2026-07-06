@@ -5,6 +5,7 @@ import { buildForest, buildTerracePlateau, buildClubhouse, buildRestaurant } fro
 import { buildEntrance } from './entrance.js';
 import { buildScreens } from './screens.js';
 import { createPlayer } from './player.js';
+import { createBalls } from './balls.js';
 import { groundHeight } from './collision.js';
 import { initMusic } from './audio.js';
 
@@ -59,6 +60,17 @@ buildForest(scene, 1000, 64, 230);
 // --- Player ---
 const player = createPlayer(camera, renderer.domElement, startPos, lookTarget);
 scene.add(camera);
+
+// --- Ball werfen (linke Maustaste laden/loslassen) ---
+const powerRing = document.getElementById('power-ring');
+const balls = createBalls(scene, camera, powerRing);
+const dom = renderer.domElement;
+const isLocked = () => document.pointerLockElement === dom;
+dom.addEventListener('mousedown', (e) => { if (e.button === 0 && isLocked()) balls.startCharge(); });
+window.addEventListener('mouseup', (e) => { if (e.button === 0) balls.release(); });
+// Ladung abbrechen (nicht werfen), wenn der Pointer-Lock verloren geht.
+document.addEventListener('pointerlockchange', () => { if (!isLocked()) balls.cancel(); });
+window.addEventListener('blur', () => balls.cancel());
 
 // --- Terrace music: positional speaker on the bar wall, alternating tracks.
 // Playback only starts on the "Rundgang starten" click (autoplay policy).
@@ -148,6 +160,7 @@ function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
   player.update(dt);
+  balls.update(dt);
   renderer.render(scene, camera);
 }
 

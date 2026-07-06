@@ -20,6 +20,17 @@
     }
     body.locked #crosshair { opacity: 1; }
 
+    /* Ladeanzeige als Ring um das Crosshair */
+    #power-ring {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 42px; height: 42px; border-radius: 50%;
+      background: conic-gradient(var(--ring-color, #3fd15f) calc(var(--charge, 0) * 360deg), rgba(255,255,255,0.14) 0);
+      -webkit-mask: radial-gradient(farthest-side, transparent 60%, #000 62%);
+              mask: radial-gradient(farthest-side, transparent 60%, #000 62%);
+      opacity: 0; transition: opacity .12s; pointer-events: none; z-index: 5;
+    }
+    #power-ring.active { opacity: .95; }
+
     /* HUD */
     #hud {
       position: fixed; left: 14px; bottom: 12px; color: #fff;
@@ -77,6 +88,7 @@
 <body>
   <div id="app"></div>
   <div id="crosshair"></div>
+  <div id="power-ring"></div>
 
   <div id="hud">
     <div><b>WASD</b> / Pfeiltasten — laufen &nbsp;·&nbsp; <b>Maus</b> — umschauen &nbsp;·&nbsp; <b>Shift</b> — rennen &nbsp;·&nbsp; <b>ESC</b> — Menü</div>
