@@ -553,6 +553,16 @@
   .live-board__event {
     display: none;
   }
+  /* Header-Steuerelemente umbrechen lassen, damit Sponsor + Kontakt + Switches
+     auf schmalen Screens nicht über den Rand laufen (Sponsor etwas kleiner). */
+  .site-header__controls {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 0.4rem;
+  }
+  .header-sponsor__logo {
+    height: 22px;
+  }
 }
 
 .waidcup-search {
@@ -916,6 +926,28 @@
   background: #25d366;
   border: 0;
   color: #fff;
+}
+/* Sponsor-Logo (Stadt Zürich) im Header: weisses Badge, damit das offizielle
+   blaue Logo auf jedem Theme-Hintergrund lesbar bleibt. Höhengleich zum CTA. */
+.header-sponsor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 14px;
+  padding: 4px 12px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.header-sponsor:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.3);
+}
+.header-sponsor__logo {
+  display: block;
+  height: 26px;
+  width: auto;
+  max-width: 160px;
 }
 .header-cta.header-cta--whatsapp:hover {
   background: #1ebe5b;
