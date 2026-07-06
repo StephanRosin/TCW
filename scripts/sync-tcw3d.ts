@@ -47,6 +47,16 @@ for (const rel of EXCLUDE_WITHIN) {
   rmSync(join(DEST, rel), { recursive: true, force: true });
 }
 
+// Node-Unit-Tests (*.test.js) gehören nicht in den öffentlichen Browser-Snapshot.
+function removeTestFiles(dir: string): void {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) removeTestFiles(full);
+    else if (entry.name.endsWith(".test.js")) rmSync(full);
+  }
+}
+removeTestFiles(DEST);
+
 console.log(
   `3D-App synchronisiert: ${count} Einträge, ~${(directorySizeBytes(DEST) / 1024 / 1024).toFixed(1)} MB → ${DEST}`,
 );
