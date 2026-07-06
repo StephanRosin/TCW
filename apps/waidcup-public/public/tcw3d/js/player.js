@@ -7,8 +7,19 @@ const WALK = 5.5;
 const RUN = 10.5;
 const ACCEL = 12;
 const WORLD_LIMIT = 240;
-const SENS = 0.0022;               // mouse sensitivity
+const SENS = 0.0022;               // mouse sensitivity (rohe Bewegung, Chromium)
 const PITCH_LIMIT = Math.PI / 2 - 0.05;
+
+// Firefox/Safari unterstützen requestPointerLock({unadjustedMovement}) nicht und
+// liefern OS-beschleunigte movementX/Y (langsam ~nichts, schnell viel zu viel).
+// Diese Potenzkurve rechnet die Geschwindigkeitsabhängigkeit heraus: |d|^COMP_P
+// spreizt um einen fixen Mittel-Tempo-Punkt (per COMP_SENS gepinnt: mittlere
+// Bewegung ~10 px/Event wirkt wie im rohen Chromium-Pfad, 10·SENS ≈
+// COMP_SENS·10^COMP_P). Kleineres COMP_P = stärkere Spreizung: langsame
+// Bewegungen werden angehoben, schnelle Flicks stärker gedämpft. Empirisch am
+// Firefox/Linux abgestimmt (langsam zu langsam, schnell zu schnell → p=0.65).
+const COMP_P = 0.65;
+const COMP_SENS = 0.0049;
 
 /**
  * First-person controller with two look modes:
@@ -28,6 +39,7 @@ export function createPlayer(camera, dom, startPos, lookAt) {
 
   let started = false;
   let dragging = false;
+  let rawMovement = false;   // true = Browser liefert rohe Bewegung (Chromium unadjustedMovement)
   let onStop = () => {};
 
   const keys = Object.create(null);
@@ -45,15 +57,24 @@ export function createPlayer(camera, dom, startPos, lookAt) {
 
   const isLocked = () => document.pointerLockElement === dom;
 
-  function applyLook(dx, dy) {
+  function applyLook(dx, dy) {   // rohe Pixel × SENS (Touch + Chromium-Pfad)
     yaw -= dx * SENS;
     pitch -= dy * SENS;
     pitch = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, pitch));
   }
 
+  // Firefox/Safari: OS-Beschleunigung per Potenzkurve neutralisieren.
+  function applyLookComp(dx, dy) {
+    yaw   -= Math.sign(dx) * COMP_SENS * Math.pow(Math.abs(dx), COMP_P);
+    pitch -= Math.sign(dy) * COMP_SENS * Math.pow(Math.abs(dy), COMP_P);
+    pitch = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, pitch));
+  }
+
   document.addEventListener('mousemove', (e) => {
     if (!started) return;
-    if (isLocked() || dragging) applyLook(e.movementX || 0, e.movementY || 0);
+    if (!(isLocked() || dragging)) return;
+    if (rawMovement) applyLook(e.movementX || 0, e.movementY || 0);
+    else applyLookComp(e.movementX || 0, e.movementY || 0);
   });
 
   // Drag fallback (used when pointer lock is not active).
@@ -80,21 +101,31 @@ export function createPlayer(camera, dom, startPos, lookAt) {
   document.addEventListener('pointerlockchange', () => {
     const locked = isLocked();
     document.body.classList.toggle('locked', locked);
+    if (!locked) rawMovement = false; // beim Entsperren zurücksetzen (Drag-Fallback kompensiert)
     if (wasLocked && !locked && started) stop();
     wasLocked = locked;
   });
 
   // Pointer Lock möglichst ohne OS-Mausbeschleunigung anfordern
-  // (unadjustedMovement = rohe 1:1-Bewegung). Unterstützt der Browser die
-  // Option nicht, wird auf normalen Pointer Lock zurückgefallen; scheitert auch
-  // das (z. B. im Frame verweigert), greift weiterhin der Drag-Look.
+  // (unadjustedMovement = rohe 1:1-Bewegung, nur Chromium). Löst der Request als
+  // Promise auf, liefert der Browser rohe Bewegung (rawMovement = true). Firefox
+  // lehnt mit NotSupportedError ab → normaler (OS-beschleunigter) Lock, den die
+  // Potenzkurve in applyLookComp kompensiert. Safari kennt die Promise-Form nicht
+  // (Rückgabe undefined) → ebenfalls kompensierter Pfad. Scheitert der Lock ganz
+  // (z. B. im Frame verweigert), greift weiterhin der Drag-Look (auch kompensiert).
   function requestLock() {
     if (!dom.requestPointerLock) return;
-    Promise.resolve(dom.requestPointerLock({ unadjustedMovement: true })).catch((err) => {
-      if (err && err.name === 'NotSupportedError') {
-        Promise.resolve(dom.requestPointerLock()).catch(() => {});
-      }
-    });
+    const result = dom.requestPointerLock({ unadjustedMovement: true });
+    if (result && typeof result.then === 'function') {
+      result.then(() => { rawMovement = true; }).catch((err) => {
+        rawMovement = false;
+        if (err && err.name === 'NotSupportedError') {
+          Promise.resolve(dom.requestPointerLock()).catch(() => {});
+        }
+      });
+    } else {
+      rawMovement = false; // void-API (Safari): Option ignoriert, keine rohe Bewegung
+    }
   }
 
   function start() {
