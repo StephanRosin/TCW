@@ -25,13 +25,13 @@ export function SiteHeader(): JSX.Element {
           </div>
           <div className="site-header__controls">
             <a
-              className="header-sponsor"
+              className="header-partner"
               href="https://www.stadt-zuerich.ch/de/stadtleben/sport-und-erholung.html"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Stadt Zürich – Sport und Erholung"
             >
-              <img className="header-sponsor__logo" src="/sponsor-stadt-zuerich.png" alt="Stadt Zürich" />
+              <img className="header-partner__logo" src="/stadt-zuerich.png" alt="Stadt Zürich" />
             </a>
             <a
               className="header-cta header-cta--whatsapp"

@@ -553,14 +553,14 @@
   .live-board__event {
     display: none;
   }
-  /* Header-Steuerelemente umbrechen lassen, damit Sponsor + Kontakt + Switches
-     auf schmalen Screens nicht über den Rand laufen (Sponsor etwas kleiner). */
+  /* Header-Steuerelemente umbrechen lassen, damit Partner-Logo + Kontakt +
+     Switches auf schmalen Screens nicht über den Rand laufen (Logo etwas kleiner). */
   .site-header__controls {
     flex-wrap: wrap;
     justify-content: flex-end;
     row-gap: 0.4rem;
   }
-  .header-sponsor__logo {
+  .header-partner__logo {
     height: 22px;
   }
 }
@@ -927,9 +927,10 @@
   border: 0;
   color: #fff;
 }
-/* Sponsor-Logo (Stadt Zürich) im Header: weisses Badge, damit das offizielle
-   blaue Logo auf jedem Theme-Hintergrund lesbar bleibt. Höhengleich zum CTA. */
-.header-sponsor {
+/* Partner-Logo (Stadt Zürich) im Header: weisses Badge, damit das offizielle
+   blaue Logo auf jedem Theme-Hintergrund lesbar bleibt. Höhengleich zum CTA.
+   Klasse/Datei bewusst ohne das Wort „sponsor", sonst blenden Ad-Blocker sie aus. */
+.header-partner {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -939,11 +940,11 @@
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.header-sponsor:hover {
+.header-partner:hover {
   transform: translateY(-1px);
   box-shadow: 0 5px 16px rgba(0, 0, 0, 0.3);
 }
-.header-sponsor__logo {
+.header-partner__logo {
   display: block;
   height: 26px;
   width: auto;
