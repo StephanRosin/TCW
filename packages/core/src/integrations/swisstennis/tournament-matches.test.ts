@@ -206,6 +206,33 @@ test("mapDrawBracket baut den Baum bis zum Final, auch ohne ausgeloste Folgerund
   assert.deepEqual(bracket.rounds[1]!.matches[0]!.side2Names, []);
 });
 
+test("mapDrawBracket: Sieger ist die UNTERE Seite – Score steht in Siegersicht", () => {
+  // Reale Konstellation (CM-Doppel): die untere Seite (Schalcher/Elsayed) gewinnt.
+  // Swisstennis notiert den Score im Tableau aus SIEGERSICHT ("6/2 6/1"), nicht
+  // aus Sicht der oberen Seite. Der aufgestiegene Name ("Schalcher J.") ist das
+  // verlässliche Sieger-Signal.
+  const payload = {
+    Iotto: {
+      drawtable: {
+        drawbody: {
+          draw: [
+            { alevel: 1, rposition: 0, name: { content: "(R8/R8) Kolbe Daniel", name2: " / Hansjosten Victoria" } },
+            { alevel: 1, rposition: 1, name: { content: "(3) (R5/R7) Schalcher Jasmin", name2: " / Elsayed Abdullah" } },
+            { alevel: 0, rposition: 0, name: { content: "Schalcher J." }, result: { content: "6/2 6/1" } },
+          ],
+        },
+      },
+    },
+  };
+  const final = mapDrawBracket(payload)!.rounds[0]!.matches[0]!;
+  assert.deepEqual(final.side1Names, ["Kolbe Daniel (R8)", "Hansjosten Victoria (R8)"]);
+  assert.deepEqual(final.side2Names, ["Schalcher Jasmin (R5)", "Elsayed Abdullah (R7)"]);
+  assert.equal(final.winnerSide, 2, "die untere Seite hat gewonnen");
+  // Score auf Seite-1-Sicht normiert (konsistent zu Round-robin/IC/TC): Seite 1 verlor 2:6 1:6.
+  assert.equal(final.result, "2:6 1:6");
+  assert.deepEqual(mapDrawBracket(payload)!.championNames, ["Schalcher Jasmin (R5)", "Elsayed Abdullah (R7)"]);
+});
+
 test("mapPoolStandings liefert die Pool-Tabelle nach Rang sortiert", () => {
   const payload = {
     Iotto: {

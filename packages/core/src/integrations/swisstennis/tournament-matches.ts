@@ -69,6 +69,17 @@ function formatPlayer(name: string, ranking: string): string {
   return ranking && isRankingToken(ranking) ? `${cleanedName} (${ranking})` : cleanedName;
 }
 
+/** Dreht ein Satzresultat um: "6:2 6:1" → "2:6 1:6" (Nicht-Satz-Token bleiben). */
+function flipSets(result: string): string {
+  return result
+    .split(/\s+/)
+    .map((token) => {
+      const match = /^(\d+):(\d+)$/.exec(token);
+      return match ? `${match[2]}:${match[1]}` : token;
+    })
+    .join(" ");
+}
+
 // --------------------------------------------------------------------------
 // Round-robin (DisplayPools)
 // --------------------------------------------------------------------------
@@ -348,14 +359,21 @@ function buildDrawTree(payload: unknown): DrawTree | null {
       const side1Names = fullNames.get(`${level + 1}:${position * 2}`) ?? [];
       const side2Names = fullNames.get(`${level + 1}:${position * 2 + 1}`) ?? [];
       const slot = byPosition.get(`${level}:${position}`);
-      const result = cleanText(slot?.result?.content ?? "").replace(/\//g, ":");
+      const rawResult = cleanText(slot?.result?.content ?? "").replace(/\//g, ":");
       const advanced = rawNamesAt(level, position);
-      let winnerSide = winnerSideFromScore(result);
-      if (winnerSide === 0 && advanced.length > 0) {
-        const advancedSurname = surnameOf(advanced);
-        if (advancedSurname && advancedSurname === surnameOf(side1Names)) winnerSide = 1;
-        else if (advancedSurname && advancedSurname === surnameOf(side2Names)) winnerSide = 2;
-      }
+      // Sieger primär über den aufgestiegenen Namen bestimmen: Im Tableau steht
+      // der Score aus SIEGERSICHT (Sieger-Games zuerst), unabhängig davon, ob der
+      // Sieger die obere oder untere Seite ist – als Seiten-Indikator ist er daher
+      // unbrauchbar. Nur wenn kein/uneindeutiger Name aufgestiegen ist (z. B.
+      // Folgeslot noch leer), ersatzweise aus dem Score ableiten.
+      const advancedSurname = surnameOf(advanced);
+      let winnerSide = 0;
+      if (advancedSurname && advancedSurname === surnameOf(side1Names)) winnerSide = 1;
+      else if (advancedSurname && advancedSurname === surnameOf(side2Names)) winnerSide = 2;
+      if (winnerSide === 0) winnerSide = winnerSideFromScore(rawResult);
+      // Score auf Seite-1-Sicht normieren ("Seite1:Seite2"), konsistent zu
+      // Round-robin und IC/TC: bei Sieg der unteren Seite den Siegersicht-Score drehen.
+      const result = winnerSide === 2 ? flipSets(rawResult) : rawResult;
       const winnerNames =
         winnerSide === 1 ? side1Names : winnerSide === 2 ? side2Names : advanced.length > 0 ? advanced : [];
       fullNames.set(`${level}:${position}`, winnerNames);
