@@ -578,8 +578,12 @@ export function getPlayerMatches(db: Database.Database, key: string): PlayerMatc
   });
 }
 
-/** Die zuletzt gespielten Matches clubweit (Ergebnis-Ticker), neueste zuerst. */
-export function getTickerMatches(db: Database.Database, limit = 30): TickerMatch[] {
+/**
+ * Die zuletzt gespielten Matches clubweit (Ergebnis-Ticker), neueste zuerst.
+ * Ohne `limit` werden ALLE Matches des Jahres geliefert (SQLite `LIMIT -1` =
+ * unbegrenzt); die Web-Ansicht blättert client-seitig in 30er-Schritten.
+ */
+export function getTickerMatches(db: Database.Database, limit?: number): TickerMatch[] {
   const year = currentYear(db);
   // Ohne Namen (z. B. namenlose Walkover) ist ein Eintrag im Ticker wertlos.
   const rows = db
@@ -587,7 +591,7 @@ export function getTickerMatches(db: Database.Database, limit = 30): TickerMatch
       `SELECT * FROM player_matches WHERE year=? AND s1p1_name<>'' AND s2p1_name<>''
        ORDER BY sort_key DESC, updated_at DESC, match_uid DESC LIMIT ?`,
     )
-    .all(Number(year), limit) as Array<PlayerMatchRow & { match_uid: string }>;
+    .all(Number(year), limit ?? -1) as Array<PlayerMatchRow & { match_uid: string }>;
 
   const side = (
     first: string,

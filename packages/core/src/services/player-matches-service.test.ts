@@ -123,6 +123,23 @@ test("getTickerMatches liefert die neuesten Matches zuerst und respektiert das L
   db.close();
 });
 
+test("getTickerMatches ohne Limit liefert ALLE Matches (auch über 30 hinaus)", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  const insert = db.prepare(
+    `INSERT INTO player_matches (
+       match_uid, year, competition_code, competition_label, discipline, match_date, sort_key,
+       s1p1_name, s1p1_key, s2p1_name, s2p1_key, result, winner_side, updated_at
+     ) VALUES (@uid, 2026, 'cm', 'CM', 'single', @date, @sort, 'A Eins', 'a', 'B Zwei', 'b', '6:0 6:0', 1, @upd)`,
+  );
+  for (let i = 0; i < 42; i += 1) {
+    const day = String((i % 28) + 1).padStart(2, "0");
+    insert.run({ uid: `t:${i}`, date: `${i + 1}.6.2026`, sort: `2026-06-${day}`, upd: `2026-06-${day}T10:00:00Z` });
+  }
+  assert.equal(getTickerMatches(db).length, 42, "Default = kein Limit");
+  assert.equal(getTickerMatches(db, 30).length, 30, "explizites Limit greift weiterhin");
+  db.close();
+});
+
 test("importTournaments ignoriert inaktive Turniere und entfernt deren Altbestand", () => {
   const db = openDatabase({ filePath: ":memory:" });
   const insertTournament = db.prepare(

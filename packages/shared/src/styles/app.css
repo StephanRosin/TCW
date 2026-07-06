@@ -922,6 +922,26 @@ main.container {
   box-shadow: var(--shadow);
   color: var(--text);
 }
+/* „Mehr"-Schaltfläche unter dem Ticker (client-seitiges Nachladen in 30er-Schritten). */
+.ticker-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.9rem;
+}
+.ticker-more button {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--accent);
+  font-weight: 700;
+  padding: 0.55rem 1.6rem;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ticker-more button:hover {
+  background: var(--accent);
+  color: #fff;
+}
 table.board {
   width: 100%;
   border-collapse: collapse;

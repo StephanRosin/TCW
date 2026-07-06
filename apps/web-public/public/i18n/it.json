@@ -188,6 +188,7 @@
   "nav.ticker": "Ticker",
   "ticker.competition": "Competizione",
   "ticker.empty": "Nessuna partita ancora giocata.",
+  "ticker.more": "Mostra altri",
   "ticker.loadError": "Impossibile caricare il ticker.",
   "nav.cmReservation": "Prenotazione CM"
 }
