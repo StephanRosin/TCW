@@ -33,6 +33,7 @@ const GRID_GREEN = {
   empty: "#b3b3b3",
   border: "#cdeed4",
 };
+const GRID_LINE_H = 20; // Zeilenhöhe in den Raster-Zellen
 
 // `doc` erlaubt, das Canvas im Dokument des iframes zu erzeugen: die setScreen-
 // API der 3D-App prüft `instanceof HTMLCanvasElement` in ihrer eigenen Realm,
@@ -201,7 +202,6 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ScreenModel, p: Palette
   }
   y += headH + 2;
 
-  const LINE_H = 20;
   const CELL_PAD_V = 8;
   const bandH = 28;
   for (const block of grid.blocks) {
@@ -215,31 +215,9 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ScreenModel, p: Palette
 
     // Zellen-Zeile: Höhe nach der zeilenreichsten Zelle.
     const maxLines = Math.max(1, ...block.cells.map((cell) => (cell ? cell.length : 1)));
-    const rowH = maxLines * LINE_H + 2 * CELL_PAD_V;
+    const rowH = maxLines * GRID_LINE_H + 2 * CELL_PAD_V;
     for (let c = 0; c < cols; c++) {
-      const x = left + c * colW;
-      ctx.fillStyle = GRID_GREEN.cell;
-      ctx.fillRect(x, y, colW - 2, rowH);
-      ctx.strokeStyle = GRID_GREEN.border;
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x + 0.5, y + 0.5, colW - 2, rowH);
-
-      const cell = block.cells[c];
-      const maxW = colW - 12;
-      if (!cell) {
-        ctx.fillStyle = GRID_GREEN.empty;
-        ctx.font = `italic 18px ${FONT}`;
-        ctx.fillText("–", x + colW / 2, y + rowH / 2);
-      } else {
-        let ly = y + (rowH - cell.length * LINE_H) / 2 + LINE_H / 2;
-        for (const line of cell) {
-          const isVs = line === "vs";
-          ctx.fillStyle = isVs ? GRID_GREEN.empty : GRID_GREEN.cellText;
-          ctx.font = isVs ? `italic 13px ${FONT}` : `400 15px ${FONT}`;
-          ctx.fillText(ellipsize(ctx, line, maxW), x + colW / 2, ly);
-          ly += LINE_H;
-        }
-      }
+      paintGridCell(ctx, block.cells[c] ?? null, left + c * colW, y, colW, rowH);
     }
     y += rowH + 4;
     if (y > SCREEN_H - 40) break; // nicht über den Canvas-Rand hinaus zeichnen
@@ -248,6 +226,38 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ScreenModel, p: Palette
   // Ausrichtung für nachfolgende Zeichenoperationen zurücksetzen.
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
+}
+
+/** Zeichnet eine einzelne Raster-Zelle: Rahmen plus „–" (leer) oder die Spielerzeilen. */
+function paintGridCell(
+  ctx: CanvasRenderingContext2D,
+  cell: string[] | null,
+  x: number,
+  y: number,
+  colW: number,
+  rowH: number,
+): void {
+  ctx.fillStyle = GRID_GREEN.cell;
+  ctx.fillRect(x, y, colW - 2, rowH);
+  ctx.strokeStyle = GRID_GREEN.border;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + 0.5, y + 0.5, colW - 2, rowH);
+
+  const maxW = colW - 12;
+  if (!cell) {
+    ctx.fillStyle = GRID_GREEN.empty;
+    ctx.font = `italic 18px ${FONT}`;
+    ctx.fillText("–", x + colW / 2, y + rowH / 2);
+    return;
+  }
+  let ly = y + (rowH - cell.length * GRID_LINE_H) / 2 + GRID_LINE_H / 2;
+  for (const line of cell) {
+    const isVs = line === "vs";
+    ctx.fillStyle = isVs ? GRID_GREEN.empty : GRID_GREEN.cellText;
+    ctx.font = isVs ? `italic 13px ${FONT}` : `400 15px ${FONT}`;
+    ctx.fillText(ellipsize(ctx, line, maxW), x + colW / 2, ly);
+    ly += GRID_LINE_H;
+  }
 }
 
 export function paintScreen(canvas: HTMLCanvasElement, model: ScreenModel): void {

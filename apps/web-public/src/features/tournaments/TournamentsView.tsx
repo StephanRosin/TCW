@@ -162,21 +162,48 @@ function TournamentPanel({ tournament }: { tournament: TournamentView }): JSX.El
         ) : null}
       </div>
 
-      {tournament.showsMatches ? (
-        showsBracket && singleEvent?.bracket ? (
-          <TournamentBracket bracket={singleEvent.bracket} search={search} />
-        ) : (
-          <>
-            <MatchList matches={matches} />
-            {singleEvent && singleEvent.pools.length > 0 ? (
-              <PoolStandings pools={singleEvent.pools} />
-            ) : null}
-          </>
-        )
-      ) : (
-        <RegistrationTable players={players} />
-      )}
+      <TournamentPanelBody
+        tournament={tournament}
+        showsBracket={showsBracket}
+        singleEvent={singleEvent}
+        matches={matches}
+        players={players}
+        search={search}
+      />
     </div>
+  );
+}
+
+type EventView = TournamentView["events"][number];
+
+/** Hauptinhalt eines Turnier-Panels: Tableau-Baum, Partienliste (+ Tabelle) oder
+ *  im Anmeldemodus die Registrierungsliste. */
+function TournamentPanelBody({
+  tournament,
+  showsBracket,
+  singleEvent,
+  matches,
+  players,
+  search,
+}: {
+  tournament: TournamentView;
+  showsBracket: boolean;
+  singleEvent: EventView | null;
+  matches: EventView["matches"];
+  players: EventView["players"];
+  search: string;
+}): JSX.Element {
+  if (!tournament.showsMatches) {
+    return <RegistrationTable players={players} />;
+  }
+  if (showsBracket && singleEvent?.bracket) {
+    return <TournamentBracket bracket={singleEvent.bracket} search={search} />;
+  }
+  return (
+    <>
+      <MatchList matches={matches} />
+      {singleEvent && singleEvent.pools.length > 0 ? <PoolStandings pools={singleEvent.pools} /> : null}
+    </>
   );
 }
 

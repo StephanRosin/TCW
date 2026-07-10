@@ -42,19 +42,16 @@ function extractEventsArray(html: string): RawAgendaEvent[] {
     return [];
   }
   let depth = 0;
-  let inString = false;
-  let escaped = false;
+  let stringState: StringScanState = { inString: false, escaped: false };
   let start = -1;
   for (let index = markerIndex + EVENTS_MARKER.length; index < html.length; index += 1) {
-    const char = html[index];
-    if (inString) {
-      if (escaped) escaped = false;
-      else if (char === "\\") escaped = true;
-      else if (char === '"') inString = false;
+    const char = html[index]!;
+    if (stringState.inString) {
+      stringState = advanceStringScan(char, stringState.escaped);
       continue;
     }
     if (char === '"') {
-      inString = true;
+      stringState = { inString: true, escaped: false };
     } else if (char === "[") {
       if (depth === 0) start = index;
       depth += 1;
@@ -66,6 +63,19 @@ function extractEventsArray(html: string): RawAgendaEvent[] {
     }
   }
   return [];
+}
+
+interface StringScanState {
+  inString: boolean;
+  escaped: boolean;
+}
+
+/** Fortschritt des String-/Escape-Scanners für ein Zeichen innerhalb eines Strings. */
+function advanceStringScan(char: string, escaped: boolean): StringScanState {
+  if (escaped) return { inString: true, escaped: false };
+  if (char === "\\") return { inString: true, escaped: true };
+  if (char === '"') return { inString: false, escaped: false };
+  return { inString: true, escaped: false };
 }
 
 interface DateParts {

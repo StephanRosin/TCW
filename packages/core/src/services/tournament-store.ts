@@ -233,6 +233,84 @@ export function replaceTournamentData(
     }
     const incomingKeys = new Set<string>();
 
+    const syncPlayer = (event: EventImport, player: EventImport["registrations"][number]): void => {
+      insertPlayer.run({
+        tournament_id: tournamentId,
+        event_id: event.meta.eventId,
+        player_key: player.playerKey,
+        player_name: player.playerName,
+        player_name_2: player.playerName2,
+        license_number: player.licenseNumber,
+        license_number_2: player.licenseNumber2,
+        player_url: player.playerUrl || null,
+        player_url_2: player.playerUrl2 || null,
+        confirmed: player.confirmed,
+        registered_on: player.registeredOn,
+        sort_order_player: player.sortOrder,
+        note: player.note,
+      });
+
+      // Turnier-Import spiegelt beide Doppel-Spieler als Nicht-Mitglieder ins
+      // zentrale Register (kein Datenverlust, kein member-Flag) und verknüpft
+      // tournament_players weich (kein FK) mit der so entstandenen Register-Zeile.
+      const regId = upsertPlayer(database, {
+        name: player.playerName,
+        url: player.playerUrl,
+        license: player.licenseNumber,
+        klassierung: player.ranking,
+      });
+      let regId2 = 0;
+      if (player.playerName2) {
+        regId2 = upsertPlayer(database, {
+          name: player.playerName2,
+          url: player.playerUrl2,
+          license: player.licenseNumber2,
+          klassierung: player.ranking2,
+        });
+      }
+      if (regId > 0 || regId2 > 0) {
+        database
+          .prepare(
+            "UPDATE tournament_players SET registry_id = ?, registry_id_2 = ? WHERE tournament_id = ? AND event_id = ? AND player_key = ?",
+          )
+          .run(regId > 0 ? regId : null, regId2 > 0 ? regId2 : null, tournamentId, event.meta.eventId, player.playerKey);
+      }
+    };
+
+    const syncMatch = (event: EventImport, match: EventImport["matches"][number], index: number): void => {
+      incomingKeys.add(match.matchKey);
+      const previous = existingMatches.get(match.matchKey);
+      const params = {
+        tournament_id: tournamentId,
+        event_id: event.meta.eventId,
+        match_key: match.matchKey,
+        tournament_name: tournamentName,
+        event_name: match.eventName,
+        mode: match.mode,
+        pool_name: match.poolName,
+        round_name: match.roundName,
+        scheduled_date: match.scheduledDate,
+        scheduled_time: match.scheduledTime,
+        court: match.court,
+        player1_name: match.player1Name,
+        player1_name_2: match.player1Name2,
+        player2_name: match.player2Name,
+        player2_name_2: match.player2Name2,
+        result: match.result,
+        status: match.status,
+        winner_side: match.winnerSide,
+        sort_order: index,
+        updated_at: importedAt,
+        result_seen_at: computeResultSeen(previous, match.result, importedAt),
+      };
+      if (!previous) {
+        insertMatch.run(params);
+      } else if (matchChanged(previous, params) || (previous.result_seen_at ?? null) !== params.result_seen_at) {
+        updateMatch.run(params);
+      }
+      // unverändert: nichts schreiben (updated_at/result_seen_at bleiben erhalten)
+    };
+
     for (const event of events) {
       insertEvent.run({
         tournament_id: tournamentId,
@@ -245,81 +323,9 @@ export function replaceTournamentData(
         updated_at: importedAt,
       });
       for (const player of event.registrations) {
-        insertPlayer.run({
-          tournament_id: tournamentId,
-          event_id: event.meta.eventId,
-          player_key: player.playerKey,
-          player_name: player.playerName,
-          player_name_2: player.playerName2,
-          license_number: player.licenseNumber,
-          license_number_2: player.licenseNumber2,
-          player_url: player.playerUrl || null,
-          player_url_2: player.playerUrl2 || null,
-          confirmed: player.confirmed,
-          registered_on: player.registeredOn,
-          sort_order_player: player.sortOrder,
-          note: player.note,
-        });
-
-        // Turnier-Import spiegelt beide Doppel-Spieler als Nicht-Mitglieder ins
-        // zentrale Register (kein Datenverlust, kein member-Flag) und verknüpft
-        // tournament_players weich (kein FK) mit der so entstandenen Register-Zeile.
-        const regId = upsertPlayer(database, {
-          name: player.playerName,
-          url: player.playerUrl,
-          license: player.licenseNumber,
-          klassierung: player.ranking,
-        });
-        let regId2 = 0;
-        if (player.playerName2) {
-          regId2 = upsertPlayer(database, {
-            name: player.playerName2,
-            url: player.playerUrl2,
-            license: player.licenseNumber2,
-            klassierung: player.ranking2,
-          });
-        }
-        if (regId > 0 || regId2 > 0) {
-          database
-            .prepare(
-              "UPDATE tournament_players SET registry_id = ?, registry_id_2 = ? WHERE tournament_id = ? AND event_id = ? AND player_key = ?",
-            )
-            .run(regId > 0 ? regId : null, regId2 > 0 ? regId2 : null, tournamentId, event.meta.eventId, player.playerKey);
-        }
+        syncPlayer(event, player);
       }
-      event.matches.forEach((match, index) => {
-        incomingKeys.add(match.matchKey);
-        const previous = existingMatches.get(match.matchKey);
-        const params = {
-          tournament_id: tournamentId,
-          event_id: event.meta.eventId,
-          match_key: match.matchKey,
-          tournament_name: tournamentName,
-          event_name: match.eventName,
-          mode: match.mode,
-          pool_name: match.poolName,
-          round_name: match.roundName,
-          scheduled_date: match.scheduledDate,
-          scheduled_time: match.scheduledTime,
-          court: match.court,
-          player1_name: match.player1Name,
-          player1_name_2: match.player1Name2,
-          player2_name: match.player2Name,
-          player2_name_2: match.player2Name2,
-          result: match.result,
-          status: match.status,
-          winner_side: match.winnerSide,
-          sort_order: index,
-          updated_at: importedAt,
-          result_seen_at: computeResultSeen(previous, match.result, importedAt),
-        };
-        if (!previous) {
-          insertMatch.run(params);
-        } else if (matchChanged(previous, params) || (previous.result_seen_at ?? null) !== params.result_seen_at) {
-          updateMatch.run(params);
-        }
-        // unverändert: nichts schreiben (updated_at/result_seen_at bleiben erhalten)
-      });
+      event.matches.forEach((match, index) => syncMatch(event, match, index));
       insertExtras.run({
         tournament_id: tournamentId,
         event_id: event.meta.eventId,

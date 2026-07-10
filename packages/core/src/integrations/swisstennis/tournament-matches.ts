@@ -324,6 +324,37 @@ interface DrawTree {
  * Swisstennis nur Kurzformen ("Rosin S."); ohne Propagierung fehlten dort
  * Vorname und Klassierung – einheitliche Quelle für Baum und "Alle"-Liste.
  */
+// Swisstennis-Tableau-Namen stehen als "Nachname Vorname"; das erste Token
+// (der Nachname) identifiziert den Sieger auch in der Kurzform ("Rosin S.").
+function surnameOf(names: string[]): string {
+  return (names[0] ?? "").split(/\s+/)[0]?.toLowerCase() ?? "";
+}
+
+/**
+ * Bestimmt Sieger-Seite, seiten-normierten Score und Sieger-Namen eines Tableau-Slots.
+ * Sieger primär über den aufgestiegenen Namen: Im Tableau steht der Score aus
+ * SIEGERSICHT (Sieger-Games zuerst), unabhängig von oberer/unterer Seite – als
+ * Seiten-Indikator daher unbrauchbar. Nur wenn kein/uneindeutiger Name aufgestiegen
+ * ist, ersatzweise aus dem Score ableiten. Der Score wird auf Seite-1-Sicht normiert
+ * ("Seite1:Seite2"), konsistent zu Round-robin und IC/TC.
+ */
+function resolveDrawWinner(
+  advanced: string[],
+  side1Names: string[],
+  side2Names: string[],
+  rawResult: string,
+): { winnerSide: number; result: string; winnerNames: string[] } {
+  const advancedSurname = surnameOf(advanced);
+  let winnerSide = 0;
+  if (advancedSurname && advancedSurname === surnameOf(side1Names)) winnerSide = 1;
+  else if (advancedSurname && advancedSurname === surnameOf(side2Names)) winnerSide = 2;
+  if (winnerSide === 0) winnerSide = winnerSideFromScore(rawResult);
+  const result = winnerSide === 2 ? flipSets(rawResult) : rawResult;
+  const winnerNames =
+    winnerSide === 1 ? side1Names : winnerSide === 2 ? side2Names : advanced.length > 0 ? advanced : [];
+  return { winnerSide, result, winnerNames };
+}
+
 function buildDrawTree(payload: unknown): DrawTree | null {
   const drawRows = asArray<RawDrawSlot>(
     (payload as { Iotto?: { drawtable?: { drawbody?: { draw?: unknown } } } }).Iotto?.drawtable
@@ -344,9 +375,6 @@ function buildDrawTree(payload: unknown): DrawTree | null {
     const { name, name2 } = splitDrawSide(byPosition.get(`${level}:${position}`));
     return [name, name2].filter((value) => value !== "");
   };
-  // Swisstennis-Tableau-Namen stehen als "Nachname Vorname"; das erste Token
-  // (der Nachname) identifiziert den Sieger auch in der Kurzform ("Rosin S.").
-  const surnameOf = (names: string[]): string => (names[0] ?? "").split(/\s+/)[0]?.toLowerCase() ?? "";
 
   const fullNames = new Map<string, string[]>();
   for (let position = 0; position < 2 ** maxLevel; position += 1) {
@@ -361,21 +389,7 @@ function buildDrawTree(payload: unknown): DrawTree | null {
       const slot = byPosition.get(`${level}:${position}`);
       const rawResult = cleanText(slot?.result?.content ?? "").replace(/\//g, ":");
       const advanced = rawNamesAt(level, position);
-      // Sieger primär über den aufgestiegenen Namen bestimmen: Im Tableau steht
-      // der Score aus SIEGERSICHT (Sieger-Games zuerst), unabhängig davon, ob der
-      // Sieger die obere oder untere Seite ist – als Seiten-Indikator ist er daher
-      // unbrauchbar. Nur wenn kein/uneindeutiger Name aufgestiegen ist (z. B.
-      // Folgeslot noch leer), ersatzweise aus dem Score ableiten.
-      const advancedSurname = surnameOf(advanced);
-      let winnerSide = 0;
-      if (advancedSurname && advancedSurname === surnameOf(side1Names)) winnerSide = 1;
-      else if (advancedSurname && advancedSurname === surnameOf(side2Names)) winnerSide = 2;
-      if (winnerSide === 0) winnerSide = winnerSideFromScore(rawResult);
-      // Score auf Seite-1-Sicht normieren ("Seite1:Seite2"), konsistent zu
-      // Round-robin und IC/TC: bei Sieg der unteren Seite den Siegersicht-Score drehen.
-      const result = winnerSide === 2 ? flipSets(rawResult) : rawResult;
-      const winnerNames =
-        winnerSide === 1 ? side1Names : winnerSide === 2 ? side2Names : advanced.length > 0 ? advanced : [];
+      const { winnerSide, result, winnerNames } = resolveDrawWinner(advanced, side1Names, side2Names, rawResult);
       fullNames.set(`${level}:${position}`, winnerNames);
       nodes.push({ level, position, slot, side1Names, side2Names, result, winnerSide });
     }

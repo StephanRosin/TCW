@@ -236,29 +236,59 @@ async function importEncounters(
       break;
     }
     const hash = hashResult(ref.result);
-    if (!opts.force) {
-      const state = getState.get(competitionCode, ref.encountId) as { result_hash: string } | undefined;
-      if (state && state.result_hash === hash) continue;
-    }
+    if (!opts.force && isEncounterUnchanged(getState, competitionCode, ref.encountId, hash)) continue;
     fetched++;
-    const type: ResultType = ref.playoff ? "tableau" : "encount";
-    try {
-      const detail = await service.getEncountDetail(ref.encountId, year, type);
-      // Nur Begegnungen mit Waidberg-Beteiligung (Sicherheitsnetz).
-      const involvesOwn = detail.homeClubNb === OWN_CLUB_ID || /waidberg/i.test(detail.awayTeam);
-      if (involvesOwn) {
-        const records = extractEncounter(detail, ref.encountId, competitionCode, ref.liga);
-        upsertRecords(db, year, records, now);
-        imported++;
-        opts.log(`  ${competitionCode} ${ref.encountId}: ${records.length} Matches`);
-      }
-      setState.run(competitionCode, ref.encountId, hash, now);
-    } catch (err) {
-      opts.log(`  ! ${competitionCode} ${ref.encountId}: ${(err as Error).message}`);
+    if (await importEncounterDetail(service, db, { ref, competitionCode, year, hash, setState, now, log: opts.log })) {
+      imported++;
     }
     await sleep(opts.delayMs);
   }
   return imported;
+}
+
+/** Liegt für diese Begegnung bereits derselbe Ergebnis-Hash vor? */
+function isEncounterUnchanged(
+  getState: Database.Statement,
+  competitionCode: "ic" | "tc",
+  encountId: number,
+  hash: string,
+): boolean {
+  const state = getState.get(competitionCode, encountId) as { result_hash: string } | undefined;
+  return !!state && state.result_hash === hash;
+}
+
+/** Holt die Begegnungsdetails, speichert Waidberg-Matches und merkt den Hash.
+ *  Gibt zurück, ob tatsächlich Matches importiert wurden. */
+async function importEncounterDetail(
+  service: ReturnType<typeof createResultsService>,
+  db: Database.Database,
+  ctx: {
+    ref: EncounterRef;
+    competitionCode: "ic" | "tc";
+    year: string;
+    hash: string;
+    setState: Database.Statement;
+    now: string;
+    log: (m: string) => void;
+  },
+): Promise<boolean> {
+  const { ref, competitionCode, year, hash, setState, now, log } = ctx;
+  const type: ResultType = ref.playoff ? "tableau" : "encount";
+  try {
+    const detail = await service.getEncountDetail(ref.encountId, year, type);
+    // Nur Begegnungen mit Waidberg-Beteiligung (Sicherheitsnetz).
+    const involvesOwn = detail.homeClubNb === OWN_CLUB_ID || /waidberg/i.test(detail.awayTeam);
+    if (involvesOwn) {
+      const records = extractEncounter(detail, ref.encountId, competitionCode, ref.liga);
+      upsertRecords(db, year, records, now);
+      log(`  ${competitionCode} ${ref.encountId}: ${records.length} Matches`);
+    }
+    setState.run(competitionCode, ref.encountId, hash, now);
+    return involvesOwn;
+  } catch (err) {
+    log(`  ! ${competitionCode} ${ref.encountId}: ${(err as Error).message}`);
+    return false;
+  }
 }
 
 /** IC-Begegnungs-Referenzen aus der `matches`-Tabelle (nur mit Resultat). */
@@ -434,14 +464,19 @@ async function resolveOpponentUrls(
     upsertPlayer(db, { name: displayName, url });
     log(`  url ${displayName} → ${url ?? "—"}`);
     if (url) {
-      for (const [, keyCol, urlCol] of SLOTS) {
-        db.prepare(`UPDATE player_matches SET ${urlCol}=? WHERE ${keyCol}=? AND (${urlCol} IS NULL OR ${urlCol}='')`).run(url, key);
-      }
+      applyOpponentUrl(db, key, url);
       resolved++;
     }
     await sleep(delayMs);
   }
   return resolved;
+}
+
+/** Schreibt die gefundene Profil-URL in alle noch leeren Gegner-Slots des Keys. */
+function applyOpponentUrl(db: Database.Database, key: string, url: string): void {
+  for (const [, keyCol, urlCol] of SLOTS) {
+    db.prepare(`UPDATE player_matches SET ${urlCol}=? WHERE ${keyCol}=? AND (${urlCol} IS NULL OR ${urlCol}='')`).run(url, key);
+  }
 }
 
 async function lookupUrl(name: string, timeoutMs: number): Promise<string | null> {
