@@ -356,18 +356,13 @@ function OrderOfPlayBoard({
 }
 
 export function OrderOfPlayView(): JSX.Element {
-  const { t } = useI18n();
   const state = useResource(() => waidcupApi.orderOfPlay(), []);
   return (
     <section>
       <ResourceView state={state} errorKey="live.loadError">
-        {(data) =>
-          data.today.length === 0 && data.tomorrow.length === 0 ? (
-            <div className="state">{t("orderOfPlay.empty")}</div>
-          ) : (
-            <OrderOfPlayBoard today={data.today} tomorrow={data.tomorrow} playerUrls={data.playerUrls} />
-          )
-        }
+        {(data) => (
+          <OrderOfPlayBoard today={data.today} tomorrow={data.tomorrow} playerUrls={data.playerUrls} />
+        )}
       </ResourceView>
     </section>
   );
