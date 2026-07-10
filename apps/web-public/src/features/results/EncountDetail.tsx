@@ -18,7 +18,7 @@ export interface EncountRef {
 function SideNames({ names, state }: Readonly<{ names: string[]; state: "winner" | "loser" | "neutral" }>): JSX.Element {
   return (
     <div className="encount-side">
-      {names.map((name, index) => (
+      {names.map((name) => (
         <div key={name} className={`encount-player encount-player--${state}`}>
           {name}
         </div>
@@ -75,7 +75,7 @@ function MatchTable({
             </tr>
           </thead>
           <tbody>
-            {matches.map((match, index) => (
+            {matches.map((match) => (
               <MatchRow key={match.position} match={match} />
             ))}
           </tbody>

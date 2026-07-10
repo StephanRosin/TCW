@@ -33,7 +33,7 @@ export function PoolStandings({ pools }: Readonly<{ pools: PoolStanding[] }>): J
                   <tr key={`${row.rank}-${row.names.join("/")}`}>
                     <td>{row.rank || index + 1}</td>
                     <td>
-                      {row.names.map((name, nameIndex) => (
+                      {row.names.map((name) => (
                         <div key={name} className="match-player">
                           {name}
                         </div>

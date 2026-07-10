@@ -26,7 +26,7 @@ function Slot({
       {names.length === 0 ? (
         <span className="tbracket-open">{t("tournaments.tbd")}</span>
       ) : (
-        names.map((name, index) => (
+        names.map((name) => (
           <span key={name} className="tbracket-name">
             {name}
           </span>

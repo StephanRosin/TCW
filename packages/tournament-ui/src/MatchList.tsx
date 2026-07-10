@@ -31,7 +31,7 @@ function SideCell({
 }>): JSX.Element {
   return (
     <div className={isWinner ? "match-side match-side--winner" : "match-side"}>
-      {names.map((name, index) => (
+      {names.map((name) => (
         <div key={name} className="match-player">
           <PlayerLink name={name} playerUrls={playerUrls} />
         </div>

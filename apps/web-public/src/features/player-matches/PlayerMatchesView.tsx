@@ -74,7 +74,7 @@ function MatchGroup({ title, matches }: Readonly<{ title: string; matches: Playe
     <section className="pm-group">
       <h3 className="pm-group__title">{title}</h3>
       <div className="pm-list">
-        {matches.map((match, index) => (
+        {matches.map((match) => (
           <MatchRow key={`${match.competitionCode}-${match.date}-${match.opponents.map((o) => o.name).join("/")}`} match={match} />
         ))}
       </div>

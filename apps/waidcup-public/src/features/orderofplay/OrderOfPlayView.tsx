@@ -53,13 +53,13 @@ function MatchLines({
 }>): JSX.Element {
   return (
     <span className="oopt__match">
-      {match.side1Names.map((n, i) => (
+      {match.side1Names.map((n) => (
         <span key={`a-${n}`} className="oopt__player">
           <PlayerLink name={n} label={playerLine(n)} playerUrls={playerUrls} />
         </span>
       ))}
       <span className="oopt__vs">vs</span>
-      {match.side2Names.map((n, i) => (
+      {match.side2Names.map((n) => (
         <span key={`b-${n}`} className="oopt__player">
           <PlayerLink name={n} label={playerLine(n)} playerUrls={playerUrls} />
         </span>
