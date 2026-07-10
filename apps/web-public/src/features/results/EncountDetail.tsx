@@ -19,7 +19,7 @@ function SideNames({ names, state }: Readonly<{ names: string[]; state: "winner"
   return (
     <div className="encount-side">
       {names.map((name, index) => (
-        <div key={index} className={`encount-player encount-player--${state}`}>
+        <div key={name} className={`encount-player encount-player--${state}`}>
           {name}
         </div>
       ))}
@@ -76,7 +76,7 @@ function MatchTable({
           </thead>
           <tbody>
             {matches.map((match, index) => (
-              <MatchRow key={index} match={match} />
+              <MatchRow key={match.position} match={match} />
             ))}
           </tbody>
         </table>

@@ -34,7 +34,7 @@ export function PoolStandings({ pools }: Readonly<{ pools: PoolStanding[] }>): J
                     <td>{row.rank || index + 1}</td>
                     <td>
                       {row.names.map((name, nameIndex) => (
-                        <div key={nameIndex} className="match-player">
+                        <div key={name} className="match-player">
                           {name}
                         </div>
                       ))}

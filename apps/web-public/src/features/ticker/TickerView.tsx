@@ -22,7 +22,7 @@ function SideCell({
   return (
     <div className={isWinner ? "match-side match-side--winner" : "match-side"}>
       {players.map((player, index) => (
-        <div key={index} className="match-player">
+        <div key={player.name} className="match-player">
           {player.url ? (
             <a href={player.url} target="_blank" rel="noopener noreferrer">
               {player.name}

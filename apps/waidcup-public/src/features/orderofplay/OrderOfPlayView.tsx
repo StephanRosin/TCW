@@ -54,13 +54,13 @@ function MatchLines({
   return (
     <span className="oopt__match">
       {match.side1Names.map((n, i) => (
-        <span key={`a${i}`} className="oopt__player">
+        <span key={`a-${n}`} className="oopt__player">
           <PlayerLink name={n} label={playerLine(n)} playerUrls={playerUrls} />
         </span>
       ))}
       <span className="oopt__vs">vs</span>
       {match.side2Names.map((n, i) => (
-        <span key={`b${i}`} className="oopt__player">
+        <span key={`b-${n}`} className="oopt__player">
           <PlayerLink name={n} label={playerLine(n)} playerUrls={playerUrls} />
         </span>
       ))}

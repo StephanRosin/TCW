@@ -70,7 +70,7 @@ export function TrainingView(): JSX.Element {
                       <tr key={row.time}>
                         <td className="numeric">{row.time}</td>
                         {row.courts.map((court, index) => (
-                          <td key={index} className="court-cell">
+                          <td key={PUBLIC_TRAINING_COURTS[index]} className="court-cell">
                             {court ? (
                               <span className="training-cell-team">{translateKnown(court)}</span>
                             ) : (

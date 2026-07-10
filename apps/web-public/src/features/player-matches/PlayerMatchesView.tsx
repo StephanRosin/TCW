@@ -28,7 +28,7 @@ function Side({ players, winner }: Readonly<{ players: PlayerMatchView["opponent
   return (
     <span className={winner ? "pm-side pm-side--winner" : "pm-side"}>
       {list.map((player, index) => (
-        <span key={index}>
+        <span key={player.name}>
           {index > 0 ? <span className="pm-amp"> & </span> : null}
           <NameLink name={player.name} url={player.url} />
         </span>
@@ -75,7 +75,7 @@ function MatchGroup({ title, matches }: Readonly<{ title: string; matches: Playe
       <h3 className="pm-group__title">{title}</h3>
       <div className="pm-list">
         {matches.map((match, index) => (
-          <MatchRow key={index} match={match} />
+          <MatchRow key={`${match.competitionCode}-${match.date}-${match.opponents.map((o) => o.name).join("/")}`} match={match} />
         ))}
       </div>
     </section>

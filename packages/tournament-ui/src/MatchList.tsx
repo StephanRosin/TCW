@@ -32,7 +32,7 @@ function SideCell({
   return (
     <div className={isWinner ? "match-side match-side--winner" : "match-side"}>
       {names.map((name, index) => (
-        <div key={index} className="match-player">
+        <div key={name} className="match-player">
           <PlayerLink name={name} playerUrls={playerUrls} />
         </div>
       ))}
