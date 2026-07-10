@@ -180,7 +180,7 @@ export function registerAdminRoutes(app: FastifyInstance, deps: AdminDependencie
       error: null,
     };
     // Fire-and-forget: NICHT awaiten, damit die Anfrage sofort zurückkommt.
-    void updateKlassierungenFromMyTennis(database, timeout, {
+    updateKlassierungenFromMyTennis(database, timeout, {
       delayMs: KLASSIERUNG_DELAY_MS,
       onProgress: (processed, total) => {
         klassierungJob.processed = processed;

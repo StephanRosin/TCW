@@ -32,6 +32,10 @@ export function TournamentsAdmin(): JSX.Element {
     setDrafts((current) => current.map((row, i) => (i === index ? { ...row, ...patch } : row)));
   };
 
+  const removeDraft = (index: number): void => {
+    setDrafts((current) => current.filter((_, i) => i !== index));
+  };
+
   const saveAll = (): void => {
     void run(
       () =>
@@ -97,7 +101,7 @@ export function TournamentsAdmin(): JSX.Element {
                 </td>
                 <td className="actions-cell">
                   <button className="btn" disabled={busy} onClick={() => refresh(row)}>Refresh</button>
-                  <button className="btn btn--danger" onClick={() => setDrafts((c) => c.filter((_, i) => i !== index))}>Entfernen</button>
+                  <button className="btn btn--danger" onClick={() => removeDraft(index)}>Entfernen</button>
                 </td>
               </tr>
             ))}
