@@ -5,8 +5,8 @@
  * " - offen" / " - bestätigt" dürfen nicht Teil des gespeicherten Namens sein.
  * Sonderzeichen (Umlaute, Akzente, Apostrophe) müssen erhalten bleiben.
  */
-const TRAILING_PARENTHESES = /\s*\([^)]*\)\s*$/;
-const TRAILING_STATUS_SUFFIX = /\s*[-–]\s*(offen|bestätigt|bestaetigt|neu)\s*$/iu;
+const TRAILING_PARENTHESES = /\([^)]*\)$/;
+const TRAILING_STATUS_SUFFIX = /[-–]\s*(offen|bestätigt|bestaetigt|neu)$/iu;
 
 /** Entfernt Status-/Jahres-Zusätze am Namensende, behält den eigentlichen Namen. */
 export function cleanPlayerName(rawName: string): string {

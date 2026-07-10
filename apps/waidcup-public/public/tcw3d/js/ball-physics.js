@@ -9,11 +9,7 @@ export const ROLL_FRICTION = 2.5;     // Rollreibung pro Sekunde am Boden
 export const AIR_DRAG = 0.1;          // Luftwiderstand pro Sekunde
 export const REST_SPEED = 0.35;       // m/s: darunter am Boden -> Ruhe
 
-const clamp = (v, lo, hi) => {
-  if (v < lo) return lo;
-  if (v > hi) return hi;
-  return v;
-};
+const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
 
 /** Kugel gegen AABB-Box (Boden 0 bis b.top). Reflektiert vel an der Kontaktnormale. */
 function resolveBox(pos, vel, b) {

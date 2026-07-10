@@ -88,7 +88,7 @@ function courtSortKey(court: string): number {
 
 /** "Weiss Xenia (R5)" -> { label: "Weiss Xenia", ranking: "R5" }. */
 function splitRanking(name: string): { label: string; ranking: string } {
-  const m = /^(.*?)\s*\(([^()]*)\)\s*$/.exec(name.trim());
+  const m = /^(.*?)\(([^()]*)\)$/.exec(name.trim());
   return m ? { label: m[1]!.trim(), ranking: m[2]!.trim() } : { label: name.trim(), ranking: "" };
 }
 
