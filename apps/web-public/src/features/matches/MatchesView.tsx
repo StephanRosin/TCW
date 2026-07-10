@@ -6,7 +6,7 @@ import { useMemo, useState, type JSX } from "react";
 import type { MatchesResponse, ResultType, ScheduledMatch } from "@tcw/shared";
 import type { ResourceState } from "../../api/useResource.js";
 import { ClubName } from "../../components/ClubName.js";
-import { DataView } from "../../components/DataView.js";
+import { ResourceView } from "../../components/ResourceView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 import { clubResultUrl } from "../../lib/swisstennisLinks.js";
 
@@ -66,7 +66,7 @@ export function MatchesView({
   const { t, translateKnown } = useI18n();
   return (
     <section>
-      <DataView state={state} errorKey="matches.loadError">
+      <ResourceView state={state} errorKey="matches.loadError">
         {(data) => (
           <MatchesTable
             data={data}
@@ -75,7 +75,7 @@ export function MatchesView({
             onOpenEncount={onOpenEncount}
           />
         )}
-      </DataView>
+      </ResourceView>
     </section>
   );
 }

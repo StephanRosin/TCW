@@ -5,7 +5,7 @@
  */
 import { useMemo, useState, type JSX } from "react";
 import type { TournamentEventView } from "@tcw/shared";
-import { DataView, TournamentBracket, useI18n, useResource } from "@tcw/tournament-ui";
+import { ResourceView, TournamentBracket, useI18n, useResource } from "@tcw/tournament-ui";
 import { waidcupApi } from "../../api/client.js";
 import { compareWaidcupEvents } from "../../lib/events.js";
 
@@ -52,9 +52,9 @@ export function BracketsView(): JSX.Element {
   const state = useResource(() => waidcupApi.brackets(), []);
   return (
     <section>
-      <DataView state={state} errorKey="brackets.loadError">
+      <ResourceView state={state} errorKey="brackets.loadError">
         {(data) => <BracketsPanel events={data.events} />}
-      </DataView>
+      </ResourceView>
     </section>
   );
 }

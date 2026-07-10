@@ -5,7 +5,7 @@
  */
 import { useMemo, useState, type JSX } from "react";
 import type { TournamentMatch } from "@tcw/shared";
-import { DataView, MatchList, useI18n, useResource } from "@tcw/tournament-ui";
+import { ResourceView, MatchList, useI18n, useResource } from "@tcw/tournament-ui";
 import { waidcupApi } from "../../api/client.js";
 import { compareWaidcupEvents } from "../../lib/events.js";
 
@@ -95,9 +95,9 @@ export function MatchesView(): JSX.Element {
   const state = useResource(() => waidcupApi.matches(), []);
   return (
     <section>
-      <DataView state={state} errorKey="matches.loadError">
+      <ResourceView state={state} errorKey="matches.loadError">
         {(data) => <MatchesPanel matches={data.matches} playerUrls={data.playerUrls} />}
-      </DataView>
+      </ResourceView>
     </section>
   );
 }

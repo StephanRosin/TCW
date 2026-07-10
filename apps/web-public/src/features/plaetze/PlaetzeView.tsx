@@ -10,7 +10,7 @@ import { useEffect, useState, type JSX } from "react";
 import type { CourtBlock } from "@tcw/shared";
 import { publicApi } from "../../api/client.js";
 import { useResource } from "../../api/useResource.js";
-import { DataView } from "../../components/DataView.js";
+import { ResourceView } from "../../components/ResourceView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 import { TeamPhotoModal } from "../teams/TeamPhotoModal.js";
 
@@ -96,7 +96,7 @@ export function PlaetzeView(): JSX.Element {
         <div className="plaetze__occupancy">
           <div className="plaetze__caption">{t("plaetze.occupancy")}</div>
           <div className="plaetze__courts">
-            <DataView state={occupancy} errorKey="plaetze.occupancyError">
+            <ResourceView state={occupancy} errorKey="plaetze.occupancyError">
               {(data) =>
                 !data.available ? (
                   <div className="state">{t("plaetze.occupancyUnavailable")}</div>
@@ -108,7 +108,7 @@ export function PlaetzeView(): JSX.Element {
                   </>
                 )
               }
-            </DataView>
+            </ResourceView>
           </div>
         </div>
       </div>

@@ -6,13 +6,13 @@ import type { JSX, ReactNode } from "react";
 import type { ResourceState } from "./useResource.js";
 import { useI18n } from "./I18nProvider.js";
 
-interface DataViewProps<TData> {
+interface ResourceViewProps<TData> {
   state: ResourceState<TData>;
   errorKey: string;
   children: (data: TData) => ReactNode;
 }
 
-export function DataView<TData>({ state, errorKey, children }: DataViewProps<TData>): JSX.Element {
+export function ResourceView<TData>({ state, errorKey, children }: ResourceViewProps<TData>): JSX.Element {
   const { t } = useI18n();
 
   if (state.status === "loading") {

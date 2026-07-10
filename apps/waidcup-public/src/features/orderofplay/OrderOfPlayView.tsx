@@ -9,7 +9,7 @@
  */
 import { useMemo, useRef, useState, type CSSProperties, type JSX } from "react";
 import type { WaidcupLiveMatch } from "@tcw/shared";
-import { DataView, PlayerLink, useI18n, useResource } from "@tcw/tournament-ui";
+import { ResourceView, PlayerLink, useI18n, useResource } from "@tcw/tournament-ui";
 import { waidcupApi } from "../../api/client.js";
 
 interface Grid {
@@ -73,7 +73,7 @@ function courtNumber(court: string): number {
 }
 
 function buildGrid(matches: WaidcupLiveMatch[]): Grid {
-  const times = [...new Set(matches.map((m) => m.scheduledTime))].sort();
+  const times = [...new Set(matches.map((m) => m.scheduledTime))].sort((a, b) => a.localeCompare(b));
   const maxCourt = Math.max(6, ...matches.map((m) => courtNumber(m.court)));
   const courts = Array.from({ length: maxCourt }, (_, i) => i + 1);
   const byKey = new Map<string, WaidcupLiveMatch>();
@@ -336,7 +336,7 @@ export function OrderOfPlayView(): JSX.Element {
   const state = useResource(() => waidcupApi.orderOfPlay(), []);
   return (
     <section>
-      <DataView state={state} errorKey="live.loadError">
+      <ResourceView state={state} errorKey="live.loadError">
         {(data) =>
           data.today.length === 0 && data.tomorrow.length === 0 ? (
             <div className="state">{t("orderOfPlay.empty")}</div>
@@ -344,7 +344,7 @@ export function OrderOfPlayView(): JSX.Element {
             <OrderOfPlayBoard today={data.today} tomorrow={data.tomorrow} playerUrls={data.playerUrls} />
           )
         }
-      </DataView>
+      </ResourceView>
     </section>
   );
 }

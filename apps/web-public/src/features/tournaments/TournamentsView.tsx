@@ -12,7 +12,7 @@ import {
 } from "@tcw/shared";
 import { publicApi } from "../../api/client.js";
 import { useResource } from "../../api/useResource.js";
-import { DataView } from "../../components/DataView.js";
+import { ResourceView } from "../../components/ResourceView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 import { menEvents, otherEvents, womenEvents } from "./eventGrouping.js";
 import { RegistrationTable } from "./RegistrationTable.js";
@@ -187,7 +187,7 @@ export function TournamentsView(): JSX.Element {
 
   return (
     <section>
-      <DataView state={state} errorKey="tournaments.loadError">
+      <ResourceView state={state} errorKey="tournaments.loadError">
         {(data) => {
           if (data.tournaments.length === 0) {
             return <div className="state">{t("tournaments.notConfigured")}</div>;
@@ -225,7 +225,7 @@ export function TournamentsView(): JSX.Element {
             </>
           );
         }}
-      </DataView>
+      </ResourceView>
     </section>
   );
 }

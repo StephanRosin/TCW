@@ -6,7 +6,7 @@ import type { JSX } from "react";
 import { rankingTrend, SWISSTENNIS_LABEL, type RankingChange } from "@tcw/shared";
 import { publicApi } from "../../api/client.js";
 import { useResource } from "../../api/useResource.js";
-import { DataView } from "../../components/DataView.js";
+import { ResourceView } from "../../components/ResourceView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 import { formatDateOnly } from "../../lib/formatDate.js";
 import type { RatingsSubView } from "../../app/navigation.js";
@@ -64,9 +64,9 @@ function ChangesTable({ items }: { items: RankingChange[] }): JSX.Element {
 function ChangesPanel(): JSX.Element {
   const state = useResource(() => publicApi.rankingChanges(), []);
   return (
-    <DataView state={state} errorKey="ratings.loadError">
+    <ResourceView state={state} errorKey="ratings.loadError">
       {(data) => <ChangesTable items={data.items} />}
-    </DataView>
+    </ResourceView>
   );
 }
 

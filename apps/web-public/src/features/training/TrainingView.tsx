@@ -6,7 +6,7 @@ import { useState, type JSX } from "react";
 import { PUBLIC_TRAINING_COURTS, TRAINING_DAYS, type TrainingDay } from "@tcw/shared";
 import { publicApi } from "../../api/client.js";
 import { useResource } from "../../api/useResource.js";
-import { DataView } from "../../components/DataView.js";
+import { ResourceView } from "../../components/ResourceView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 
 const DAY_LABEL_KEYS: Record<TrainingDay, string> = {
@@ -48,7 +48,7 @@ export function TrainingView(): JSX.Element {
         ))}
       </div>
 
-      <DataView state={state} errorKey="teams.loadError">
+      <ResourceView state={state} errorKey="teams.loadError">
         {(data) => {
           const rows = data.days[activeDay] ?? [];
           return (
@@ -103,7 +103,7 @@ export function TrainingView(): JSX.Element {
             </>
           );
         }}
-      </DataView>
+      </ResourceView>
     </section>
   );
 }

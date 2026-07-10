@@ -6,7 +6,7 @@ import type { JSX } from "react";
 import type { EncountDetailResponse, EncountMatch, ResultType } from "@tcw/shared";
 import type { ResultsApi } from "../../api/client.js";
 import { useResource } from "../../api/useResource.js";
-import { DataView } from "../../components/DataView.js";
+import { ResourceView } from "../../components/ResourceView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 
 export interface EncountRef {
@@ -138,9 +138,9 @@ export function EncountDetail({
       <button type="button" className="link-btn" onClick={onBack}>
         {t("common.back")}
       </button>
-      <DataView state={state} errorKey="results.encounterLoadError">
+      <ResourceView state={state} errorKey="results.encounterLoadError">
         {(detail) => <DetailContent detail={detail} />}
-      </DataView>
+      </ResourceView>
     </div>
   );
 }

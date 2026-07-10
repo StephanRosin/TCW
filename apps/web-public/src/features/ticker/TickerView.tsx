@@ -6,7 +6,7 @@ import { useState, type JSX } from "react";
 import type { PlayerMatchParticipant } from "@tcw/shared";
 import { publicApi } from "../../api/client.js";
 import { useResource } from "../../api/useResource.js";
-import { DataView } from "../../components/DataView.js";
+import { ResourceView } from "../../components/ResourceView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 
 /** Wie viele Matches zunächst und je „Mehr"-Klick zusätzlich gezeigt werden. */
@@ -44,7 +44,7 @@ export function TickerView(): JSX.Element {
 
   return (
     <section>
-      <DataView state={state} errorKey="ticker.loadError">
+      <ResourceView state={state} errorKey="ticker.loadError">
         {(data) =>
           data.matches.length === 0 ? (
             <div className="state">{t("ticker.empty")}</div>
@@ -88,7 +88,7 @@ export function TickerView(): JSX.Element {
             </>
           )
         }
-      </DataView>
+      </ResourceView>
     </section>
   );
 }

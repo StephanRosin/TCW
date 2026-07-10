@@ -5,7 +5,7 @@
 export { I18nProvider, useI18n } from "./I18nProvider.js";
 export { useResource, type ResourceState } from "./useResource.js";
 export { useHashRoute } from "./useHashRoute.js";
-export { DataView } from "./DataView.js";
+export { ResourceView } from "./ResourceView.js";
 export { LanguageSwitch } from "./LanguageSwitch.js";
 export { ThemeSwitch } from "./ThemeSwitch.js";
 export { THEMES, applyTheme, getStoredTheme } from "./theme.js";

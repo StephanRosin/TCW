@@ -14,7 +14,7 @@ import {
 } from "@tcw/shared";
 import type { ResultsApi } from "../../api/client.js";
 import { useResource } from "../../api/useResource.js";
-import { DataView } from "../../components/DataView.js";
+import { ResourceView } from "../../components/ResourceView.js";
 import { ClubName } from "../../components/ClubName.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 import { BracketGrid } from "./BracketGrid.js";
@@ -205,11 +205,11 @@ function BracketPanel({
 }): JSX.Element {
   const state = useResource(() => api.draw(ligueId, promotion, year), [api, ligueId, promotion, year]);
   return (
-    <DataView state={state} errorKey="results.loadError">
+    <ResourceView state={state} errorKey="results.loadError">
       {(bracket) => (
         <BracketGrid bracket={bracket} onOpenEncount={(id, type) => onOpenEncount(id, year, type)} />
       )}
-    </DataView>
+    </ResourceView>
   );
 }
 
@@ -233,7 +233,7 @@ function TeamResultsPanel({
   }, [teamId, year]);
 
   return (
-    <DataView state={state} errorKey="results.loadError">
+    <ResourceView state={state} errorKey="results.loadError">
       {(data) => {
         const title = data.liga
           ? `${translateKnown(data.liga)}${data.group ? ` – ${t("teams.group", { group: data.group })}` : ""}`
@@ -280,7 +280,7 @@ function TeamResultsPanel({
         </div>
         );
       }}
-    </DataView>
+    </ResourceView>
   );
 }
 
@@ -345,7 +345,7 @@ export function ResultsView({
   return (
     <section>
       <YearTabs year={year} onSelect={setYear} />
-      <DataView state={teamsState} errorKey="results.loadError">
+      <ResourceView state={teamsState} errorKey="results.loadError">
         {(data) =>
           data.items.length === 0 ? (
             <div className="state">{t("results.noTeams")}</div>
@@ -363,7 +363,7 @@ export function ResultsView({
             </>
           )
         }
-      </DataView>
+      </ResourceView>
     </section>
   );
 }

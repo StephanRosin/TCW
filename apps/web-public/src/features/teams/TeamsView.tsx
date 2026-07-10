@@ -5,7 +5,7 @@ import { useState, type CSSProperties, type JSX } from "react";
 import { CAPTAIN_STATUS, type PublicPlayer, type PublicTeam } from "@tcw/shared";
 import { publicApi } from "../../api/client.js";
 import { useResource } from "../../api/useResource.js";
-import { DataView } from "../../components/DataView.js";
+import { ResourceView } from "../../components/ResourceView.js";
 import { useI18n } from "../../i18n/I18nProvider.js";
 import { translateTrainingDays } from "../../lib/trainingDays.js";
 import { teamPhotoFocusY, teamPhotoPanelUrl, teamPhotoUrl, teamPhotoZoom } from "./teamPhotos.js";
@@ -149,7 +149,7 @@ export function TeamsView(): JSX.Element {
         </button>
       </div>
 
-      <DataView state={state} errorKey="teams.loadError">
+      <ResourceView state={state} errorKey="teams.loadError">
         {(data) => {
           const teams = section === "damen" ? data.damen : data.herren;
           if (teams.length === 0) {
@@ -163,7 +163,7 @@ export function TeamsView(): JSX.Element {
             </div>
           );
         }}
-      </DataView>
+      </ResourceView>
 
       {photo ? (
         <TeamPhotoModal src={photo.src} title={photo.title} onClose={() => setPhoto(null)} />

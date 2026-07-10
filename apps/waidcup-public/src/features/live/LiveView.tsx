@@ -3,7 +3,7 @@
  * plus Link zum chromelosen Kiosk-Modus für den Grossbildschirm.
  */
 import type { JSX } from "react";
-import { DataView, useI18n, useResource } from "@tcw/tournament-ui";
+import { ResourceView, useI18n, useResource } from "@tcw/tournament-ui";
 import { waidcupApi } from "../../api/client.js";
 import { KIOSK_HASH } from "../../app/navigation.js";
 import { LiveMatchRows } from "./LiveBoard.js";
@@ -14,7 +14,7 @@ export function LiveView(): JSX.Element {
 
   return (
     <section>
-      <DataView state={state} errorKey="live.loadError">
+      <ResourceView state={state} errorKey="live.loadError">
         {(data) =>
           data.now.length === 0 && data.upcoming.length === 0 ? (
             <div className="state">{t("live.empty")}</div>
@@ -40,7 +40,7 @@ export function LiveView(): JSX.Element {
             </>
           )
         }
-      </DataView>
+      </ResourceView>
     </section>
   );
 }
