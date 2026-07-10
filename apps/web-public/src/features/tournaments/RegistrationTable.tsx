@@ -12,7 +12,7 @@ type SortDir = "asc" | "desc";
 const REGISTRATION_DATE = /^(\d{1,2})\.(\d{1,2})\.(\d{4})/;
 
 function registrationDateValue(value: string): number {
-  const match = value.match(REGISTRATION_DATE);
+  const match = REGISTRATION_DATE.exec(value);
   if (!match) return 0;
   return Number(match[3]) * 10000 + Number(match[2]) * 100 + Number(match[1]);
 }

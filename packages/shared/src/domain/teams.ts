@@ -36,7 +36,7 @@ export function categoryRank(category: string): number {
   if (normalized === ACTIVE_CATEGORY) {
     return 0;
   }
-  const leadingNumber = normalized.match(/^\d+/);
+  const leadingNumber = /^\d+/.exec(normalized);
   return leadingNumber ? Number(leadingNumber[0]) : UNKNOWN_CATEGORY_RANK;
 }
 

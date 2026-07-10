@@ -53,7 +53,7 @@ function buildCell(raw: RawCell): BracketCell | null {
   const isResult = parsed.link.includes("EncountId=");
   const isTeam = isTeamCell || (parsed.isTextObject && parsed.anchor != null && !isResult);
   const displayName = parsed.rawContent.replace(/^\*/, "").trim();
-  const encountMatch = parsed.link.match(ENCOUNT_ID_PATTERN);
+  const encountMatch = ENCOUNT_ID_PATTERN.exec(parsed.link);
   const resultType: ResultType = parsed.link.includes("TableauResults") ? "tableau" : "encount";
 
   const kind = isTeam ? "team" : isResult ? "result" : "text";

@@ -109,7 +109,7 @@ function toLiveMatch(row: LiveRow): WaidcupLiveMatch {
 
 /** Platznummern natürlich sortieren ("Platz 2" vor "Platz 10"). */
 function courtSortKey(court: string): number {
-  const match = court.match(/\d+/);
+  const match = /\d+/.exec(court);
   return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
 }
 

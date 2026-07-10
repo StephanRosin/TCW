@@ -53,7 +53,7 @@ export function winnerSideFromScore(result: string): number {
   let side1Sets = 0;
   let side2Sets = 0;
   for (const set of cleanText(result).split(/\s+/)) {
-    const match = set.match(/^(\d+)[/:](\d+)$/);
+    const match = /^(\d+)[/:](\d+)$/.exec(set);
     if (!match) continue;
     const games1 = Number(match[1]);
     const games2 = Number(match[2]);
@@ -139,7 +139,7 @@ function rrSchedule(date: RawRrDate | undefined): { date: string; time: string }
 }
 
 function rrResult(match: RawRrMatch): string {
-  const comment = cleanText(match.rrmComment ?? "").replace(/\//g, ":");
+  const comment = cleanText(match.rrmComment ?? "").replaceAll(/\//g, ":");
   if (comment && comment.toUpperCase() !== "WO") {
     return comment;
   }
@@ -263,7 +263,7 @@ function rankingPrefixTokens(content: string): { name: string; rankings: string[
   let rest = cleanText(content);
   let rankings: string[] = [];
   const leadingGroup = /^\(([^)]*)\)\s*/;
-  let match = rest.match(leadingGroup);
+  let match = leadingGroup.exec(rest);
   while (match) {
     const tokens = (match[1] ?? "")
       .split("/")
@@ -273,7 +273,7 @@ function rankingPrefixTokens(content: string): { name: string; rankings: string[
       rankings = tokens;
     }
     rest = rest.slice(match[0].length);
-    match = rest.match(leadingGroup);
+    match = leadingGroup.exec(rest);
   }
   return { name: cleanText(rest), rankings };
 }
@@ -290,7 +290,7 @@ function splitDrawSide(row: RawDrawSlot | undefined): { name: string; name2: str
 
 function parseCourt(court: RawDrawSlot["court"]): { date: string; time: string; court: string } {
   const raw = typeof court === "string" ? court : cleanText(court?.content ?? "");
-  const match = raw.match(/(\d{2})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})(?:\s+\((.+?)\))?/);
+  const match = /(\d{2})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})(?:\s+\((.+?)\))?/.exec(raw);
   if (!match) {
     return { date: "", time: "", court: raw };
   }
@@ -387,7 +387,7 @@ function buildDrawTree(payload: unknown): DrawTree | null {
       const side1Names = fullNames.get(`${level + 1}:${position * 2}`) ?? [];
       const side2Names = fullNames.get(`${level + 1}:${position * 2 + 1}`) ?? [];
       const slot = byPosition.get(`${level}:${position}`);
-      const rawResult = cleanText(slot?.result?.content ?? "").replace(/\//g, ":");
+      const rawResult = cleanText(slot?.result?.content ?? "").replaceAll(/\//g, ":");
       const advanced = rawNamesAt(level, position);
       const { winnerSide, result, winnerNames } = resolveDrawWinner(advanced, side1Names, side2Names, rawResult);
       fullNames.set(`${level}:${position}`, winnerNames);

@@ -61,7 +61,7 @@ function lastNameVariants(lastName: string): string[] {
   add(normalizeForSearch(collapsed));
   const parts = lastName.split(/[-'’]/);
   if (parts.length > 1) {
-    const last = parts[parts.length - 1] ?? "";
+    const last = parts.at(-1) ?? "";
     add(last);
     add(normalizeForSearch(last));
   }
@@ -79,7 +79,7 @@ function buildQueries(fullName: string): NameQuery[] {
     return [];
   }
   const first = parts[0]!;
-  const lastOnly = parts[parts.length - 1]!;
+  const lastOnly = parts.at(-1)!;
   const rest = parts.slice(1).join(" ");
 
   const queries = new Map<string, NameQuery>();

@@ -69,7 +69,7 @@ function MatchLines({
 }
 
 function courtNumber(court: string): number {
-  return Number(court.match(/\d+/)?.[0] ?? 0);
+  return Number(/\d+/.exec(court)?.[0] ?? 0);
 }
 
 function buildGrid(matches: WaidcupLiveMatch[]): Grid {

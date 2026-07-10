@@ -23,7 +23,7 @@ function isTodayLocal(iso: string): boolean {
 
 function CourtLabel({ court, asBall }: Readonly<{ court: string; asBall: boolean }>): JSX.Element {
   const { t } = useI18n();
-  const number = court.match(/\d+/)?.[0];
+  const number = /\d+/.exec(court)?.[0];
   if (asBall && number !== undefined) {
     return (
       <span className="court-ball" title={court}>

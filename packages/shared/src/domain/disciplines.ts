@@ -14,7 +14,7 @@ const DISCIPLINE_PREFIX_PATTERN = /^(WS|MS|WD|MD|DM)/;
 /** Extrahiert die Disziplin aus einem Eventnamen wie "WS R4-R9". */
 export function disciplineOf(eventName: string): Discipline | "" {
   const upper = eventName.toUpperCase();
-  const token = upper.match(DISCIPLINE_PATTERN) ?? upper.match(DISCIPLINE_PREFIX_PATTERN);
+  const token = DISCIPLINE_PATTERN.exec(upper) ?? DISCIPLINE_PREFIX_PATTERN.exec(upper);
   return token ? (token[1] ?? token[0]) as Discipline : "";
 }
 
@@ -28,7 +28,7 @@ const RANKING_PATTERN = /\b([NR])\s*([1-9])\b/g;
 
 /** Alterskategorie aus dem Eventnamen ("35+") als Zahl; Aktiv = 0. */
 export function ageRank(eventName: string): number {
-  const match = eventName.match(AGE_PATTERN);
+  const match = AGE_PATTERN.exec(eventName);
   return match ? Number(match[1]) : 0;
 }
 

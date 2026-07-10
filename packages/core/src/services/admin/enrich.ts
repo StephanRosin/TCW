@@ -19,7 +19,7 @@ function splitName(name: string): { firstName: string; lastName: string } | null
   if (parts.length < 2) {
     return null;
   }
-  return { firstName: parts[0]!, lastName: parts[parts.length - 1]! };
+  return { firstName: parts[0]!, lastName: parts.at(-1)! };
 }
 
 /** Sucht den besten MyTennis-Treffer und schreibt Klassierung + URL zurück. */

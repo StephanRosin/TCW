@@ -82,7 +82,7 @@ function matchRow(m: WaidcupLiveMatch): string[] {
 
 /** Platznummer aus dem Platz-String ("Platz 2" -> 2), für die 1-6-Sortierung. */
 function courtSortKey(court: string): number {
-  const digits = court.match(/\d+/);
+  const digits = /\d+/.exec(court);
   return digits ? Number(digits[0]) : Number.MAX_SAFE_INTEGER;
 }
 
@@ -100,7 +100,7 @@ function playerLine(name: string): string {
 
 /** Court-Nummer aus dem Platz-String. */
 function courtNumber(court: string): number {
-  return Number(court.match(/\d+/)?.[0] ?? 0);
+  return Number(/\d+/.exec(court)?.[0] ?? 0);
 }
 
 /** Match-Zelle wie in der Web-UI: jeder Spieler auf eigener Zeile, "vs" dazwischen. */

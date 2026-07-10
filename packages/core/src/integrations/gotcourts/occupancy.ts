@@ -80,7 +80,7 @@ function describe(entry: GotCourtsRawEntry): string {
 
 /** Platznummer aus dem Label ("Platz 1" → 1) für stabile Sortierung. */
 function courtSortKey(label: string): number {
-  const match = label.match(/\d+/);
+  const match = /\d+/.exec(label);
   return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
 }
 

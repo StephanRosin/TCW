@@ -84,7 +84,7 @@ interface DateParts {
 }
 
 function splitDateTime(raw: string): DateParts {
-  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+  const match = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(raw);
   if (!match) {
     return { date: raw, time: "" };
   }
@@ -113,7 +113,7 @@ function buildRegistrationLabel(
   if (Number(subscriptionAvailable) !== 1) {
     return "";
   }
-  const match = (subscriptionEndDate ?? "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec((subscriptionEndDate ?? ""));
   if (!match) {
     return "";
   }

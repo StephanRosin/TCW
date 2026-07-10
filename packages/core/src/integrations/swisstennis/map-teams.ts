@@ -43,7 +43,7 @@ function ageRank(prefix: string): number {
   if (first === undefined || Number.isNaN(Number(first))) {
     return 0;
   }
-  const digits = prefix.match(/^\d+/);
+  const digits = /^\d+/.exec(prefix);
   return digits ? Number(digits[0]) : 0;
 }
 
