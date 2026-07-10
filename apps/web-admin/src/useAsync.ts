@@ -26,8 +26,8 @@ export function useAsync<TData>(loader: () => Promise<TData>): AsyncState<TData>
       .then((result) => {
         if (active) setData(result);
       })
-      .catch((caught: unknown) => {
-        if (active) setError(caught instanceof Error ? caught.message : String(caught));
+      .catch((error: unknown) => {
+        if (active) setError(error instanceof Error ? error.message : String(error));
       })
       .finally(() => {
         if (active) setLoading(false);

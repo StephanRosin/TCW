@@ -39,8 +39,8 @@ export function ActionsAdmin(): JSX.Element {
             }
           }
         })
-        .catch((caught: unknown) => {
-          showError(toErrorMessage(caught));
+        .catch((error: unknown) => {
+          showError(toErrorMessage(error));
           setPolling(false);
           setBusy("");
         });
@@ -56,8 +56,8 @@ export function ActionsAdmin(): JSX.Element {
       }
       setBusy("ranking");
       setPolling(true);
-    } catch (caught) {
-      showError(toErrorMessage(caught));
+    } catch (error) {
+      showError(toErrorMessage(error));
     }
   };
 
@@ -66,8 +66,8 @@ export function ActionsAdmin(): JSX.Element {
     try {
       const result = await adminApi.importMatches();
       showOk(`Spieltermine importiert: ${result.count} Einträge.`);
-    } catch (caught) {
-      showError(toErrorMessage(caught));
+    } catch (error) {
+      showError(toErrorMessage(error));
     } finally {
       setBusy("");
     }

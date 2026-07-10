@@ -204,8 +204,9 @@ function mapRoundRobinMatches(payload: unknown, eventName: string, eventId: numb
         }
         const result = rrResult(match);
         const schedule = rrSchedule(match.rrmDate);
+        const fallbackKey = `${player1Names.name}:${player2Names.name}`;
         records.push({
-          matchKey: `rr:${eventId}:${match.rRMatchId ?? `${player1Names.name}:${player2Names.name}`}`,
+          matchKey: `rr:${eventId}:${match.rRMatchId ?? fallbackKey}`,
           eventId,
           eventName,
           mode: "Round-robin",

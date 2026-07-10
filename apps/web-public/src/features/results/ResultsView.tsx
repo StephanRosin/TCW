@@ -235,9 +235,8 @@ function TeamResultsPanel({
   return (
     <ResourceView state={state} errorKey="results.loadError">
       {(data) => {
-        const title = data.liga
-          ? `${translateKnown(data.liga)}${data.group ? ` – ${t("teams.group", { group: data.group })}` : ""}`
-          : t("results.title");
+        const groupSuffix = data.group ? ` – ${t("teams.group", { group: data.group })}` : "";
+        const title = data.liga ? `${translateKnown(data.liga)}${groupSuffix}` : t("results.title");
         return (
         <div>
           <div className="results-head">

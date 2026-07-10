@@ -25,9 +25,7 @@ const ICONS: Record<string, JSX.Element> = {
     </>
   ),
   ticker: (
-    <>
-      <path d="M1.8 8h2.6l1.7-4.2 2.6 8.4 1.9-6 1 1.8h2.6" />
-    </>
+    <path d="M1.8 8h2.6l1.7-4.2 2.6 8.4 1.9-6 1 1.8h2.6" />
   ),
   training: (
     <>
@@ -48,9 +46,7 @@ const ICONS: Record<string, JSX.Element> = {
     </>
   ),
   "team-challenge": (
-    <>
-      <path d="M8 1.8 13.4 4v3.6c0 3.4-2.2 5.6-5.4 6.8-3.2-1.2-5.4-3.4-5.4-6.8V4z" />
-    </>
+    <path d="M8 1.8 13.4 4v3.6c0 3.4-2.2 5.6-5.4 6.8-3.2-1.2-5.4-3.4-5.4-6.8V4z" />
   ),
   "player-matches": (
     <>
@@ -73,9 +69,7 @@ const ICONS: Record<string, JSX.Element> = {
     </>
   ),
   agenda: (
-    <>
-      <path d="M3 3h10M3 6.4h10M3 9.8h6.5M3 13.2h4" />
-    </>
+    <path d="M3 3h10M3 6.4h10M3 9.8h6.5M3 13.2h4" />
   ),
   plaetze: (
     <>
