@@ -92,7 +92,14 @@ function importTeamsFromLegacy(target: TcwDatabase, legacy: Database.Database): 
   );
   const hasPlayers = tableExists(legacy, "players");
   const players = hasPlayers
-    ? (legacy.prepare("SELECT * FROM players").all() as Array<Record<string, unknown>>)
+    ? (legacy.prepare("SELECT * FROM players").all() as Array<{
+        id: number;
+        name: string | null;
+        klassierung: string | null;
+        myTennisID: string | null;
+        team_id: number | null;
+        captain_status: number | null;
+      }>)
     : [];
   const insertPlayer = target.prepare(
     `INSERT INTO players (id, name, klassierung, myTennisID, team_id, captain_status)
@@ -113,9 +120,9 @@ function importTeamsFromLegacy(target: TcwDatabase, legacy: Database.Database): 
     for (const player of players) {
       insertPlayer.run({
         id: player.id,
-        name: cleanPlayerName(String(player.name ?? "")),
-        klassierung: String(player.klassierung ?? ""),
-        myTennisID: String(player.myTennisID ?? ""),
+        name: cleanPlayerName(player.name ?? ""),
+        klassierung: player.klassierung ?? "",
+        myTennisID: player.myTennisID ?? "",
         team_id: player.team_id ?? null,
         captain_status: Number(player.captain_status ?? 0),
       });

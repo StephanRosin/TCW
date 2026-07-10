@@ -128,7 +128,7 @@ function categoryTitle(category: unknown): string {
   if (category && typeof category === "object") {
     const first = Object.values(category as Record<string, unknown>)[0];
     if (first && typeof first === "object" && "title" in first) {
-      return String((first as { title: unknown }).title ?? "");
+      return (first as { title?: string }).title ?? "";
     }
   }
   return "";

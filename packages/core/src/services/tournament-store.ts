@@ -408,12 +408,12 @@ export function loadTournamentEvents(
          LEFT JOIN player_registry r2 ON r2.id = tp.registry_id_2
          WHERE tp.tournament_id = ? AND tp.event_id = ? ORDER BY tp.sort_order ASC`,
       )
-      .all(tournamentId, eventRow.event_id) as Array<Record<string, unknown>>;
+      .all(tournamentId, eventRow.event_id) as RegistrationPlayerRow[];
     const matches = database
       .prepare(
         `SELECT * FROM tournament_matches WHERE tournament_id = ? AND event_id = ? ORDER BY sort_order ASC`,
       )
-      .all(tournamentId, eventRow.event_id) as Array<Record<string, unknown>>;
+      .all(tournamentId, eventRow.event_id) as TournamentMatchRow[];
     const extras = database
       .prepare(
         `SELECT pools_json, bracket_json FROM tournament_event_extras
@@ -456,18 +456,31 @@ export function getPublicTournaments(database: TcwDatabase): TournamentsResponse
   return { tournaments };
 }
 
-function toRegistrationPlayer(row: Record<string, unknown>): RegistrationPlayer {
+interface RegistrationPlayerRow {
+  player_key: string;
+  player_name: string | null;
+  player_name_2: string | null;
+  ranking: string | null;
+  ranking_2: string | null;
+  player_url: string | null;
+  player_url_2: string | null;
+  confirmed: number;
+  registered_on: string | null;
+  note: string | null;
+}
+
+function toRegistrationPlayer(row: RegistrationPlayerRow): RegistrationPlayer {
   return {
-    playerKey: String(row.player_key),
-    name: String(row.player_name ?? ""),
-    name2: String(row.player_name_2 ?? ""),
-    ranking: String(row.ranking ?? ""),
-    ranking2: String(row.ranking_2 ?? ""),
-    playerUrl: String(row.player_url ?? ""),
-    playerUrl2: String(row.player_url_2 ?? ""),
+    playerKey: row.player_key,
+    name: row.player_name ?? "",
+    name2: row.player_name_2 ?? "",
+    ranking: row.ranking ?? "",
+    ranking2: row.ranking_2 ?? "",
+    playerUrl: row.player_url ?? "",
+    playerUrl2: row.player_url_2 ?? "",
     confirmed: row.confirmed === 1,
-    registeredOn: String(row.registered_on ?? ""),
-    note: String(row.note ?? ""),
+    registeredOn: row.registered_on ?? "",
+    note: row.note ?? "",
   };
 }
 
@@ -490,21 +503,40 @@ function parseBracket(json: string | null | undefined): TournamentBracket | null
   }
 }
 
-function toTournamentMatch(row: Record<string, unknown>): TournamentMatch {
+interface TournamentMatchRow {
+  match_key: string;
+  event_id: number;
+  event_name: string | null;
+  mode: string | null;
+  pool_name: string | null;
+  round_name: string | null;
+  scheduled_date: string | null;
+  scheduled_time: string | null;
+  court: string | null;
+  player1_name: string | null;
+  player1_name_2: string | null;
+  player2_name: string | null;
+  player2_name_2: string | null;
+  result: string | null;
+  status: string | null;
+  winner_side: number | null;
+}
+
+function toTournamentMatch(row: TournamentMatchRow): TournamentMatch {
   return {
-    matchKey: String(row.match_key),
-    eventId: Number(row.event_id),
-    eventName: String(row.event_name ?? ""),
-    mode: String(row.mode ?? ""),
-    poolName: String(row.pool_name ?? ""),
-    roundName: String(row.round_name ?? ""),
-    scheduledDate: String(row.scheduled_date ?? ""),
-    scheduledTime: String(row.scheduled_time ?? ""),
-    court: String(row.court ?? ""),
-    side1Names: sideNames(String(row.player1_name ?? ""), row.player1_name_2 as string | null),
-    side2Names: sideNames(String(row.player2_name ?? ""), row.player2_name_2 as string | null),
-    result: String(row.result ?? ""),
-    status: String(row.status ?? "open") as TournamentMatchStatus,
-    winnerSide: Number(row.winner_side ?? 0),
+    matchKey: row.match_key,
+    eventId: row.event_id,
+    eventName: row.event_name ?? "",
+    mode: row.mode ?? "",
+    poolName: row.pool_name ?? "",
+    roundName: row.round_name ?? "",
+    scheduledDate: row.scheduled_date ?? "",
+    scheduledTime: row.scheduled_time ?? "",
+    court: row.court ?? "",
+    side1Names: sideNames(row.player1_name ?? "", row.player1_name_2),
+    side2Names: sideNames(row.player2_name ?? "", row.player2_name_2),
+    result: row.result ?? "",
+    status: (row.status ?? "open") as TournamentMatchStatus,
+    winnerSide: row.winner_side ?? 0,
   };
 }

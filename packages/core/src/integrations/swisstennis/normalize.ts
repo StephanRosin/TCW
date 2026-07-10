@@ -19,7 +19,8 @@ export function toNumber(value: unknown, fallback = 0): number {
 
 /** Säubert Swisstennis-Texte (geschützte Leerzeichen, Mehrfach-Whitespace). */
 export function cleanText(value: unknown): string {
-  return String(value ?? "")
+  const text = typeof value === "string" ? value : typeof value === "number" ? String(value) : "";
+  return text
     .replaceAll(/\u00A0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
