@@ -6,7 +6,7 @@
 import type { JSX, ReactNode } from "react";
 import { useI18n } from "../i18n/I18nProvider.js";
 
-export function SiteFooter({ stand, extraControl }: { stand: string; extraControl?: ReactNode }): JSX.Element {
+export function SiteFooter({ stand, extraControl }: Readonly<{ stand: string; extraControl?: ReactNode }>): JSX.Element {
   const { t } = useI18n();
   const standLabel = stand ? t("app.stand", { value: stand }) : t("app.defaultStand");
   return (

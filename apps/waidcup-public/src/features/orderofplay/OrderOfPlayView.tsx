@@ -47,10 +47,10 @@ function playerLine(name: string): string {
 function MatchLines({
   match,
   playerUrls,
-}: {
+}: Readonly<{
   match: WaidcupLiveMatch;
   playerUrls?: Record<string, string>;
-}): JSX.Element {
+}>): JSX.Element {
   return (
     <span className="oopt__match">
       {match.side1Names.map((n, i) => (
@@ -138,11 +138,11 @@ function ScheduleTable({
   grid,
   email,
   playerUrls,
-}: {
+}: Readonly<{
   grid: Grid;
   email: boolean;
   playerUrls?: Record<string, string>;
-}): JSX.Element {
+}>): JSX.Element {
   const { times, courts, byKey } = grid;
   const cls = (name: string): string | undefined => (email ? undefined : name);
   const st = (name: keyof typeof EMAIL): CSSProperties | undefined =>
@@ -183,7 +183,7 @@ function ScheduleTimeBlock({
   cls,
   st,
   playerUrls,
-}: {
+}: Readonly<{
   time: string;
   courts: number[];
   byKey: Map<string, WaidcupLiveMatch>;
@@ -191,7 +191,7 @@ function ScheduleTimeBlock({
   cls: (name: string) => string | undefined;
   st: (name: keyof typeof EMAIL) => CSSProperties | undefined;
   playerUrls?: Record<string, string>;
-}): JSX.Element {
+}>): JSX.Element {
   return (
     <>
       <tr>
@@ -236,11 +236,11 @@ function OrderOfPlayBoard({
   today,
   tomorrow,
   playerUrls,
-}: {
+}: Readonly<{
   today: WaidcupLiveMatch[];
   tomorrow: WaidcupLiveMatch[];
   playerUrls: Record<string, string>;
-}): JSX.Element {
+}>): JSX.Element {
   const { t, language } = useI18n();
   const emailRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);

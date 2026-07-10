@@ -11,7 +11,7 @@ interface LayoutSwitchProps {
   onChange: (mode: LayoutMode) => void;
 }
 
-export function LayoutSwitch({ value, onChange }: LayoutSwitchProps): JSX.Element {
+export function LayoutSwitch({ value, onChange }: Readonly<LayoutSwitchProps>): JSX.Element {
   const { t } = useI18n();
   return (
     <div className="lang-switch layout-switch" role="group" aria-label={t("layout.label")}>

@@ -12,7 +12,7 @@ interface ResourceViewProps<TData> {
   children: (data: TData) => ReactNode;
 }
 
-export function ResourceView<TData>({ state, errorKey, children }: ResourceViewProps<TData>): JSX.Element {
+export function ResourceView<TData>({ state, errorKey, children }: Readonly<ResourceViewProps<TData>>): JSX.Element {
   const { t } = useI18n();
 
   if (state.status === "loading") {

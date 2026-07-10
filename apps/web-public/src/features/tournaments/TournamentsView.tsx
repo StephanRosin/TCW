@@ -27,12 +27,12 @@ function CategoryRow({
   events,
   activeEventId,
   onSelect,
-}: {
+}: Readonly<{
   labelKey: string;
   events: TournamentEventView[];
   activeEventId: string;
   onSelect: (eventId: string) => void;
-}): JSX.Element | null {
+}>): JSX.Element | null {
   const { t } = useI18n();
   if (events.length === 0) {
     return null;
@@ -75,7 +75,7 @@ function firstEventId(tournament: TournamentView): string {
   return ordered.length > 0 ? String(ordered[0]!.eventId) : ALL_EVENTS;
 }
 
-function TournamentPanel({ tournament }: { tournament: TournamentView }): JSX.Element {
+function TournamentPanel({ tournament }: Readonly<{ tournament: TournamentView }>): JSX.Element {
   const { t } = useI18n();
   // Im Matchmodus ist "Alle" sinnvoll (alle Tableaux); im Anmeldemodus wird
   // direkt eine Kategorie gewählt.
@@ -185,14 +185,14 @@ function TournamentPanelBody({
   matches,
   players,
   search,
-}: {
+}: Readonly<{
   tournament: TournamentView;
   showsBracket: boolean;
   singleEvent: EventView | null;
   matches: EventView["matches"];
   players: EventView["players"];
   search: string;
-}): JSX.Element {
+}>): JSX.Element {
   if (!tournament.showsMatches) {
     return <RegistrationTable players={players} />;
   }

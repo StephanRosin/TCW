@@ -85,7 +85,7 @@ const ICONS: Record<string, JSX.Element> = {
   ),
 };
 
-export function SideNav({ items, activeView, onSelect }: SideNavProps): JSX.Element {
+export function SideNav({ items, activeView, onSelect }: Readonly<SideNavProps>): JSX.Element {
   const { t } = useI18n();
   return (
     <aside className="sidenav">

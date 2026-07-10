@@ -6,7 +6,7 @@ import type { JSX } from "react";
 import type { PoolStanding } from "@tcw/shared";
 import { useI18n } from "../../i18n/I18nProvider.js";
 
-export function PoolStandings({ pools }: { pools: PoolStanding[] }): JSX.Element | null {
+export function PoolStandings({ pools }: Readonly<{ pools: PoolStanding[] }>): JSX.Element | null {
   const { t } = useI18n();
   if (pools.length === 0) {
     return null;

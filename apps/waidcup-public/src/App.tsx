@@ -17,7 +17,7 @@ import { WebcamView } from "./features/webcam/WebcamView.js";
 import { TourView } from "./features/tour/TourView.js";
 import { KioskView } from "./features/kiosk/KioskView.js";
 
-function ActiveView({ view }: { view: MainView }): JSX.Element {
+function ActiveView({ view }: Readonly<{ view: MainView }>): JSX.Element {
   switch (view) {
     case "infos":
       return <InfosView />;

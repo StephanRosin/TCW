@@ -11,7 +11,7 @@ interface TabBarProps {
   onSelect: (view: MainView) => void;
 }
 
-export function TabBar({ items, activeView, onSelect }: TabBarProps): JSX.Element {
+export function TabBar({ items, activeView, onSelect }: Readonly<TabBarProps>): JSX.Element {
   const { t } = useI18n();
   return (
     <nav className="tabbar" aria-label={t("nav.sections")}>

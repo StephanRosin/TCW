@@ -27,7 +27,7 @@ const DEFAULT_YEAR = (RESULTS_YEARS as readonly string[]).includes(CURRENT_YEAR)
 
 type OpenEncount = (encountId: number, year: string, type: ResultType) => void;
 
-function YearTabs({ year, onSelect }: { year: string; onSelect: (year: string) => void }): JSX.Element {
+function YearTabs({ year, onSelect }: Readonly<{ year: string; onSelect: (year: string) => void }>): JSX.Element {
   const { t } = useI18n();
   return (
     <div className="scroll-row" role="tablist" aria-label={t("results.yearSelect")}>
@@ -51,11 +51,11 @@ function TeamPicker({
   teams,
   activeTeamId,
   onSelect,
-}: {
+}: Readonly<{
   teams: ResultsTeam[];
   activeTeamId: number | null;
   onSelect: (teamId: number) => void;
-}): JSX.Element {
+}>): JSX.Element {
   const { translateKnown } = useI18n();
   // Geschlechtszeilen ohne Label – die Buttons enthalten bereits "Damen"/"Herren".
   // Leerer Wert "" fängt Mixed-Teams (Team-Challenge) ab.
@@ -91,11 +91,11 @@ function ResultsTable({
   matches,
   year,
   onOpenEncount,
-}: {
+}: Readonly<{
   matches: TeamResultsResponse["matches"];
   year: string;
   onOpenEncount: OpenEncount;
-}): JSX.Element {
+}>): JSX.Element {
   const { t } = useI18n();
   return (
     <div>
@@ -140,7 +140,7 @@ function ResultsTable({
   );
 }
 
-function StandingsTable({ standings }: { standings: TeamResultsResponse["standings"] }): JSX.Element {
+function StandingsTable({ standings }: Readonly<{ standings: TeamResultsResponse["standings"] }>): JSX.Element {
   const { t } = useI18n();
   return (
     <div>
@@ -177,11 +177,11 @@ function GroupResults({
   data,
   year,
   onOpenEncount,
-}: {
+}: Readonly<{
   data: TeamResultsResponse;
   year: string;
   onOpenEncount: OpenEncount;
-}): JSX.Element {
+}>): JSX.Element {
   return (
     <div className="results-columns">
       <ResultsTable matches={data.matches} year={year} onOpenEncount={onOpenEncount} />
@@ -196,13 +196,13 @@ function BracketPanel({
   promotion,
   year,
   onOpenEncount,
-}: {
+}: Readonly<{
   api: ResultsApi;
   ligueId: number;
   promotion: 0 | 1;
   year: string;
   onOpenEncount: OpenEncount;
-}): JSX.Element {
+}>): JSX.Element {
   const state = useResource(() => api.draw(ligueId, promotion, year), [api, ligueId, promotion, year]);
   return (
     <ResourceView state={state} errorKey="results.loadError">
@@ -218,12 +218,12 @@ function TeamResultsPanel({
   teamId,
   year,
   onOpenEncount,
-}: {
+}: Readonly<{
   api: ResultsApi;
   teamId: number;
   year: string;
   onOpenEncount: OpenEncount;
-}): JSX.Element {
+}>): JSX.Element {
   const { t, translateKnown } = useI18n();
   const state = useResource(() => api.team(teamId, year), [api, teamId, year]);
   const [tab, setTab] = useState<"group" | "bracket">("group");
@@ -296,7 +296,7 @@ export function ResultsView({
   pendingEncounter,
   onConsumePending,
   onBackToMatches,
-}: ResultsViewProps): JSX.Element {
+}: Readonly<ResultsViewProps>): JSX.Element {
   const { t } = useI18n();
   const [year, setYear] = useState<string>(DEFAULT_YEAR);
   const [activeTeamId, setActiveTeamId] = useState<number | null>(null);

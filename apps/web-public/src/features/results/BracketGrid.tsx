@@ -16,10 +16,10 @@ function cellClassName(cell: BracketCell | null): string {
 function CellContent({
   cell,
   onOpenEncount,
-}: {
+}: Readonly<{
   cell: BracketCell;
   onOpenEncount: (encountId: number, type: ResultType) => void;
-}): JSX.Element | null {
+}>): JSX.Element | null {
   const { t, translateKnown } = useI18n();
 
   if (cell.kind === "team") {
@@ -53,10 +53,10 @@ function CellContent({
 export function BracketGrid({
   bracket,
   onOpenEncount,
-}: {
+}: Readonly<{
   bracket: BracketResponse;
   onOpenEncount: (encountId: number, type: ResultType) => void;
-}): JSX.Element {
+}>): JSX.Element {
   const { t } = useI18n();
   if (bracket.rows === 0) {
     return <div className="state">{t("results.noBracket")}</div>;

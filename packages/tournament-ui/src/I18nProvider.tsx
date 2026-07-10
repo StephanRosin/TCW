@@ -66,7 +66,7 @@ async function loadTranslations(language: Language): Promise<Translations> {
   return (await response.json()) as Translations;
 }
 
-export function I18nProvider({ children }: { children: ReactNode }): JSX.Element | null {
+export function I18nProvider({ children }: Readonly<{ children: ReactNode }>): JSX.Element | null {
   const [language, setLanguageState] = useState<Language>(() => detectInitialLanguage());
   const [translations, setTranslations] = useState<Translations | null>(null);
 

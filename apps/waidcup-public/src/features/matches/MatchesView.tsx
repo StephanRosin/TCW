@@ -21,10 +21,10 @@ function matchesPlayerSearch(match: TournamentMatch, needle: string): boolean {
 function MatchesPanel({
   matches,
   playerUrls,
-}: {
+}: Readonly<{
   matches: TournamentMatch[];
   playerUrls: Record<string, string>;
-}): JSX.Element {
+}>): JSX.Element {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [eventId, setEventId] = useState<number>(ALL_EVENTS);

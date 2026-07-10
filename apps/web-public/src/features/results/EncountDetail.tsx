@@ -15,7 +15,7 @@ export interface EncountRef {
   type: ResultType;
 }
 
-function SideNames({ names, state }: { names: string[]; state: "winner" | "loser" | "neutral" }): JSX.Element {
+function SideNames({ names, state }: Readonly<{ names: string[]; state: "winner" | "loser" | "neutral" }>): JSX.Element {
   return (
     <div className="encount-side">
       {names.map((name, index) => (
@@ -27,7 +27,7 @@ function SideNames({ names, state }: { names: string[]; state: "winner" | "loser
   );
 }
 
-function MatchRow({ match }: { match: EncountMatch }): JSX.Element {
+function MatchRow({ match }: Readonly<{ match: EncountMatch }>): JSX.Element {
   const homeState = match.homeWon === null ? "neutral" : match.homeWon ? "winner" : "loser";
   const awayState = match.homeWon === null ? "neutral" : match.homeWon ? "loser" : "winner";
   return (
@@ -49,12 +49,12 @@ function MatchTable({
   matches,
   homeTeam,
   awayTeam,
-}: {
+}: Readonly<{
   title: string;
   matches: EncountMatch[];
   homeTeam: string;
   awayTeam: string;
-}): JSX.Element | null {
+}>): JSX.Element | null {
   const { t } = useI18n();
   if (matches.length === 0) {
     return null;
@@ -83,7 +83,7 @@ function MatchTable({
   );
 }
 
-function DetailContent({ detail }: { detail: EncountDetailResponse }): JSX.Element {
+function DetailContent({ detail }: Readonly<{ detail: EncountDetailResponse }>): JSX.Element {
   const { t, translateKnown } = useI18n();
   return (
     <div className="encount">
@@ -122,11 +122,11 @@ export function EncountDetail({
   api,
   encountRef,
   onBack,
-}: {
+}: Readonly<{
   api: ResultsApi;
   encountRef: EncountRef;
   onBack: () => void;
-}): JSX.Element {
+}>): JSX.Element {
   const { t } = useI18n();
   const state = useResource(
     () => api.encount(encountRef.encountId, encountRef.year, encountRef.type),

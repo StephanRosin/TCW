@@ -18,7 +18,7 @@ interface ActivePhoto {
   title: string;
 }
 
-function PlayerName({ player }: { player: PublicPlayer }): JSX.Element {
+function PlayerName({ player }: Readonly<{ player: PublicPlayer }>): JSX.Element {
   const { t } = useI18n();
   const isLeader =
     player.captainStatus === CAPTAIN_STATUS.captain ||
@@ -49,10 +49,10 @@ function PlayerName({ player }: { player: PublicPlayer }): JSX.Element {
 function TeamCard({
   team,
   onOpenPhoto,
-}: {
+}: Readonly<{
   team: PublicTeam;
   onOpenPhoto: (photo: ActivePhoto) => void;
-}): JSX.Element {
+}>): JSX.Element {
   const { t, translateKnown } = useI18n();
   const displayTitle = translateKnown(team.title);
   const photoUrl = teamPhotoUrl(team.title);

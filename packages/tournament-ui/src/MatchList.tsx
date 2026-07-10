@@ -24,11 +24,11 @@ function SideCell({
   names,
   isWinner,
   playerUrls,
-}: {
+}: Readonly<{
   names: string[];
   isWinner: boolean;
   playerUrls?: Record<string, string>;
-}): JSX.Element {
+}>): JSX.Element {
   return (
     <div className={isWinner ? "match-side match-side--winner" : "match-side"}>
       {names.map((name, index) => (
@@ -44,11 +44,11 @@ export function MatchList({
   matches,
   order = "playedFirst",
   playerUrls,
-}: {
+}: Readonly<{
   matches: TournamentMatch[];
   order?: MatchListOrder;
   playerUrls?: Record<string, string>;
-}): JSX.Element {
+}>): JSX.Element {
   const { t } = useI18n();
   const sorted = useMemo(() => [...matches].sort(compareTournamentMatches(order)), [matches, order]);
 

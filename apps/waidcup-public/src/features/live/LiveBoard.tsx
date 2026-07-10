@@ -21,7 +21,7 @@ function isTodayLocal(iso: string): boolean {
   return iso === `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
-function CourtLabel({ court, asBall }: { court: string; asBall: boolean }): JSX.Element {
+function CourtLabel({ court, asBall }: Readonly<{ court: string; asBall: boolean }>): JSX.Element {
   const { t } = useI18n();
   const number = court.match(/\d+/)?.[0];
   if (asBall && number !== undefined) {
@@ -43,11 +43,11 @@ export function LiveMatchRows({
   matches,
   ballCourts = false,
   header = false,
-}: {
+}: Readonly<{
   matches: WaidcupLiveMatch[];
   ballCourts?: boolean;
   header?: boolean;
-}): JSX.Element {
+}>): JSX.Element {
   const { t } = useI18n();
   return (
     <div className="live-board">

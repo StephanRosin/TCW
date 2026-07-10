@@ -9,7 +9,7 @@ import { ResourceView, TournamentBracket, useI18n, useResource } from "@tcw/tour
 import { waidcupApi } from "../../api/client.js";
 import { compareWaidcupEvents } from "../../lib/events.js";
 
-function BracketsPanel({ events }: { events: TournamentEventView[] }): JSX.Element {
+function BracketsPanel({ events }: Readonly<{ events: TournamentEventView[] }>): JSX.Element {
   const { t } = useI18n();
   const sorted = useMemo(
     () => [...events].sort((a, b) => compareWaidcupEvents(a.eventName, b.eventName)),

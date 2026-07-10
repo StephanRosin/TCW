@@ -11,11 +11,11 @@ function Slot({
   names,
   isWinner,
   highlight,
-}: {
+}: Readonly<{
   names: string[];
   isWinner: boolean;
   highlight: boolean;
-}): JSX.Element {
+}>): JSX.Element {
   const { t } = useI18n();
   const classes = ["tbracket-slot"];
   if (isWinner) classes.push("tbracket-slot--winner");
@@ -39,10 +39,10 @@ function Slot({
 function BracketMatch({
   match,
   matchesSearch,
-}: {
+}: Readonly<{
   match: TournamentBracketMatch;
   matchesSearch: (names: string[]) => boolean;
-}): JSX.Element {
+}>): JSX.Element {
   return (
     <div className="tbracket-match">
       <Slot names={match.side1Names} isWinner={match.winnerSide === 1} highlight={matchesSearch(match.side1Names)} />
@@ -52,7 +52,7 @@ function BracketMatch({
   );
 }
 
-export function TournamentBracket({ bracket, search }: { bracket: Bracket; search: string }): JSX.Element {
+export function TournamentBracket({ bracket, search }: Readonly<{ bracket: Bracket; search: string }>): JSX.Element {
   const { t } = useI18n();
   const needle = search.trim().toLowerCase();
   const matchesSearch = (names: string[]): boolean =>

@@ -12,11 +12,11 @@ export function PlayerLink({
   name,
   label,
   playerUrls,
-}: {
+}: Readonly<{
   name: string;
   label?: ReactNode;
   playerUrls?: Record<string, string>;
-}): JSX.Element {
+}>): JSX.Element {
   const content = label ?? name;
   const url = playerUrls?.[playerNameKey(name)];
   if (!url) {

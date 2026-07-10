@@ -27,7 +27,7 @@ function compareBy(key: SortKey, a: RegistrationPlayer, b: RegistrationPlayer): 
   return a.name.localeCompare(b.name, "de-CH", { sensitivity: "base" });
 }
 
-function PlayerLine({ name, url }: { name: string; url: string }): JSX.Element {
+function PlayerLine({ name, url }: Readonly<{ name: string; url: string }>): JSX.Element {
   const safeUrl = safeExternalUrl(url);
   if (name === "") {
     return <></>;
@@ -43,7 +43,7 @@ function PlayerLine({ name, url }: { name: string; url: string }): JSX.Element {
   );
 }
 
-export function RegistrationTable({ players }: { players: RegistrationPlayer[] }): JSX.Element {
+export function RegistrationTable({ players }: Readonly<{ players: RegistrationPlayer[] }>): JSX.Element {
   const { t } = useI18n();
   const [sortKey, setSortKey] = useState<SortKey>("registered_on");
   const [sortDir, setSortDir] = useState<SortDir>("asc");

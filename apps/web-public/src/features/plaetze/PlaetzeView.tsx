@@ -30,7 +30,7 @@ function testAt(): string | undefined {
   return new URLSearchParams(window.location.search).get("at") ?? undefined;
 }
 
-function OccupancyBlock({ block }: { block: CourtBlock }): JSX.Element {
+function OccupancyBlock({ block }: Readonly<{ block: CourtBlock }>): JSX.Element {
   const { t } = useI18n();
   return (
     <div className={block.live ? "courts-block courts-block--live" : "courts-block"}>

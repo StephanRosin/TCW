@@ -56,10 +56,10 @@ export function SiteHeader(): JSX.Element {
 export function TabBar({
   activeView,
   onSelect,
-}: {
+}: Readonly<{
   activeView: MainView;
   onSelect: (view: MainView) => void;
-}): JSX.Element {
+}>): JSX.Element {
   const { t } = useI18n();
   const isMobile = useIsMobile();
   const items = filterNavForViewport(NAV_ITEMS, isMobile);

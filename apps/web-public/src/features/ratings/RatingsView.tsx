@@ -14,7 +14,7 @@ import { COMPARE_ROWS, levelColor, primaryLevel, COMPARE_LEVELS } from "./compar
 
 const TREND_ARROW: Record<"up" | "down" | "flat", string> = { up: "↑", down: "↓", flat: "•" };
 
-function ChangesTable({ items }: { items: RankingChange[] }): JSX.Element {
+function ChangesTable({ items }: Readonly<{ items: RankingChange[] }>): JSX.Element {
   const { t } = useI18n();
   if (items.length === 0) {
     return <div className="state">{t("ratings.empty")}</div>;
@@ -125,7 +125,7 @@ interface RatingsViewProps {
   onSubViewChange: (subView: RatingsSubView) => void;
 }
 
-export function RatingsView({ subView, onSubViewChange }: RatingsViewProps): JSX.Element {
+export function RatingsView({ subView, onSubViewChange }: Readonly<RatingsViewProps>): JSX.Element {
   const { t } = useI18n();
   return (
     <section>

@@ -15,10 +15,10 @@ const PAGE_SIZE = 30;
 function SideCell({
   players,
   isWinner,
-}: {
+}: Readonly<{
   players: PlayerMatchParticipant[];
   isWinner: boolean;
-}): JSX.Element {
+}>): JSX.Element {
   return (
     <div className={isWinner ? "match-side match-side--winner" : "match-side"}>
       {players.map((player, index) => (

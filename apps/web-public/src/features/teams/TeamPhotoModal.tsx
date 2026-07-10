@@ -12,7 +12,7 @@ interface TeamPhotoModalProps {
   onClose: () => void;
 }
 
-export function TeamPhotoModal({ src, title, onClose }: TeamPhotoModalProps): JSX.Element {
+export function TeamPhotoModal({ src, title, onClose }: Readonly<TeamPhotoModalProps>): JSX.Element {
   const { t } = useI18n();
 
   useEffect(() => {

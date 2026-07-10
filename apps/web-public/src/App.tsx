@@ -48,7 +48,7 @@ interface ViewState {
 
 const noop = (): void => {};
 
-function ActiveView(state: ViewState): JSX.Element {
+function ActiveView(state: Readonly<ViewState>): JSX.Element {
   switch (state.view) {
     case "teams":
       return <TeamsView />;

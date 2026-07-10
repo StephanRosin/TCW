@@ -17,7 +17,7 @@ function distinctRounds(matches: ScheduledMatch[]): string[] {
   return [...rounds].sort((a, b) => Number(a) - Number(b));
 }
 
-function PlayoffBadge({ match }: { match: ScheduledMatch }): JSX.Element | null {
+function PlayoffBadge({ match }: Readonly<{ match: ScheduledMatch }>): JSX.Element | null {
   const { t } = useI18n();
   if (!match.playoff) {
     return null;
@@ -37,7 +37,7 @@ function PlayoffBadge({ match }: { match: ScheduledMatch }): JSX.Element | null 
   return <span className={`badge badge--${variant}`}> {label}</span>;
 }
 
-function ResultCell({ match, onOpenEncount }: { match: ScheduledMatch; onOpenEncount: OpenEncount }): JSX.Element {
+function ResultCell({ match, onOpenEncount }: Readonly<{ match: ScheduledMatch; onOpenEncount: OpenEncount }>): JSX.Element {
   const { t } = useI18n();
   const isClickable = match.encountId > 0 && match.validated;
   if (!isClickable) {
@@ -59,10 +59,10 @@ function ResultCell({ match, onOpenEncount }: { match: ScheduledMatch; onOpenEnc
 export function MatchesView({
   state,
   onOpenEncount,
-}: {
+}: Readonly<{
   state: ResourceState<MatchesResponse>;
   onOpenEncount: OpenEncount;
-}): JSX.Element {
+}>): JSX.Element {
   const { t, translateKnown } = useI18n();
   return (
     <section>
@@ -85,12 +85,12 @@ function MatchesTable({
   translate,
   translateKnown,
   onOpenEncount,
-}: {
+}: Readonly<{
   data: MatchesResponse;
   translate: (key: string, params?: Record<string, string | number>) => string;
   translateKnown: (value: string) => string;
   onOpenEncount: OpenEncount;
-}): JSX.Element {
+}>): JSX.Element {
   const rounds = useMemo(() => distinctRounds(data.matches), [data.matches]);
   const [activeRound, setActiveRound] = useState<string>(rounds[0] ?? "");
 

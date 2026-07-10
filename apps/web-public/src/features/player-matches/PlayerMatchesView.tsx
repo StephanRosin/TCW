@@ -11,7 +11,7 @@ import { useI18n } from "../../i18n/I18nProvider.js";
 
 const MIN_CHARS = 3;
 
-function NameLink({ name, url }: { name: string; url: string | null }): JSX.Element {
+function NameLink({ name, url }: Readonly<{ name: string; url: string | null }>): JSX.Element {
   if (url) {
     return (
       <a className="pm-name" href={url} target="_blank" rel="noopener noreferrer">
@@ -23,7 +23,7 @@ function NameLink({ name, url }: { name: string; url: string | null }): JSX.Elem
 }
 
 /** Eine Spielseite (1–2 Spieler), durch „&" getrennt; als Sieger ggf. fett. */
-function Side({ players, winner }: { players: PlayerMatchView["opponents"]; winner: boolean }): JSX.Element {
+function Side({ players, winner }: Readonly<{ players: PlayerMatchView["opponents"]; winner: boolean }>): JSX.Element {
   const list = players.length > 0 ? players : [{ name: "—", url: null }];
   return (
     <span className={winner ? "pm-side pm-side--winner" : "pm-side"}>
@@ -37,7 +37,7 @@ function Side({ players, winner }: { players: PlayerMatchView["opponents"]; winn
   );
 }
 
-function MatchRow({ match }: { match: PlayerMatchView }): JSX.Element {
+function MatchRow({ match }: Readonly<{ match: PlayerMatchView }>): JSX.Element {
   const { t } = useI18n();
   const ownWon = match.won === true;
   const oppWon = match.won === false;
@@ -66,7 +66,7 @@ function MatchRow({ match }: { match: PlayerMatchView }): JSX.Element {
 }
 
 /** Abschnitt (Einzel bzw. Doppel) mit Überschrift; rendert nichts, wenn leer. */
-function MatchGroup({ title, matches }: { title: string; matches: PlayerMatchView[] }): JSX.Element | null {
+function MatchGroup({ title, matches }: Readonly<{ title: string; matches: PlayerMatchView[] }>): JSX.Element | null {
   if (matches.length === 0) return null;
   return (
     <section className="pm-group">

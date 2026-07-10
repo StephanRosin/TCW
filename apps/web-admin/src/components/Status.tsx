@@ -20,7 +20,7 @@ export function useStatus(): {
   };
 }
 
-export function StatusMessage({ status }: { status: StatusInfo | null }): JSX.Element | null {
+export function StatusMessage({ status }: Readonly<{ status: StatusInfo | null }>): JSX.Element | null {
   if (!status) {
     return null;
   }
