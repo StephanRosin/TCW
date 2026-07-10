@@ -23,7 +23,7 @@ export function cleanText(value: unknown): string {
   if (typeof value === "string") text = value;
   else if (typeof value === "number") text = String(value);
   return text
-    .replaceAll(/\u00A0/g, " ")
+    .replaceAll("\u00A0", " ")
     .replace(/\s+/g, " ")
     .trim();
 }

@@ -139,7 +139,7 @@ function rrSchedule(date: RawRrDate | undefined): { date: string; time: string }
 }
 
 function rrResult(match: RawRrMatch): string {
-  const comment = cleanText(match.rrmComment ?? "").replaceAll(/\//g, ":");
+  const comment = cleanText(match.rrmComment ?? "").replaceAll("/", ":");
   if (comment && comment.toUpperCase() !== "WO") {
     return comment;
   }
@@ -388,7 +388,7 @@ function buildDrawTree(payload: unknown): DrawTree | null {
       const side1Names = fullNames.get(`${level + 1}:${position * 2}`) ?? [];
       const side2Names = fullNames.get(`${level + 1}:${position * 2 + 1}`) ?? [];
       const slot = byPosition.get(`${level}:${position}`);
-      const rawResult = cleanText(slot?.result?.content ?? "").replaceAll(/\//g, ":");
+      const rawResult = cleanText(slot?.result?.content ?? "").replaceAll("/", ":");
       const advanced = rawNamesAt(level, position);
       const { winnerSide, result, winnerNames } = resolveDrawWinner(advanced, side1Names, side2Names, rawResult);
       fullNames.set(`${level}:${position}`, winnerNames);
