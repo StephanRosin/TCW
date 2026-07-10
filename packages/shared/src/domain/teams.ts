@@ -4,7 +4,7 @@
  * Reine Funktionen ohne Seiteneffekte, damit sie isoliert testbar sind und
  * im Backend (Listenaufbau) wie im Frontend (Anzeige) identisch greifen.
  */
-import { CAPTAIN_STATUS, type CaptainStatus, type Gender } from "../constants.js";
+import { CAPTAIN_STATUS, type CaptainStatus } from "../constants.js";
 import { rankingOrder } from "./ranking.js";
 
 /** Standard-Ligaordnung: NLA besser als NLB … 3. Liga. */
