@@ -244,11 +244,15 @@ function OrderOfPlayBoard({
   const { t, language } = useI18n();
   const emailRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
+  // Standard-Tab: heute – ausser heute ist leer und morgen hat Partien.
+  const [day, setDay] = useState<"today" | "tomorrow">(today.length > 0 || tomorrow.length === 0 ? "today" : "tomorrow");
 
-  // Anzeige: heute. Kopiervorlage für die E-Mail: morgen (Ankündigung).
+  // Anzeige folgt dem gewählten Tab. Kopiervorlage für die E-Mail: morgen (Ankündigung).
   const gridToday = useMemo(() => buildGrid(today), [today]);
   const gridTomorrow = useMemo(() => buildGrid(tomorrow), [tomorrow]);
-  const dateLabel = useMemo(() => formatDate(today[0]?.scheduledDate, language), [today, language]);
+  const activeMatches = day === "today" ? today : tomorrow;
+  const activeGrid = day === "today" ? gridToday : gridTomorrow;
+  const dateLabel = useMemo(() => formatDate(activeMatches[0]?.scheduledDate, language), [activeMatches, language]);
 
   const flagCopied = (): void => {
     setCopied(true);
@@ -304,6 +308,26 @@ function OrderOfPlayBoard({
 
   return (
     <div className="oop">
+      <div className="subtabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          className="chip"
+          aria-selected={day === "today"}
+          onClick={() => setDay("today")}
+        >
+          {t("orderOfPlay.today")}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className="chip"
+          aria-selected={day === "tomorrow"}
+          onClick={() => setDay("tomorrow")}
+        >
+          {t("orderOfPlay.tomorrow")}
+        </button>
+      </div>
       {/* Doppelklick auf das Datum kopiert die E-Mail-Tabelle für MORGEN
           (verstecktes Admin-Feature; kein sichtbarer Button). */}
       <div className="oop__bar">
@@ -316,12 +340,12 @@ function OrderOfPlayBoard({
         </span>
         {copied ? <span className="oop__copied">✓ {t("orderOfPlay.copied")}</span> : null}
       </div>
-      {gridToday.times.length > 0 ? (
+      {activeGrid.times.length > 0 ? (
         <div className="oop__scroll">
-          <ScheduleTable grid={gridToday} email={false} playerUrls={playerUrls} />
+          <ScheduleTable grid={activeGrid} email={false} playerUrls={playerUrls} />
         </div>
       ) : (
-        <div className="state">{t("orderOfPlay.empty")}</div>
+        <div className="state">{day === "today" ? t("orderOfPlay.empty") : t("orderOfPlay.emptyTomorrow")}</div>
       )}
       {/* Unsichtbare, exakt eingefärbte Kopiervorlage für die E-Mail (morgen) */}
       <div ref={emailRef} aria-hidden="true" className="oop__email">

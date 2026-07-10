@@ -112,6 +112,9 @@
   "orderOfPlay.copied": "Kopiert",
   "orderOfPlay.empty": "Heute sind keine Partien angesetzt.",
   "orderOfPlay.copyHint": "Doppelklick: Order of Play für morgen für die E-Mail kopieren",
+  "orderOfPlay.today": "Heute",
+  "orderOfPlay.tomorrow": "Morgen",
+  "orderOfPlay.emptyTomorrow": "Morgen sind keine Partien angesetzt.",
   "board.now": "Jetzt",
   "board.next": "Danach"
 }

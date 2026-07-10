@@ -567,6 +567,7 @@ main.container {
   transition: all 0.15s ease;
 }
 .chip[aria-pressed="true"],
+.chip[aria-selected="true"],
 .chip.is-active,
 .subtabs__btn[aria-selected="true"] {
   background: var(--blue-800);
