@@ -24,7 +24,9 @@ async function main(): Promise<void> {
   console.log("Fertig.");
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error(error);
   process.exit(1);
-});
+}

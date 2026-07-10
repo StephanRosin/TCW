@@ -40,7 +40,9 @@ async function main(): Promise<void> {
   console.log("Backfill fertig.");
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error(error);
   process.exit(1);
-});
+}
