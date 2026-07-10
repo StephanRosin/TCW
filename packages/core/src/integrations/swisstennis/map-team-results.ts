@@ -46,7 +46,7 @@ function pad2(value: number): string {
 
 function formatMatchDate(encount: RawEncount): string {
   const date = encount.enDate;
-  if (!date || date.day == null || date.month == null) {
+  if (date?.day == null || date?.month == null) {
     return "–";
   }
   const base = `${pad2(date.day)}.${pad2(date.month + 1)}`;

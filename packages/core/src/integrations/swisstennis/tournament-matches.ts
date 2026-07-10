@@ -131,7 +131,7 @@ function rrName(player: RawRrPlayer | undefined, isDouble: boolean): { name: str
 }
 
 function rrSchedule(date: RawRrDate | undefined): { date: string; time: string } {
-  if (!date || date.year == null) return { date: "", time: "" };
+  if (date?.year == null) return { date: "", time: "" };
   return {
     date: `${date.year}-${pad2((date.month ?? 0) + 1)}-${pad2(date.day ?? 1)}`,
     time: date.hour == null ? "" : `${pad2(date.hour)}:${pad2(date.minute ?? 0)}`,

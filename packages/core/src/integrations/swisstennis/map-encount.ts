@@ -114,7 +114,7 @@ interface RawEncountInfo {
 
 function formatEncountDate(date: RawEncountInfo["Played"]): string {
   const value = date?.Date;
-  if (!value || value.day == null || value.month == null || value.year == null) {
+  if (value?.day == null || value?.month == null || value?.year == null) {
     return "";
   }
   return `${value.day}.${value.month + 1}.${value.year}`;

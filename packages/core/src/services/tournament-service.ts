@@ -92,11 +92,11 @@ export function createTournamentService(config: AppConfig, database: TcwDatabase
     resolvePlayerUrls: boolean,
   ): Promise<RegistrationRecord & { playerUrl: string; playerUrl2: string }> {
     const reuseUrl =
-      existing && existing.licenseNumber === record.licenseNumber && existing.playerUrl
+      existing?.licenseNumber === record.licenseNumber && existing?.playerUrl
         ? existing.playerUrl
         : "";
     const reuseUrl2 =
-      existing && existing.licenseNumber2 === record.licenseNumber2 && existing.playerUrl2
+      existing?.licenseNumber2 === record.licenseNumber2 && existing?.playerUrl2
         ? existing.playerUrl2
         : "";
 

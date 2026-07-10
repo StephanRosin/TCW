@@ -119,7 +119,7 @@ export function createPlayer(camera, dom, startPos, lookAt) {
     if (result && typeof result.then === 'function') {
       result.then(() => { rawMovement = true; }).catch((err) => {
         rawMovement = false;
-        if (err && err.name === 'NotSupportedError') {
+        if (err?.name === 'NotSupportedError') {
           Promise.resolve(dom.requestPointerLock()).catch(() => {});
         }
       });

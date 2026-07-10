@@ -59,7 +59,7 @@ function pad2(value: number): string {
 }
 
 function formatTime(schedule: RawScheduleMatch["Schedule"]): string {
-  if (!schedule || schedule.Hour == null) {
+  if (schedule?.Hour == null) {
     return "";
   }
   return `${pad2(schedule.Hour)}:${pad2(schedule.Minute ?? 0)}`;
@@ -74,7 +74,7 @@ function formatResult(match: RawScheduleMatch): string {
 }
 
 function formatUpdatedAt(today: { day?: number; month?: number; year?: number } | undefined): string {
-  if (!today || today.day == null || today.month == null || today.year == null) {
+  if (today?.day == null || today?.month == null || today?.year == null) {
     return "";
   }
   const monthName = MONTHS_DE[today.month] ?? "";
