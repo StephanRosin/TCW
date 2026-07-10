@@ -46,7 +46,7 @@ function readNumber(name: string, fallback: number): number {
   }
   const value = Number(raw);
   if (!Number.isFinite(value)) {
-    throw new Error(`Umgebungsvariable ${name} muss eine Zahl sein, war: "${raw}".`);
+    throw new TypeError(`Umgebungsvariable ${name} muss eine Zahl sein, war: "${raw}".`);
   }
   return value;
 }

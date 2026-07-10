@@ -148,7 +148,7 @@ const MATCH_TEXT_FIELDS = [
 /** Ob sich ein inhaltliches Feld gegenüber dem gespeicherten Stand geändert hat. */
 function matchChanged(previous: ExistingMatchRow, next: Record<string, unknown>): boolean {
   for (const field of MATCH_TEXT_FIELDS) {
-    if (String(previous[field] ?? "") !== String(next[field] ?? "")) return true;
+    if (String(previous[field] ?? "") !== String((next[field] as string | number | null) ?? "")) return true;
   }
   return (
     Number(previous.winner_side ?? 0) !== Number(next.winner_side ?? 0) ||

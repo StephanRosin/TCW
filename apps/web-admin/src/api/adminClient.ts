@@ -14,7 +14,7 @@ async function request<TResponse>(url: string, init?: RequestInit): Promise<TRes
   // Content-Type nur bei vorhandenem Body setzen: ein POST OHNE Body mit
   // "application/json" wird von Fastify als leerer JSON-Body mit 400 abgewiesen
   // (betraf die body-losen Aktions-Endpunkte wie /api/actions/*).
-  const headers: Record<string, string> = { ...((init?.headers as Record<string, string>) ?? {}) };
+  const headers: Record<string, string> = { ...(init?.headers as Record<string, string> | undefined) };
   if (init?.body !== undefined && init?.body !== null) {
     headers["Content-Type"] = "application/json";
   }

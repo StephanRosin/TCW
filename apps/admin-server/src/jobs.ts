@@ -39,7 +39,7 @@ const QUIET_START_HOUR = 23;
 const QUIET_END_HOUR = 9;
 // Interclub-Saison: Mai + Juni. Ausserhalb wird IC nicht mehr abgerufen
 // (Saison vorbei, Daten ändern sich nicht mehr).
-const INTERCLUB_MONTHS = [4, 5]; // 0 = Januar
+const INTERCLUB_MONTHS = new Set([4, 5]); // 0 = Januar
 
 function jitter(maxMs: number): number {
   return Math.floor(Math.random() * maxMs);
@@ -51,7 +51,7 @@ function isQuietHour(date = new Date()): boolean {
 }
 
 function isInterclubSeason(date = new Date()): boolean {
-  return INTERCLUB_MONTHS.includes(date.getMonth());
+  return INTERCLUB_MONTHS.has(date.getMonth());
 }
 
 function scheduleRecurring(task: () => Promise<void>, intervalMs: number, jitterMs: number): void {

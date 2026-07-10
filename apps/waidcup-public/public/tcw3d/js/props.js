@@ -502,7 +502,7 @@ export function buildTerracePlateau(scene) {
  */
 function buildStairRailing(scene, xLeft, xRight, zTop, zBottom, yTop, yBottom) {
   const dz = zBottom - zTop, dy = yBottom - yTop;
-  const len = Math.sqrt(dz * dz + dy * dy);
+  const len = Math.hypot(dz, dy);
   const dir = new THREE.Vector3(0, dy, dz).normalize();
   const postCount = 5;
   const railH = 0.9;

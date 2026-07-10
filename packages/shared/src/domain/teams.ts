@@ -40,7 +40,7 @@ export function categoryRank(category: string): number {
   return leadingNumber ? Number(leadingNumber[0]) : UNKNOWN_CATEGORY_RANK;
 }
 
-export function genderRank(gender: Gender | string): number {
+export function genderRank(gender: string): number {
   if (gender === "Damen") return 0;
   if (gender === "Herren") return 1;
   return 9;

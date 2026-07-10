@@ -51,7 +51,7 @@ export function initMusic(camera, scene) {
   function playNext() {
     // Alternate forever; a missing/failed track is skipped so the other
     // one keeps looping instead of crashing the chain.
-    for (let attempt = 0; attempt < TRACKS.length; attempt++) {
+    for (const _track of TRACKS) {
       const idx = current;
       const buf = buffers[idx];
       current = (current + 1) % TRACKS.length;
