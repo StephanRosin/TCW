@@ -28,11 +28,24 @@ export function TeamPhotoModal({ src, title, onClose }: TeamPhotoModalProps): JS
   }, [onClose]);
 
   return (
-    <div className="photo-modal" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
+    <div
+      className="photo-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      onClick={onClose}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") onClose();
+      }}
+    >
       <button type="button" className="photo-modal__close" aria-label={t("common.back")} onClick={onClose}>
         ✕
       </button>
-      <figure className="photo-modal__figure" onClick={(event) => event.stopPropagation()}>
+      <figure
+        className="photo-modal__figure"
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
+      >
         <img className="photo-modal__img" src={src} alt={title} />
         <figcaption className="photo-modal__caption">{title}</figcaption>
       </figure>

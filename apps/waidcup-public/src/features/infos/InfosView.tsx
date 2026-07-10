@@ -64,12 +64,12 @@ export function InfosView(): JSX.Element {
               <tbody>
                 <tr>
                   <td>🥇</td>
-                  <td>{t("infos.prizeWinner")}</td>
+                  <th scope="row">{t("infos.prizeWinner")}</th>
                   <td className="info-tab__strong">CHF 500</td>
                 </tr>
                 <tr>
                   <td>🥈</td>
-                  <td>{t("infos.prizeFinalist")}</td>
+                  <th scope="row">{t("infos.prizeFinalist")}</th>
                   <td className="info-tab__strong">CHF 200</td>
                 </tr>
               </tbody>
@@ -81,12 +81,12 @@ export function InfosView(): JSX.Element {
               <tbody>
                 <tr>
                   <td>🥇</td>
-                  <td>{t("infos.prizeWinner")}</td>
+                  <th scope="row">{t("infos.prizeWinner")}</th>
                   <td className="info-tab__strong">CHF 200</td>
                 </tr>
                 <tr>
                   <td>🥈</td>
-                  <td>{t("infos.prizeFinalist")}</td>
+                  <th scope="row">{t("infos.prizeFinalist")}</th>
                   <td className="info-tab__strong">CHF 100</td>
                 </tr>
               </tbody>
