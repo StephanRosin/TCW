@@ -189,7 +189,7 @@ export function buildInfosModel(t: Translate): ScreenModel {
  * als „–"). Spieler mehrzeilig mit „(Rx)"-Prefix.
  */
 export function buildOrderOfPlayModel(today: WaidcupLiveMatch[], t: Translate, language = "de-CH"): ScreenModel {
-  const times = [...new Set(today.map((m) => m.scheduledTime))].sort();
+  const times = [...new Set(today.map((m) => m.scheduledTime))].sort((a, b) => a.localeCompare(b));
   const maxCourt = Math.max(6, ...today.map((m) => courtNumber(m.court)));
   const courts = Array.from({ length: maxCourt }, (_, i) => i + 1);
   const byKey = new Map<string, WaidcupLiveMatch>();

@@ -170,7 +170,7 @@ export function mapTeamResults(
   const rawStandings = asArray<RawStanding>(
     pool?.icTeamPoolSet?.IcTeamPool as RawStanding | RawStanding[] | undefined,
   );
-  const standings = sortStandings(rawStandings).map(toStandingRow);
+  const standings = sortStandings(rawStandings).map((standing, index) => toStandingRow(standing, index));
 
   const liga = cleanText(ligue?.lgName ?? "");
   const group = pool?.poolName2 == null ? "" : cleanText(pool.poolName2);

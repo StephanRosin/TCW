@@ -111,5 +111,5 @@ export function mapEventRegistrations(payload: unknown): RegistrationRecord[] {
     return [];
   }
   const players = asArray<RawPlayer>(event.ioPlayerSet?.IoPlayer as RawPlayer | RawPlayer[] | undefined);
-  return players.map(toRecord);
+  return players.map((player, index) => toRecord(player, index));
 }

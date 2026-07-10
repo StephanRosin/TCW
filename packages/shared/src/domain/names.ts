@@ -36,5 +36,5 @@ export function playerNameKey(rawName: string): string {
     .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s+/)
     .filter((token) => token !== "");
-  return [...tokens].sort().join(" ");
+  return [...tokens].sort((a, b) => a.localeCompare(b)).join(" ");
 }
