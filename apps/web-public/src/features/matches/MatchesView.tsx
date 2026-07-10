@@ -22,18 +22,10 @@ function PlayoffBadge({ match }: Readonly<{ match: ScheduledMatch }>): JSX.Eleme
   if (!match.playoff) {
     return null;
   }
-  const variant =
-    match.playoffType === "promotion"
-      ? "promotion"
-      : match.playoffType === "relegation"
-        ? "relegation"
-        : "neutral";
-  const label =
-    match.playoffType === "promotion"
-      ? t("results.promotion")
-      : match.playoffType === "relegation"
-        ? t("results.relegation")
-        : t("matches.playoffBadge");
+  const nonPromotionVariant = match.playoffType === "relegation" ? "relegation" : "neutral";
+  const variant = match.playoffType === "promotion" ? "promotion" : nonPromotionVariant;
+  const nonPromotionLabel = match.playoffType === "relegation" ? t("results.relegation") : t("matches.playoffBadge");
+  const label = match.playoffType === "promotion" ? t("results.promotion") : nonPromotionLabel;
   return <span className={`badge badge--${variant}`}> {label}</span>;
 }
 

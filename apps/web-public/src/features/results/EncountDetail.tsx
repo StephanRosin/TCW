@@ -28,8 +28,10 @@ function SideNames({ names, state }: Readonly<{ names: string[]; state: "winner"
 }
 
 function MatchRow({ match }: Readonly<{ match: EncountMatch }>): JSX.Element {
-  const homeState = match.homeWon === null ? "neutral" : match.homeWon ? "winner" : "loser";
-  const awayState = match.homeWon === null ? "neutral" : match.homeWon ? "loser" : "winner";
+  const homeOutcome = match.homeWon ? "winner" : "loser";
+  const awayOutcome = match.homeWon ? "loser" : "winner";
+  const homeState = match.homeWon === null ? "neutral" : homeOutcome;
+  const awayState = match.homeWon === null ? "neutral" : awayOutcome;
   return (
     <tr>
       <td className="numeric">{match.position}</td>

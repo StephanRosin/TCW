@@ -23,12 +23,8 @@ function PlayerName({ player }: Readonly<{ player: PublicPlayer }>): JSX.Element
   const isLeader =
     player.captainStatus === CAPTAIN_STATUS.captain ||
     player.captainStatus === CAPTAIN_STATUS.viceCaptain;
-  const tag =
-    player.captainStatus === CAPTAIN_STATUS.captain
-      ? t("teams.captain")
-      : player.captainStatus === CAPTAIN_STATUS.viceCaptain
-        ? t("teams.viceCaptain")
-        : "";
+  const viceTag = player.captainStatus === CAPTAIN_STATUS.viceCaptain ? t("teams.viceCaptain") : "";
+  const tag = player.captainStatus === CAPTAIN_STATUS.captain ? t("teams.captain") : viceTag;
 
   const nameNode = player.myTennisUrl ? (
     <a href={player.myTennisUrl} target="_blank" rel="noopener noreferrer">

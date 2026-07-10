@@ -351,8 +351,10 @@ function resolveDrawWinner(
   else if (advancedSurname && advancedSurname === surnameOf(side2Names)) winnerSide = 2;
   if (winnerSide === 0) winnerSide = winnerSideFromScore(rawResult);
   const result = winnerSide === 2 ? flipSets(rawResult) : rawResult;
-  const winnerNames =
-    winnerSide === 1 ? side1Names : winnerSide === 2 ? side2Names : advanced.length > 0 ? advanced : [];
+  let winnerNames: string[] = [];
+  if (winnerSide === 1) winnerNames = side1Names;
+  else if (winnerSide === 2) winnerNames = side2Names;
+  else if (advanced.length > 0) winnerNames = advanced;
   return { winnerSide, result, winnerNames };
 }
 

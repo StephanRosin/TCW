@@ -123,12 +123,8 @@ export function createTournamentService(config: AppConfig, database: TcwDatabase
     );
 
     const isDouble = DOUBLE_MATCH_TYPE_IDS.has(eventMeta.matchTypeId);
-    const matchesUrl =
-      eventMeta.mode === "Draw"
-        ? displayDrawUrl(eventMeta.eventId)
-        : eventMeta.mode === "Round-robin"
-          ? displayPoolsUrl(eventMeta.eventId)
-          : null;
+    const rrUrl = eventMeta.mode === "Round-robin" ? displayPoolsUrl(eventMeta.eventId) : null;
+    const matchesUrl = eventMeta.mode === "Draw" ? displayDrawUrl(eventMeta.eventId) : rrUrl;
     const matchesPayload = matchesUrl ? await client.fetchData(matchesUrl) : null;
     const matches = matchesPayload
       ? mapEventMatches(matchesPayload, eventMeta.mode, eventMeta.eventName, eventMeta.eventId, isDouble)

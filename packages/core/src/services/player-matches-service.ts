@@ -135,6 +135,9 @@ function extractEncounter(
     for (const m of matches) {
       const played = m.score.trim() !== "" || m.homeWon !== null;
       if (!played) continue;
+      let winnerSide = 0;
+      if (m.homeWon === true) winnerSide = 1;
+      else if (m.homeWon === false) winnerSide = 2;
       records.push({
         matchUid: `${competitionCode}:${encountId}:${discipline}:${m.position}`,
         competitionCode,
@@ -144,7 +147,7 @@ function extractEncounter(
         side1: m.homeNames, // Heim = Seite 1 (Resultat aus Heimsicht)
         side2: m.awayNames,
         result: m.score,
-        winnerSide: m.homeWon === null ? 0 : m.homeWon ? 1 : 2,
+        winnerSide,
         matchUrl: detail.swisstennisUrl || null,
       });
     }

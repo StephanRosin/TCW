@@ -139,13 +139,13 @@ export function KioskView(): JSX.Element {
         </div>
       </header>
 
-      {board === null ? (
-        <div className="kiosk__empty">{t("common.loading")}</div>
-      ) : board.now.length === 0 ? (
+      {board === null ? <div className="kiosk__empty">{t("common.loading")}</div> : null}
+      {board !== null && board.now.length === 0 ? (
         <div className="kiosk__empty">{t("live.nobodyPlaying")}</div>
-      ) : (
+      ) : null}
+      {board !== null && board.now.length > 0 ? (
         <LiveMatchRows matches={board.now} ballCourts header />
-      )}
+      ) : null}
 
       {board !== null && board.upcoming.length > 0 ? (
         <footer className="kiosk__upcoming">

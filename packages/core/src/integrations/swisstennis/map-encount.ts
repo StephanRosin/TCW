@@ -87,7 +87,9 @@ function determineHomeWinner(home: RawSideScore, visit: RawSideScore): boolean |
   if (homeSets === 0 && visitSets === 0) {
     return null;
   }
-  return homeSets >= 2 ? true : visitSets >= 2 ? false : null;
+  if (homeSets >= 2) return true;
+  if (visitSets >= 2) return false;
+  return null;
 }
 
 function toEncountMatch(raw: RawMatch): EncountMatch {

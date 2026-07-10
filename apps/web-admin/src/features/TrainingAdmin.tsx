@@ -34,13 +34,9 @@ function buildGrid(slots: AdminTrainingSlot[]): Map<string, string> {
     TRAINING_GRID_SLOTS.forEach((row, rowIndex) => {
       for (const court of PUBLIC_TRAINING_COURTS) {
         const slot = slots.find((candidate) => slotCovers(candidate, day, court, row.from, row.to));
-        const value = slot
-          ? slot.teamId
-            ? `team:${slot.teamId}`
-            : slot.labelOverride
-              ? `label:${slot.labelOverride}`
-              : FREE_VALUE
-          : FREE_VALUE;
+        let value = FREE_VALUE;
+        if (slot?.teamId) value = `team:${slot.teamId}`;
+        else if (slot?.labelOverride) value = `label:${slot.labelOverride}`;
         grid.set(cellKey(day, rowIndex, court), value);
       }
     });

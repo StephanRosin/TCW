@@ -95,7 +95,8 @@ async function loadPlayoffMeta(
     };
     const draw = payload.I2cm?.DrawResults;
     const promotion = toNumber(draw?.Promotion, -1);
-    const type = promotion === 1 ? "promotion" : promotion === 0 ? "relegation" : "";
+    const nonPromotion = promotion === 0 ? "relegation" : "";
+    const type = promotion === 1 ? "promotion" : nonPromotion;
     return { type, title: cleanText(draw?.Title ?? ""), ligueId: toNumber(draw?.LigueId) };
   } catch {
     return { type: "", title: "", ligueId: 0 };

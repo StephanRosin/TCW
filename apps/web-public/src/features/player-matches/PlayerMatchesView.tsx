@@ -42,14 +42,16 @@ function MatchRow({ match }: Readonly<{ match: PlayerMatchView }>): JSX.Element 
   const ownWon = match.won === true;
   const oppWon = match.won === false;
   const ownSide = match.partner ? [match.player, match.partner] : [match.player];
+  const oppOutcomeClass = oppWon ? "pm-outcome--lost" : "pm-outcome--open";
+  const wonOrLostLabel = ownWon ? t("playerMatches.won") : t("playerMatches.lost");
   return (
     <article className="pm-match">
       <div className="pm-match__meta">
         <span className={`pm-badge pm-badge--${match.competitionCode}`}>{match.competition}</span>
         <span
-          className={`pm-outcome ${ownWon ? "pm-outcome--won" : oppWon ? "pm-outcome--lost" : "pm-outcome--open"}`}
+          className={`pm-outcome ${ownWon ? "pm-outcome--won" : oppOutcomeClass}`}
         >
-          {match.won === null ? t("playerMatches.open") : ownWon ? t("playerMatches.won") : t("playerMatches.lost")}
+          {match.won === null ? t("playerMatches.open") : wonOrLostLabel}
         </span>
       </div>
       <div className="pm-match__body">
@@ -168,11 +170,12 @@ export function PlayerMatchesView(): JSX.Element {
 
       {loading ? <p className="pm-empty">{t("playerMatches.loading")}</p> : null}
 
-      {selected && matches !== null && !loading ? (
-        matches.length === 0 ? (
-          <p className="pm-empty">{t("playerMatches.noMatches")}</p>
-        ) : (
-          <>
+      {selected && matches !== null && !loading && matches.length === 0 ? (
+        <p className="pm-empty">{t("playerMatches.noMatches")}</p>
+      ) : null}
+
+      {selected && matches !== null && !loading && matches.length > 0 ? (
+        <>
             <MatchGroup
               title={t("playerMatches.discipline.single")}
               matches={matches.filter((match) => match.discipline === "single")}
@@ -181,8 +184,7 @@ export function PlayerMatchesView(): JSX.Element {
               title={t("playerMatches.discipline.double")}
               matches={matches.filter((match) => match.discipline === "double")}
             />
-          </>
-        )
+        </>
       ) : null}
     </section>
   );

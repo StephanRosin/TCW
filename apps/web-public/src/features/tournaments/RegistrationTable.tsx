@@ -65,7 +65,10 @@ export function RegistrationTable({ players }: Readonly<{ players: RegistrationP
     }
   };
 
-  const arrow = (key: SortKey): string => (key === sortKey ? (sortDir === "asc" ? " ▲" : " ▼") : "");
+  const arrow = (key: SortKey): string => {
+    if (key !== sortKey) return "";
+    return sortDir === "asc" ? " ▲" : " ▼";
+  };
 
   if (players.length === 0) {
     return <div className="state">{t("tournaments.noRegistrations")}</div>;
