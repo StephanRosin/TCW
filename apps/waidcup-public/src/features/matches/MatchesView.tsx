@@ -59,7 +59,7 @@ function MatchesPanel({
           type="button"
           role="tab"
           className="chip"
-          aria-pressed={eventId === ALL_EVENTS}
+          aria-selected={eventId === ALL_EVENTS}
           onClick={() => setEventId(ALL_EVENTS)}
         >
           {t("tournaments.allTableaux")}
@@ -70,7 +70,7 @@ function MatchesPanel({
             type="button"
             role="tab"
             className="chip"
-            aria-pressed={eventId === event.id}
+            aria-selected={eventId === event.id}
             onClick={() => setEventId(event.id)}
           >
             {event.name}

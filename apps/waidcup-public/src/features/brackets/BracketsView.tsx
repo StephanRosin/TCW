@@ -32,7 +32,7 @@ function BracketsPanel({ events }: Readonly<{ events: TournamentEventView[] }>):
             type="button"
             role="tab"
             className="chip"
-            aria-pressed={event.eventId === activeEventId}
+            aria-selected={event.eventId === activeEventId}
             onClick={() => setActiveEventId(event.eventId)}
           >
             {event.eventName}

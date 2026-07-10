@@ -37,7 +37,7 @@ function YearTabs({ year, onSelect }: Readonly<{ year: string; onSelect: (year: 
           type="button"
           role="tab"
           className={`chip${option === year ? " is-active" : ""}`}
-          aria-pressed={option === year}
+          aria-selected={option === year}
           onClick={() => onSelect(option)}
         >
           {option}

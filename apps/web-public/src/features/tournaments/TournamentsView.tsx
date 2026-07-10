@@ -235,7 +235,7 @@ export function TournamentsView(): JSX.Element {
                       type="button"
                       role="tab"
                       className={`chip${tournament.id === active.id ? " is-active" : ""}`}
-                      aria-pressed={tournament.id === active.id}
+                      aria-selected={tournament.id === active.id}
                       onClick={() => setActiveTournamentId(tournament.id)}
                     >
                       {tournament.name}

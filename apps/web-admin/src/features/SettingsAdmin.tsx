@@ -38,7 +38,7 @@ export function SettingsAdmin(): JSX.Element {
           type="checkbox"
           checked={draft.showTraining}
           onChange={(event) => setDraft((current) => ({ ...current, showTraining: event.target.checked }))}
-        />
+        />{" "}
         Trainingsplan anzeigen
       </label>
       <label className="settings-row">
@@ -46,7 +46,7 @@ export function SettingsAdmin(): JSX.Element {
           type="checkbox"
           checked={draft.showMatches}
           onChange={(event) => setDraft((current) => ({ ...current, showMatches: event.target.checked }))}
-        />
+        />{" "}
         Spieltermine anzeigen
       </label>
       <div className="toolbar toolbar--top-gap">

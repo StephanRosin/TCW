@@ -100,7 +100,7 @@ function MatchesTable({
               type="button"
               role="tab"
               className={`chip${round === activeRound ? " is-active" : ""}`}
-              aria-pressed={round === activeRound}
+              aria-selected={round === activeRound}
               onClick={() => setActiveRound(round)}
             >
               {translate("matches.round", { round })}

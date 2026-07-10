@@ -40,7 +40,7 @@ export function TrainingView(): JSX.Element {
             type="button"
             role="tab"
             className={`chip${day === activeDay ? " is-active" : ""}`}
-            aria-pressed={day === activeDay}
+            aria-selected={day === activeDay}
             onClick={() => setActiveDay(day)}
           >
             {t(DAY_LABEL_KEYS[day])}
