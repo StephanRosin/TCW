@@ -92,8 +92,8 @@ ClubResult-Import (62 Spieltermine).
   Klassierungsänderungen und Turniere; Validierung mit konkreten Fehlermeldungen
   (400) und Konfliktbehandlung (409).
 - **MyTennis-Suche** mit robuster Namensnormalisierung (Akzente, Apostrophe,
-  Bindestriche, zwei Vornamen) – verifiziert: Hubeková→Hubekova R1,
-  O'Driscoll R7, Rosin R4. Auto-Suche bei neuem Spieler / Namensänderung
+  Bindestriche, zwei Vornamen) – verifiziert an Beispielnamen mit Diakritika,
+  Apostrophen und Bindestrichen. Auto-Suche bei neuem Spieler / Namensänderung
   (Klassierung + URL vorher leeren, dann übernehmen).
 - **Klassierungsupdate** (URL-Match, nur echte Änderungen → `ranking_changes`)
   und **Spieltermin-Import** als Admin-Aktionen.
@@ -102,13 +102,13 @@ ClubResult-Import (62 Spieltermine).
   mit Status), Aktionen. IDs/created-Felder nicht editierbar; Löschen mit
   Bestätigung; sichere Ausgabe (kein untrusted innerHTML).
 
-## Phase 6 – Deployment Server (parallel) ✅
+## Phase 6 – Deployment (parallel) ✅
 
-- Beide Apps laufen auf dem Server **parallel** zum Altsystem unter eigenen
-  Ports und eigener DB: Public `8092`, Admin `8093` (LaunchAgents
-  `ch.tcw.ic-claude-public` / `ch.tcw.ic-claude-admin`).
-- Nutzer-lokale Node-22-Runtime (`~/.local/node22`); `better-sqlite3` nativ für
-  arm64 gebaut; beide Frontends auf dem Mac gebaut.
+- Alle Apps laufen auf dem Server **parallel** zum Altsystem unter eigenen
+  Ports und eigener DB: Public `8092`, Admin `8093`, Waidcup `8096` (je eigener
+  Dienst/LaunchAgent).
+- Nutzer-lokale Node-22-Runtime; `better-sqlite3` nativ gebaut; die Frontends
+  werden auf dem Server gebaut.
 - Security verifiziert: `/` und Assets 200, DB/Quellcode/Logs/unbekannte Pfade
   liefern strikt **404** (SPA-Fallback entfernt, da Hash-Routing).
 - Hintergrund-Jobs laufen (Turnier-Polling, Spieltermin-Import).
