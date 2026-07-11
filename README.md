@@ -170,6 +170,6 @@ Weitere Skripte: `refresh:tournaments` (Turniere von SwissTennis aktualisieren),
 
 ### Deployment & Status
 
-- **Deployment** (Server, drei LaunchAgents): siehe
+- **Deployment** (drei Dienste auf einem Server): siehe
   [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 - **Ausbaustand / Phasen:** siehe [`docs/STATUS.md`](docs/STATUS.md).
