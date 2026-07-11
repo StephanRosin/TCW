@@ -1,8 +1,8 @@
 # Deployment – Server (Parallelbetrieb zum Altsystem)
 
 Der Neubau läuft auf dem Server **parallel** zur bestehenden Interclub-App
-(8090/8091) unter zwei freien Ports und mit **eigener Datenbank** – das
-Altsystem bleibt unberührt.
+(8090/8091) als **drei Dienste** auf eigenen Ports und mit **eigener Datenbank** –
+das Altsystem bleibt unberührt.
 
 > Hinweis: `<MAC_MINI_LAN_IP>` ist ein Platzhalter für die lokale LAN-Adresse des
 > Server (nicht im Repo hinterlegt). Beim Ausführen der Befehle entsprechend
@@ -48,6 +48,29 @@ als **dritter Dienst** im **selben App-Verzeichnis**
   `apps/waidcup-public/public/tcw3d/` (aus dem separaten `3DTCW`-Repo). Lokal mit
   `npm run sync:tcw3d` aktualisieren; der Snapshot wird **mitcommittet** und
   einfach als statische Dateien mitdeployt (Mac ist file-synced, kein Git).
+
+## Öffentlicher Zugang (Reverse Proxy)
+
+Die LAN-Ports oben sind die **Origins**. Nach aussen ist die Waidcup-Seite
+zusätzlich über eine öffentliche HTTPS-Domain erreichbar, die per Reverse Proxy
+(**openresty/NGINX**) auf den Mac-Origin zeigt:
+
+| Öffentliche URL | Origin |
+| --- | --- |
+| <https://waidcup.sterostxc.ch> | `http://<MAC_MINI_LAN_IP>:8096` |
+
+- Die Proxy-Konfiguration liegt **ausserhalb dieses Repos** (auf dem
+  Proxy-Host), nicht auf dem Mac.
+- Der Origin sendet `Cache-Control: public, max-age=0` + ETag; der Proxy
+  cached **nicht** stale → neue Deploys erscheinen bei normalem Reload (der
+  Browser revalidiert per ETag). Kein Service Worker im Einsatz.
+- **Troubleshooting „neue Version nicht sichtbar":** zuerst im
+  **Inkognito-Fenster** prüfen. Erscheint es dort, ist es Browser-Cache (Hard-
+  Reload/Cache leeren). Erscheint es dort ebenfalls nicht, am Origin (`:8096`)
+  gegenprüfen, ob das erwartete Bundle ausgeliefert wird.
+- **Namens-Konvention (Ad-Blocker):** Klassen/Dateien im Frontend nicht mit
+  „sponsor"/„ad"/„banner" benennen – uBlock/AdBlock blenden solche Elemente/URLs
+  generisch aus (Partner-Logo z. B. `header-partner` / `stadt-zuerich.png`).
 
 ## Betrieb
 
