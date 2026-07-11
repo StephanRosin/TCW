@@ -5,7 +5,10 @@
  * " - offen" / " - bestätigt" dürfen nicht Teil des gespeicherten Namens sein.
  * Sonderzeichen (Umlaute, Akzente, Apostrophe) müssen erhalten bleiben.
  */
-const TRAILING_PARENTHESES = /\([^)]*\)$/;
+// `[^()]` (statt `[^)]`) schließt auch die öffnende Klammer aus. Das verhindert
+// quadratisches Backtracking (polynomiales ReDoS) bei Eingaben mit vielen „(",
+// ohne das Verhalten für echte Namens-Suffixe wie „(R4)"/„(neu)" zu ändern.
+const TRAILING_PARENTHESES = /\([^()]*\)$/;
 const TRAILING_STATUS_SUFFIX = /[-–]\s*(offen|bestätigt|bestaetigt|neu)$/iu;
 
 /** Entfernt Status-/Jahres-Zusätze am Namensende, behält den eigentlichen Namen. */
