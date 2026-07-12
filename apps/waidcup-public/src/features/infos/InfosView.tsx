@@ -7,11 +7,11 @@ import { useI18n } from "@tcw/tournament-ui";
 
 // WS immer vor MS.
 const TABLEAUX: ReadonlyArray<readonly [string, string, string]> = [
-  ["WS", "R1/R5", "infos.tableau32"],
-  ["WS", "R5/R9", "infos.tableau32"],
-  ["MS", "R1/R5", "infos.tableau32"],
-  ["MS", "R5/R9", "infos.tableau32"],
-  ["DM", "R1/R5", "infos.tableau16"],
+  ["WS", "R1/R5", "infos.tableau8"],
+  ["WS", "R5/R9", "infos.tableau16"],
+  ["MS", "R1/R5", "infos.tableau64"],
+  ["MS", "R5/R9", "infos.tableau64"],
+  ["DM", "R1/R5", "infos.tableau8"],
 ];
 
 const PLAIN_HINTS = ["infos.hint1", "infos.hint4", "infos.hint5", "infos.hint6"];
