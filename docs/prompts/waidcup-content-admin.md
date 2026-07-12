@@ -36,8 +36,17 @@ Waidcup-Seite (`waidcup-server`) unter **`/admin.html`**, ist **nicht** von der
 
 ## Abgestimmte Entscheidungen
 
-1. **Umfang:** Alle `infos.*` + `location.*` Werte editierbar (feste Struktur, keine
-   frei anlegbaren Blöcke).
+1. **Umfang:** Alle `infos.*` + `location.*` Inhalte editierbar (feste Struktur, keine
+   frei anlegbaren Blöcke). Wichtig: nicht alles ist heute i18n-Text — es gibt auch
+   **strukturierte, sprachneutrale** Werte, die editierbar sein müssen:
+   - **Tableaux:** feste Kategorie-Zeilen (WS R1/R5, WS R5/R9, MS R1/R5, MS R5/R9, DM);
+     pro Zeile die **Größe** wählbar (**8/16/32/64**). Zeilen werden NICHT hinzugefügt/
+     entfernt. (Heute Zuordnung in `InfosView.tsx`-Array `TABLEAUX`; Größen-Labels in i18n.)
+   - **Preisgelder:** die **CHF-Beträge** je Gruppe (Sieger/Finalist) editierbar. (Heute
+     **hartkodiert** in `InfosView.tsx`, nicht i18n.)
+   - **Links/URLs:** editierbar — Merkblatt-PDF (`infos.hintPdfUrl`), Parkkarte-Download
+     (`location.parkingDownload`-Ziel), Google-Maps-Link.
+   - Komfort: **„Auf Standard zurücksetzen" je Feld** und **Live-Vorschau** (siehe Editor-UI).
 2. **Übersetzung:** **OpenAI** (`gpt-4o-mini`), Deutsch → EN/FR/IT, HTML-Tags erhalten.
    Key aus Env `OPENAI_API_KEY`.
 3. **Editor:** **WYSIWYG → sanitized HTML** (TipTap o. Ä.) für die **rich**-Felder;
@@ -51,17 +60,31 @@ Waidcup-Seite (`waidcup-server`) unter **`/admin.html`**, ist **nicht** von der
 ### 1. Content-Store (DB)
 - Neue Tabelle `waidcup_content(key TEXT, lang TEXT, value TEXT, updated_at TEXT,
   PRIMARY KEY(key, lang))` (Migration in `packages/core/src/db/schema.ts`).
-- **Defaults bleiben in den i18n-JSONs**; DB-Override gewinnt, wenn vorhanden.
-- **Manifest** der editierbaren Keys (in `@tcw/core` oder `@tcw/shared`): pro Key
-  `type: "plain" | "rich"` und Gruppe (`infos` / `location`).
-  - **plain:** Labels, Datumsangaben (`infos.dateDurationValue` …), Tableau-Größen,
-    Preisgelder, Titel.
-  - **rich:** Freitext-Blöcke — `infos.hint1/hint4/hint5/hint6`,
-    `location.welcomeText/facilityText/transitText/parkingText`.
-- Service (`@tcw/core`): `getWaidcupContent(db, lang) → { [key]: value }` (nur vorhandene
-  Overrides), `setWaidcupContent(db, key, lang, value)` (sanitized rich-HTML vor dem
-  Schreiben), plus `listEditableContent(db) → alle Keys × 4 Sprachen inkl. Defaults` für
-  die Admin-UI.
+- **Defaults bleiben in den i18n-JSONs bzw. im Code** (Tableaux/Preise/URLs, siehe unten);
+  DB-Override gewinnt, wenn vorhanden. „Auf Standard zurücksetzen" = DB-Override löschen.
+- Zwei Arten von Inhalt, unterschieden über ein **Manifest** (in `@tcw/core` oder
+  `@tcw/shared`), je Key `type`, `group` (`infos`/`location`) und `perLang`:
+  - **Pro Sprache (`perLang: true`)** — je Sprache ein eigener Wert:
+    - `text-plain`: Labels, Titel, Datumsangaben (`infos.dateDurationValue` …).
+    - `text-rich`: Freitext-Blöcke (WYSIWYG) — `infos.hint1/hint4/hint5/hint6`,
+      `location.welcomeText/facilityText/transitText/parkingText`.
+  - **Sprachneutral (`perLang: false`)** — ein Wert für alle Sprachen, unter dem
+    Sentinel-`lang = "*"` gespeichert:
+    - `enum` (Tableau-Größe je Kategorie, erlaubt 8/16/32/64): Keys z. B.
+      `infos.tableau.ws_r1r5`, `…ws_r5r9`, `…ms_r1r5`, `…ms_r5r9`, `…dm`. Das angezeigte
+      Label („8er Tableau"/„Draw of 8") wird pro Sprache aus der Zahl + i18n-Suffix
+      **gerendert** (nicht gespeichert).
+    - `number` (CHF-Beträge): z. B. `infos.prize.g1.winner`, `…g1.finalist`,
+      `…g2.winner`, `…g2.finalist`.
+    - `url` (Links): `infos.hintPdfUrl`, `location.parkingUrl`, `location.mapsUrl`.
+- Service (`@tcw/core`):
+  - `getWaidcupContent(db, lang) → { [key]: value }` — perLang-Overrides der Sprache **plus**
+    alle sprachneutralen Overrides (`lang="*"`).
+  - `setWaidcupContent(db, key, lang, value)` — validiert gegen das Manifest (Typ/enum-Werte/
+    URL-Schema), sanitized `text-rich` vor dem Schreiben; `perLang:false` immer mit `lang="*"`.
+  - `resetWaidcupContent(db, key, lang)` — löscht den Override (Default greift wieder).
+  - `listEditableContent(db) → alle Keys inkl. Typ, Gruppe, aktuellem Wert (bzw. Default)
+    je Sprache` für die Admin-UI.
 
 ### 2. Öffentliche Anzeige (Overrides einspielen)
 - Neuer Endpoint `GET /api/waidcup/content?lang=xx` → Overrides für die Sprache.
@@ -71,8 +94,17 @@ Waidcup-Seite (`waidcup-server`) unter **`/admin.html`**, ist **nicht** von der
 - **rich**-Keys in den Web-Views (`InfosView`, `LocationView`) über eine kleine
   `RichText`-Komponente als **sanitized HTML** rendern (`dangerouslySetInnerHTML` auf bereits
   server-seitig bereinigtem Wert). **plain**-Keys bleiben Text.
+- **Strukturelle Umstellung (wichtig):** `InfosView.tsx` muss die heute im Code stehenden
+  Werte aus dem Content beziehen statt hartkodiert:
+  - **Tableaux:** feste Kategorie-Zeilen bleiben im Code, aber die **Größe je Zeile** kommt
+    aus dem Content (`infos.tableau.<kat>` → Zahl); das Label wird per Sprache aus der Zahl +
+    i18n-Suffix gerendert (z. B. Zahl 8 → `t("infos.tableauSuffix")` → „8er Tableau").
+  - **Preisgelder:** die CHF-Beträge aus dem Content (`infos.prize.*`) statt der hartkodierten
+    `CHF 500`-Literale.
+  - **URLs:** `hintPdfUrl`/`parkingUrl`/`mapsUrl` aus dem Content.
 - **3D-Tour-Infos-Screen:** rich-Werte vor dem Canvas-Painten **Tags strippen → Text**
-  (Canvas kann kein HTML). Der Screen-Treiber holt die Overrides mit.
+  (Canvas kann kein HTML); Tableau-Zeilen ebenfalls aus den Content-Zahlen bauen. Der
+  Screen-Treiber holt die Overrides mit.
 
 ### 3. Admin unter `/admin.html` (gleicher Container)
 - **Zweiter Vite-Entry** in `apps/waidcup-public` (Multi-Page): `admin.html` + `admin.tsx`,
@@ -91,14 +123,22 @@ Waidcup-Seite (`waidcup-server`) unter **`/admin.html`**, ist **nicht** von der
     sind geschützt.
 
 ### 4. Editor-UI (`admin.tsx`)
-- Felder gruppiert (Infos / Standort), je Feld 4 Sprach-Tabs (DE/EN/FR/IT).
-- **rich**-Felder: WYSIWYG (Toolbar: fett/kursiv/Link/Aufzählung) → HTML.
-  **plain**-Felder: normale ein-/mehrzeilige Eingaben.
-- Button **„Übersetzen"** je Feld (und optional „alle fehlenden übersetzen"):
-  `POST /api/admin/translate { text, targetLang, isHtml }` → Server → OpenAI (DE-Quelle,
-  Ziel-Sprache, HTML-Tags erhalten) → füllt EN/FR/IT.
-- **Speichern:** `PUT /api/admin/content` (pro Key/Sprache oder Batch). Server **sanitized**
-  rich-HTML per Whitelist vor dem Schreiben.
+- Felder gruppiert (Infos / Standort). **Editor je Feldtyp** (aus dem Manifest):
+  - `text-rich`: WYSIWYG (Toolbar fett/kursiv/Link/Aufzählung) → HTML, mit 4 Sprach-Tabs.
+  - `text-plain`: ein-/mehrzeilige Eingabe, 4 Sprach-Tabs.
+  - `enum` (Tableau-Größe): Dropdown 8/16/32/64 — **sprachneutral** (kein Sprach-Tab).
+  - `number` (CHF): Zahlenfeld — sprachneutral.
+  - `url`: URL-Feld (Validierung http/https/mailto) — sprachneutral.
+- **„Übersetzen"** nur bei Textfeldern (`text-plain`/`text-rich`), je Feld und „alle
+  fehlenden übersetzen": `POST /api/admin/translate { text, targetLang, isHtml }` → Server →
+  OpenAI (DE-Quelle → Ziel; HTML-Tags erhalten) → füllt EN/FR/IT. Numbers/enum/url werden
+  nicht übersetzt.
+- **„Auf Standard zurücksetzen"** je Feld → `resetWaidcupContent` (löscht Override, Default greift).
+- **Live-Vorschau:** je Feld (v. a. `text-rich`) eine Vorschau, wie der Inhalt öffentlich
+  gerendert würde (dieselbe `RichText`-/Label-Logik wie Public); optional eine Gesamt-Vorschau
+  der Infos-/Standort-Seite.
+- **Speichern:** `PUT /api/admin/content` (pro Key/Sprache oder Batch). Server **validiert**
+  gegen das Manifest und **sanitized** `text-rich` per Whitelist vor dem Schreiben.
 
 ### 5. Übersetzungs-Endpoint
 - `POST /api/admin/translate` → Server ruft OpenAI (`OPENAI_API_KEY` aus Env; simpler
@@ -127,12 +167,24 @@ Waidcup-Seite (`waidcup-server`) unter **`/admin.html`**, ist **nicht** von der
 - Editieren eines Infos- und eines Standort-Werts (plain + rich), Speichern → öffentliche
   Waidcup-Seite (Web + 3D-Tour-Screen) zeigt die Änderung nach Reload; rich als
   formatierter, **sanitized** Text (eingeschleustes `<script>` wird entfernt).
+- **Tableau-Größe** einer Kategorie (z. B. MS R1/R5) im Admin ändern → Infos-Seite und
+  3D-Tour-Screen zeigen die neue Größe (Label pro Sprache korrekt gerendert).
+- **Preisgeld** (CHF-Betrag) und eine **URL** (z. B. Merkblatt-PDF) ändern → öffentliche
+  Seite übernimmt es.
+- **„Auf Standard zurücksetzen"** eines Felds → öffentlicher Wert entspricht wieder dem
+  eingebauten Default (Override in DB entfernt).
+- **Live-Vorschau** zeigt für ein `text-rich`-Feld dieselbe Darstellung wie die Public-Seite.
 - „Übersetzen" füllt EN/FR/IT plausibel aus dem DE-Text; HTML-Struktur bleibt erhalten.
+  Numbers/enum/url werden nicht übersetzt.
 - Ohne gültiges Cookie liefern `/api/admin/*`-Datenrouten 401.
-- `/api/waidcup/content?lang=xx` liefert die Overrides; ohne Override greift der i18n-Default.
+- `/api/waidcup/content?lang=xx` liefert die per-Sprache- **und** sprachneutralen Overrides;
+  ohne Override greift der Default (i18n bzw. Code).
 
 ## Tests
-- Content-Service: Merge/Override-Präzedenz, plain vs. rich.
+- Content-Service: Merge/Override-Präzedenz; per-Sprache vs. sprachneutral (`lang="*"`);
+  `reset` entfernt Override → Default greift.
+- Manifest-Validierung: `enum` nur 8/16/32/64, `url` nur erlaubte Schemata, `number` numerisch;
+  ungültige Werte → 400.
 - Sanitizer: entfernt `<script>`/Event-Handler/`javascript:`, behält Whitelist.
 - Auth: Login OK/Fehlschlag, geschützte Route ohne Cookie → 401.
 - Translate: **gemockter** OpenAI-Aufruf (keine echten API-Calls im Test), HTML-Erhalt.
