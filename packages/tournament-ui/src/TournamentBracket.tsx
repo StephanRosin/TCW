@@ -51,6 +51,13 @@ function scheduleLabel(match: TournamentBracketMatch): string {
   return parts.join(" · ");
 }
 
+/** Fuss einer Baum-Partie: Ergebnis (falls gespielt), sonst Termin, sonst nichts. */
+function MatchFooter({ result, schedule }: Readonly<{ result: string; schedule: string }>): JSX.Element | null {
+  if (result) return <div className="tbracket-result">{result}</div>;
+  if (schedule) return <div className="tbracket-schedule">{schedule}</div>;
+  return null;
+}
+
 function BracketMatch({
   match,
   matchesSearch,
@@ -75,11 +82,7 @@ function BracketMatch({
         highlight={matchesSearch(match.side2Names)}
         playerUrls={playerUrls}
       />
-      {match.result ? (
-        <div className="tbracket-result">{match.result}</div>
-      ) : schedule ? (
-        <div className="tbracket-schedule">{schedule}</div>
-      ) : null}
+      <MatchFooter result={match.result} schedule={schedule} />
     </div>
   );
 }

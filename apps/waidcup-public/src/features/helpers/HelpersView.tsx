@@ -65,7 +65,7 @@ function PlanGrid({ query, matchedDays }: Readonly<{ query: string; matchedDays:
   const { t } = useI18n();
   const hasQuery = query.trim() !== "";
   return (
-    <div className="helpers-grid__scroll" role="region" aria-label={t("helpers.gridLabel")} tabIndex={0}>
+    <section className="helpers-grid__scroll" aria-label={t("helpers.gridLabel")} tabIndex={0}>
       <table className="helpers-grid">
         <thead>
           <tr>
@@ -103,7 +103,7 @@ function PlanGrid({ query, matchedDays }: Readonly<{ query: string; matchedDays:
           ))}
         </tbody>
       </table>
-    </div>
+    </section>
   );
 }
 

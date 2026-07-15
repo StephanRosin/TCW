@@ -33,6 +33,29 @@ function normalize(value: string): string {
   return value.toLowerCase().replace(/[?.]/g, "").trim();
 }
 
+/** Treffer eines einzelnen Slots (Zelle) für den normalisierten Suchbegriff. */
+function slotMatches(day: PlanDay, slot: string, needle: string): SlotMatch[] {
+  const cell = day.cells[slot];
+  if (!cell) return [];
+  const found: SlotMatch[] = [];
+  for (const line of cell.lines) {
+    for (const name of splitNames(line.names)) {
+      if (normalize(name).includes(needle)) {
+        found.push({
+          dayKey: day.key,
+          weekdayKey: day.weekdayKey,
+          date: day.date,
+          dayLabel: day.label,
+          slot,
+          roleKey: line.role,
+          name,
+        });
+      }
+    }
+  }
+  return found;
+}
+
 /**
  * Alle Slots, in denen `query` als Namensbestandteil vorkommt. Leere/zu kurze
  * Suche liefert nichts. Reihenfolge folgt Tagen und Zeitslots.
@@ -40,30 +63,7 @@ function normalize(value: string): string {
 export function findByName(days: readonly PlanDay[], slots: readonly string[], query: string): SlotMatch[] {
   const needle = normalize(query);
   if (needle === "") return [];
-
-  const matches: SlotMatch[] = [];
-  for (const day of days) {
-    for (const slot of slots) {
-      const cell = day.cells[slot];
-      if (!cell) continue;
-      for (const line of cell.lines) {
-        for (const name of splitNames(line.names)) {
-          if (normalize(name).includes(needle)) {
-            matches.push({
-              dayKey: day.key,
-              weekdayKey: day.weekdayKey,
-              date: day.date,
-              dayLabel: day.label,
-              slot,
-              roleKey: line.role,
-              name,
-            });
-          }
-        }
-      }
-    }
-  }
-  return matches;
+  return days.flatMap((day) => slots.flatMap((slot) => slotMatches(day, slot, needle)));
 }
 
 /** Menge der Tag-Schlüssel mit mindestens einem Treffer (für Raster-Hervorhebung). */

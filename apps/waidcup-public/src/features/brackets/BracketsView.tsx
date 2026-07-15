@@ -25,6 +25,22 @@ function playableMatches(event: TournamentEventView): TournamentMatch[] {
   return event.matches.filter((match) => match.side1Names.length > 0 && match.side2Names.length > 0);
 }
 
+/** Darstellung des aktiven Events: Tableau-Baum, Round-robin-Pool oder Hinweis. */
+function EventBody({
+  event,
+  search,
+  playerUrls,
+}: Readonly<{ event: TournamentEventView; search: string; playerUrls: Record<string, string> }>): JSX.Element {
+  const { t } = useI18n();
+  if (event.bracket) {
+    return <TournamentBracket bracket={event.bracket} search={search} playerUrls={playerUrls} />;
+  }
+  if (event.pools.length > 0) {
+    return <PoolStandings pools={event.pools} search={search} playerUrls={playerUrls} />;
+  }
+  return <div className="state">{t("brackets.noBracket")}</div>;
+}
+
 function BracketsPanel({
   events,
   playerUrls,
@@ -78,13 +94,7 @@ function BracketsPanel({
           </a>
         </div>
       </div>
-      {active?.bracket ? (
-        <TournamentBracket bracket={active.bracket} search={activeSearch} playerUrls={playerUrls} />
-      ) : active && active.pools.length > 0 ? (
-        <PoolStandings pools={active.pools} search={activeSearch} playerUrls={playerUrls} />
-      ) : (
-        <div className="state">{t("brackets.noBracket")}</div>
-      )}
+      {active ? <EventBody event={active} search={activeSearch} playerUrls={playerUrls} /> : null}
       {poolMatches.length > 0 ? (
         <div className="wc-event-matches">
           <h4 className="wc-event-matches__title">{t("brackets.matchesTitle")}</h4>
