@@ -8,6 +8,7 @@ import type { TournamentMatch } from "@tcw/shared";
 import { ResourceView, MatchList, useI18n, useResource } from "@tcw/tournament-ui";
 import { waidcupApi } from "../../api/client.js";
 import { compareWaidcupEvents } from "../../lib/events.js";
+import { SWISSTENNIS_TOURNAMENT_URL } from "../../lib/links.js";
 
 const ALL_EVENTS = 0;
 
@@ -54,28 +55,33 @@ function MatchesPanel({
 
   return (
     <>
-      <div className="subtabs" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          className="chip"
-          aria-selected={eventId === ALL_EVENTS}
-          onClick={() => setEventId(ALL_EVENTS)}
-        >
-          {t("tournaments.allTableaux")}
-        </button>
-        {events.map((event) => (
+      <div className="subtabs-row">
+        <div className="subtabs" role="tablist">
           <button
-            key={event.id}
             type="button"
             role="tab"
             className="chip"
-            aria-selected={eventId === event.id}
-            onClick={() => setEventId(event.id)}
+            aria-selected={eventId === ALL_EVENTS}
+            onClick={() => setEventId(ALL_EVENTS)}
           >
-            {event.name}
+            {t("tournaments.allTableaux")}
           </button>
-        ))}
+          {events.map((event) => (
+            <button
+              key={event.id}
+              type="button"
+              role="tab"
+              className="chip"
+              aria-selected={eventId === event.id}
+              onClick={() => setEventId(event.id)}
+            >
+              {event.name}
+            </button>
+          ))}
+        </div>
+        <a className="st-link" href={SWISSTENNIS_TOURNAMENT_URL} target="_blank" rel="noopener noreferrer">
+          {t("tournaments.swisstennisLink")} ↗
+        </a>
       </div>
       <div className="pm-search waidcup-search">
         <input

@@ -257,35 +257,41 @@ function roundName(level: number): string {
   return ROUND_NAMES[level] ?? `Runde ${level}`;
 }
 
-function rankingPrefixTokens(content: string): { name: string; rankings: string[] } {
+function rankingPrefixTokens(content: string): { name: string; rankings: string[]; seed: string } {
   // Entfernt alle führenden "(…)"-Gruppen (Setzposition und/oder Klassierung).
   // Bei Doppeln enthält die Klassierungsgruppe beide Werte, z. B.
-  // "(1) (R4/R3) Rosin Stephan" → [R4 (Spieler 1), R3 (Spieler 2)].
+  // "(1) (R4/R3) Rosin Stephan" → [R4 (Spieler 1), R3 (Spieler 2)]. Eine rein
+  // numerische Gruppe (z. B. "(1)") ist die Setzposition (Seed).
   let rest = cleanText(content);
   let rankings: string[] = [];
+  let seed = "";
   const leadingGroup = /^\(([^)]*)\)\s*/;
   let match = leadingGroup.exec(rest);
   while (match) {
-    const tokens = (match[1] ?? "")
+    const inner = (match[1] ?? "").trim();
+    const tokens = inner
       .split("/")
       .map((part) => part.trim())
       .filter((part) => isRankingToken(part));
     if (tokens.length > 0 && rankings.length === 0) {
       rankings = tokens;
+    } else if (seed === "" && /^\d+$/.test(inner)) {
+      seed = inner;
     }
     rest = rest.slice(match[0].length);
     match = leadingGroup.exec(rest);
   }
-  return { name: cleanText(rest), rankings };
+  return { name: cleanText(rest), rankings, seed };
 }
 
-function splitDrawSide(row: RawDrawSlot | undefined): { name: string; name2: string } {
-  if (!row?.name) return { name: "", name2: "" };
+function splitDrawSide(row: RawDrawSlot | undefined): { name: string; name2: string; seed: string } {
+  if (!row?.name) return { name: "", name2: "", seed: "" };
   const parsed = rankingPrefixTokens(cleanText(row.name.content ?? ""));
   const partner = cleanText(row.name.name2 ?? "").replace(/^\/\s*/, "");
   return {
     name: formatPlayer(parsed.name, parsed.rankings[0] ?? ""),
     name2: partner ? formatPlayer(partner, parsed.rankings[1] ?? "") : "",
+    seed: parsed.seed,
   };
 }
 
@@ -317,6 +323,8 @@ interface DrawTree {
   /** Alle Match-Knoten, Level absteigend (Einstiegsrunde … Final). */
   nodes: DrawMatchNode[];
   championNames: string[];
+  /** Setzposition je (formatiertem) Spielernamen – nur für die Baum-Anzeige. */
+  seedByName: Map<string, string>;
 }
 
 /**
@@ -374,6 +382,13 @@ function buildDrawTree(payload: unknown): DrawTree | null {
     if (level > maxLevel) maxLevel = level;
   }
 
+  // Setzpositionen je Spielername (aus den Einstiegs-Slots) für die Baum-Anzeige.
+  const seedByName = new Map<string, string>();
+  for (const slot of byPosition.values()) {
+    const side = splitDrawSide(slot);
+    if (side.seed !== "" && side.name !== "") seedByName.set(side.name, side.seed);
+  }
+
   const rawNamesAt = (level: number, position: number): string[] => {
     const { name, name2 } = splitDrawSide(byPosition.get(`${level}:${position}`));
     return [name, name2].filter((value) => value !== "");
@@ -397,7 +412,7 @@ function buildDrawTree(payload: unknown): DrawTree | null {
       nodes.push({ level, position, slot, side1Names, side2Names, result, winnerSide });
     }
   }
-  return { maxLevel, nodes, championNames: fullNames.get("0:0") ?? [] };
+  return { maxLevel, nodes, championNames: fullNames.get("0:0") ?? [], seedByName };
 }
 
 function mapDrawMatches(payload: unknown, eventName: string, eventId: number): MatchRecord[] {
@@ -508,17 +523,31 @@ export function mapDrawBracket(payload: unknown): TournamentBracket | null {
   if (!tree) {
     return null;
   }
+  // Setzposition vor den ersten Namen einer Seite stellen (nur Baum-Anzeige;
+  // die gespeicherten Match-Namen bleiben ohne Seed).
+  const withSeed = (names: string[]): string[] => {
+    const seed = names[0] ? tree.seedByName.get(names[0]) : undefined;
+    return seed ? [`(${seed}) ${names[0]}`, ...names.slice(1)] : names;
+  };
   const rounds: TournamentBracketRound[] = [];
   for (let level = tree.maxLevel - 1; level >= 0; level -= 1) {
     const matches: TournamentBracketMatch[] = tree.nodes
       .filter((node) => node.level === level)
-      .map((node) => ({
-        side1Names: node.side1Names,
-        side2Names: node.side2Names,
-        result: node.result,
-        winnerSide: node.winnerSide,
-      }));
+      .map((node) => {
+        const schedule = parseCourt(node.slot?.court);
+        const scheduled =
+          schedule.date || schedule.time || schedule.court
+            ? { scheduledDate: schedule.date, scheduledTime: schedule.time, court: schedule.court }
+            : {};
+        return {
+          side1Names: withSeed(node.side1Names),
+          side2Names: withSeed(node.side2Names),
+          result: node.result,
+          winnerSide: node.winnerSide,
+          ...scheduled,
+        };
+      });
     rounds.push({ roundName: roundName(level), matches });
   }
-  return { rounds, championNames: tree.championNames };
+  return { rounds, championNames: withSeed(tree.championNames) };
 }

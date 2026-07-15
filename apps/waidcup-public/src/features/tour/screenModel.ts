@@ -170,14 +170,15 @@ export function buildInfosModel(t: Translate): ScreenModel {
     { text: t("infos.dateFinalValue") },
     { text: "" },
     { text: t("infos.tableauxTitle"), emphasis: true },
-    { text: `WS R1/R5: ${t("infos.tableau8")} · WS R5/R9: ${t("infos.tableau16")}` },
-    { text: `MS: ${t("infos.tableau64")} · DM: ${t("infos.tableau8")}` },
+    { text: `WS R5/R9: ${t("infos.tableau8")} · MS R1/R5: ${t("infos.tableau32")}` },
+    { text: `MS R5/R9: ${t("infos.tableau64")} · DM: ${t("infos.roundRobin")}` },
     { text: "" },
     { text: t("infos.hintsTitle"), emphasis: true },
     { text: t("infos.hint1") },
     { text: t("infos.hint4") },
     { text: t("infos.hint5") },
     { text: t("infos.hint6") },
+    { text: t("infos.hintPayment") },
     // hint8 + Merkblatt-Hinweis als Text (der PDF-Link ist auf der Wand nicht klickbar).
     { text: `${t("infos.hint8")} ${t("infos.hintPdf")}` },
   ];

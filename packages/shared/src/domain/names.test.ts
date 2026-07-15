@@ -10,6 +10,13 @@ test("cleanPlayerName entfernt Klassierungs-/Status-Suffixe am Ende", () => {
   assert.equal(cleanPlayerName("Doppel (R4) (neu)"), "Doppel");
 });
 
+test("cleanPlayerName entfernt eine führende Setzposition (Tableau-Seed)", () => {
+  assert.equal(cleanPlayerName("(1) Peloso Fabio (R1)"), "Peloso Fabio");
+  assert.equal(cleanPlayerName("(12) Muster A."), "Muster A.");
+  // Der Seed-Name löst denselben Key wie ohne Seed → Spieler-Link greift.
+  assert.equal(playerNameKey("(1) Peloso Fabio (R1)"), playerNameKey("Peloso Fabio (R1)"));
+});
+
 test("cleanPlayerName lässt führende Klammern und normale Namen unberührt", () => {
   assert.equal(cleanPlayerName("(R5) Vorne"), "(R5) Vorne");
   assert.equal(cleanPlayerName("O'Driscoll"), "O'Driscoll");

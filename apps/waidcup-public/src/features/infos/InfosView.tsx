@@ -5,16 +5,15 @@
 import type { JSX } from "react";
 import { useI18n } from "@tcw/tournament-ui";
 
-// WS immer vor MS.
+// WS immer vor MS. (WS R1/R5 abgesagt; DM läuft als Round Robin.)
 const TABLEAUX: ReadonlyArray<readonly [string, string, string]> = [
-  ["WS", "R1/R5", "infos.tableau8"],
-  ["WS", "R5/R9", "infos.tableau16"],
-  ["MS", "R1/R5", "infos.tableau64"],
+  ["WS", "R5/R9", "infos.tableau8"],
+  ["MS", "R1/R5", "infos.tableau32"],
   ["MS", "R5/R9", "infos.tableau64"],
-  ["DM", "R1/R5", "infos.tableau8"],
+  ["DM", "R1/R5", "infos.roundRobin"],
 ];
 
-const PLAIN_HINTS = ["infos.hint1", "infos.hint4", "infos.hint5", "infos.hint6"];
+const PLAIN_HINTS = ["infos.hint1", "infos.hint4", "infos.hint5", "infos.hint6", "infos.hintPayment"];
 
 export function InfosView(): JSX.Element {
   const { t } = useI18n();

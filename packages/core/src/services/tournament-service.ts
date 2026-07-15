@@ -26,6 +26,7 @@ import {
 } from "../integrations/swisstennis/tournament-matches.js";
 import { resolveMyTennisPlayerUrl } from "../integrations/mytennis/search.js";
 import {
+  countTournamentMatches,
   readExistingPlayerUrls,
   readTournamentConfigs,
   recordRefreshError,
@@ -153,6 +154,20 @@ export function createTournamentService(config: AppConfig, database: TcwDatabase
       const events: EventImport[] = [];
       for (const eventMeta of meta.events) {
         events.push(await loadEvent(eventMeta, existingUrls, options.resolvePlayerUrls));
+      }
+
+      // Schutz gegen transiente Swisstennis-Aussetzer: Liefert ein Import 0
+      // Matches, obwohl bereits eine Auslosung in der DB steht, wird NICHT
+      // überschrieben – sonst würde ein einzelner leerer Draw-Abruf (z. B.
+      // Rate-Limit/Timeout ohne Exception) die komplette Auslosung löschen.
+      const fetchedMatches = events.reduce((sum, event) => sum + event.matches.length, 0);
+      if (fetchedMatches === 0 && countTournamentMatches(database, tournamentId) > 0) {
+        return {
+          tournamentId,
+          events: events.length,
+          players: events.reduce((sum, event) => sum + event.registrations.length, 0),
+          matches: countTournamentMatches(database, tournamentId),
+        };
       }
 
       const importedAt = new Date().toISOString();

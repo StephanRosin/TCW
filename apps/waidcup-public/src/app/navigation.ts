@@ -2,7 +2,7 @@
  * Hauptnavigation der Waidcup-Seite (Tabs) plus chromelose Kiosk-Route.
  * „Standort" ist zugleich die Willkommensseite und damit der Default.
  */
-export const MAIN_VIEWS = ["location", "infos", "brackets", "matches", "orderofplay", "live", "webcam", "tour"] as const;
+export const MAIN_VIEWS = ["location", "infos", "helpers", "brackets", "matches", "orderofplay", "live", "webcam", "tour"] as const;
 
 export type MainView = (typeof MAIN_VIEWS)[number];
 
@@ -19,6 +19,7 @@ export interface NavItem {
 export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "location", labelKey: "nav.location" },
   { view: "infos", labelKey: "nav.infos" },
+  { view: "helpers", labelKey: "nav.helpers" },
   { view: "brackets", labelKey: "nav.brackets" },
   { view: "matches", labelKey: "nav.matches" },
   { view: "orderofplay", labelKey: "nav.orderOfPlay" },

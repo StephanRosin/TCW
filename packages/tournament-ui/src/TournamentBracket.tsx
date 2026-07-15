@@ -6,15 +6,18 @@
 import type { JSX } from "react";
 import type { TournamentBracket as Bracket, TournamentBracketMatch } from "@tcw/shared";
 import { useI18n } from "./I18nProvider.js";
+import { PlayerLink } from "./PlayerLink.js";
 
 function Slot({
   names,
   isWinner,
   highlight,
+  playerUrls,
 }: Readonly<{
   names: string[];
   isWinner: boolean;
   highlight: boolean;
+  playerUrls?: Record<string, string>;
 }>): JSX.Element {
   const { t } = useI18n();
   const classes = ["tbracket-slot"];
@@ -28,7 +31,7 @@ function Slot({
       ) : (
         names.map((name) => (
           <span key={name} className="tbracket-name">
-            {name}
+            <PlayerLink name={name} playerUrls={playerUrls} />
           </span>
         ))
       )}
@@ -36,23 +39,56 @@ function Slot({
   );
 }
 
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** „18.07. · 09:00 · Platz 2" aus den (optionalen) Terminfeldern; leer, wenn nichts terminiert. */
+function scheduleLabel(match: TournamentBracketMatch): string {
+  const parts: string[] = [];
+  const date = match.scheduledDate ? ISO_DATE.exec(match.scheduledDate) : null;
+  if (date) parts.push(`${date[3]}.${date[2]}.`);
+  if (match.scheduledTime) parts.push(match.scheduledTime);
+  if (match.court) parts.push(match.court);
+  return parts.join(" · ");
+}
+
 function BracketMatch({
   match,
   matchesSearch,
+  playerUrls,
 }: Readonly<{
   match: TournamentBracketMatch;
   matchesSearch: (names: string[]) => boolean;
+  playerUrls?: Record<string, string>;
 }>): JSX.Element {
+  const schedule = scheduleLabel(match);
   return (
     <div className="tbracket-match">
-      <Slot names={match.side1Names} isWinner={match.winnerSide === 1} highlight={matchesSearch(match.side1Names)} />
-      <Slot names={match.side2Names} isWinner={match.winnerSide === 2} highlight={matchesSearch(match.side2Names)} />
-      {match.result ? <div className="tbracket-result">{match.result}</div> : null}
+      <Slot
+        names={match.side1Names}
+        isWinner={match.winnerSide === 1}
+        highlight={matchesSearch(match.side1Names)}
+        playerUrls={playerUrls}
+      />
+      <Slot
+        names={match.side2Names}
+        isWinner={match.winnerSide === 2}
+        highlight={matchesSearch(match.side2Names)}
+        playerUrls={playerUrls}
+      />
+      {match.result ? (
+        <div className="tbracket-result">{match.result}</div>
+      ) : schedule ? (
+        <div className="tbracket-schedule">{schedule}</div>
+      ) : null}
     </div>
   );
 }
 
-export function TournamentBracket({ bracket, search }: Readonly<{ bracket: Bracket; search: string }>): JSX.Element {
+export function TournamentBracket({
+  bracket,
+  search,
+  playerUrls,
+}: Readonly<{ bracket: Bracket; search: string; playerUrls?: Record<string, string> }>): JSX.Element {
   const { t } = useI18n();
   const needle = search.trim().toLowerCase();
   const matchesSearch = (names: string[]): boolean =>
@@ -65,7 +101,7 @@ export function TournamentBracket({ bracket, search }: Readonly<{ bracket: Brack
             <div className="tbracket-round__title">{round.roundName}</div>
             <div className="tbracket-round__matches">
               {round.matches.map((match, index) => (
-                <BracketMatch key={index} match={match} matchesSearch={matchesSearch} />
+                <BracketMatch key={index} match={match} matchesSearch={matchesSearch} playerUrls={playerUrls} />
               ))}
             </div>
           </div>
@@ -78,6 +114,7 @@ export function TournamentBracket({ bracket, search }: Readonly<{ bracket: Brack
                 names={bracket.championNames}
                 isWinner={bracket.championNames.length > 0}
                 highlight={matchesSearch(bracket.championNames)}
+                playerUrls={playerUrls}
               />
             </div>
           </div>

@@ -24,9 +24,11 @@ function withDisplayName<T extends { eventName: string }>(item: T): T {
 }
 
 export const waidcupApi = {
-  brackets: async (): Promise<{ events: TournamentEventView[] }> => {
-    const data = await fetchJson<{ events: TournamentEventView[] }>("/api/waidcup/brackets");
-    return { events: data.events.map(withDisplayName) };
+  brackets: async (): Promise<{ events: TournamentEventView[]; playerUrls: Record<string, string> }> => {
+    const data = await fetchJson<{ events: TournamentEventView[]; playerUrls: Record<string, string> }>(
+      "/api/waidcup/brackets",
+    );
+    return { events: data.events.map(withDisplayName), playerUrls: data.playerUrls };
   },
   matches: async (): Promise<{ matches: TournamentMatch[]; playerUrls: Record<string, string> }> => {
     const data = await fetchJson<{ matches: TournamentMatch[]; playerUrls: Record<string, string> }>(

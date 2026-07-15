@@ -360,6 +360,14 @@ export function recordRefreshError(
     .run(message, tournamentId);
 }
 
+/** Anzahl der aktuell gespeicherten Matches eines Turniers. */
+export function countTournamentMatches(database: TcwDatabase, tournamentId: number): number {
+  const row = database
+    .prepare("SELECT COUNT(*) AS n FROM tournament_matches WHERE tournament_id = ?")
+    .get(tournamentId) as { n: number };
+  return row.n;
+}
+
 // --------------------------------------------------------------------------
 // Öffentliche Aufbereitung
 // --------------------------------------------------------------------------

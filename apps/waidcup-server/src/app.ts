@@ -60,7 +60,10 @@ export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise
     time: new Date().toISOString(),
   }));
 
-  app.get("/api/waidcup/brackets", async () => ({ events: getWaidcupBrackets(database, tournamentId) }));
+  app.get("/api/waidcup/brackets", async () => ({
+    events: getWaidcupBrackets(database, tournamentId),
+    playerUrls: getWaidcupPlayerUrls(database, tournamentId),
+  }));
   app.get("/api/waidcup/matches", async () => ({
     matches: getWaidcupMatches(database, tournamentId),
     playerUrls: getWaidcupPlayerUrls(database, tournamentId),

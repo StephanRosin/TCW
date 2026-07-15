@@ -10,8 +10,11 @@
 // ohne das Verhalten für echte Namens-Suffixe wie „(R4)"/„(neu)" zu ändern.
 const TRAILING_PARENTHESES = /\([^()]*\)$/;
 const TRAILING_STATUS_SUFFIX = /[-–]\s*(offen|bestätigt|bestaetigt|neu)$/iu;
+// Führende Setzposition im Tableau-Baum, z. B. „(1) Peloso Fabio". Rein
+// numerisch → kann kein echter Namensbestandteil sein; für Key/Anzeige raus.
+const LEADING_SEED = /^\(\d+\)\s*/;
 
-/** Entfernt Status-/Jahres-Zusätze am Namensende, behält den eigentlichen Namen. */
+/** Entfernt Status-/Jahres-/Setzpositions-Zusätze, behält den eigentlichen Namen. */
 export function cleanPlayerName(rawName: string): string {
   let name = rawName.trim();
   let previous = "";
@@ -19,6 +22,7 @@ export function cleanPlayerName(rawName: string): string {
     previous = name;
     name = name.replace(TRAILING_STATUS_SUFFIX, "").trim();
     name = name.replace(TRAILING_PARENTHESES, "").trim();
+    name = name.replace(LEADING_SEED, "").trim();
   }
   return name;
 }

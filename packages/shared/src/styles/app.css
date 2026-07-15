@@ -1572,6 +1572,15 @@ table.board .player-row td {
   color: var(--own);
   background: rgba(0, 0, 0, 0.035);
 }
+/* Terminierung offener Partien (Datum · Zeit · Platz) unter den beiden Seiten. */
+.tbracket-schedule {
+  padding: 0.22rem 0.55rem;
+  font-size: 0.68rem;
+  text-align: right;
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.02);
+  font-variant-numeric: tabular-nums;
+}
 .tbracket-round--champion .tbracket-slot--winner {
   background: var(--own-row);
 }

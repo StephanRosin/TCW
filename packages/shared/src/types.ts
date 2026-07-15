@@ -271,6 +271,10 @@ export interface TournamentBracketMatch {
   side2Names: string[];
   result: string;
   winnerSide: number;
+  /** Terminierung (falls von Swisstennis vorhanden) – auch bei offenen Partien. */
+  scheduledDate?: string;
+  scheduledTime?: string;
+  court?: string;
 }
 
 export interface TournamentBracketRound {

@@ -194,7 +194,7 @@ test("mapDrawBracket baut den Baum bis zum Final, auch ohne ausgeloste Folgerund
 
   const semi = bracket.rounds[0]!;
   assert.deepEqual(semi.matches[0], {
-    side1Names: ["Anna Muster (R4)"],
+    side1Names: ["(1) Anna Muster (R4)"],
     side2Names: ["Bea Beispiel (R6)"],
     result: "6:1 6:2",
     winnerSide: 1,
@@ -204,6 +204,29 @@ test("mapDrawBracket baut den Baum bis zum Final, auch ohne ausgeloste Folgerund
   assert.equal(semi.matches[1]!.winnerSide, 0);
   // Final: eine Seite steht (Halbfinal-Sieger), die andere ist noch offen.
   assert.deepEqual(bracket.rounds[1]!.matches[0]!.side2Names, []);
+});
+
+test("mapDrawBracket übernimmt Datum/Zeit/Platz aus dem Draw-Slot (auch bei offenen Partien)", () => {
+  const payload = {
+    Iotto: {
+      drawtable: {
+        drawbody: {
+          draw: [
+            { alevel: 1, rposition: 0, name: { content: "(R4) Anna Muster" } },
+            { alevel: 1, rposition: 1, name: { content: "(R6) Bea Beispiel" } },
+            // Final noch offen (kein Ergebnis), aber bereits terminiert.
+            { alevel: 0, rposition: 0, name: { content: "" }, court: "18/07/26 09:00 (Platz 2)" },
+          ],
+        },
+      },
+    },
+  };
+  const bracket = mapDrawBracket(payload)!;
+  const final = bracket.rounds.find((round) => round.roundName === "Final")!.matches[0]!;
+  assert.equal(final.result, "");
+  assert.equal(final.scheduledDate, "2026-07-18");
+  assert.equal(final.scheduledTime, "09:00");
+  assert.equal(final.court, "Platz 2");
 });
 
 test("mapDrawBracket: Sieger ist die UNTERE Seite – Score steht in Siegersicht", () => {
@@ -226,11 +249,11 @@ test("mapDrawBracket: Sieger ist die UNTERE Seite – Score steht in Siegersicht
   };
   const final = mapDrawBracket(payload)!.rounds[0]!.matches[0]!;
   assert.deepEqual(final.side1Names, ["Kolbe Daniel (R8)", "Hansjosten Victoria (R8)"]);
-  assert.deepEqual(final.side2Names, ["Schalcher Jasmin (R5)", "Elsayed Abdullah (R7)"]);
+  assert.deepEqual(final.side2Names, ["(3) Schalcher Jasmin (R5)", "Elsayed Abdullah (R7)"]);
   assert.equal(final.winnerSide, 2, "die untere Seite hat gewonnen");
   // Score auf Seite-1-Sicht normiert (konsistent zu Round-robin/IC/TC): Seite 1 verlor 2:6 1:6.
   assert.equal(final.result, "2:6 1:6");
-  assert.deepEqual(mapDrawBracket(payload)!.championNames, ["Schalcher Jasmin (R5)", "Elsayed Abdullah (R7)"]);
+  assert.deepEqual(mapDrawBracket(payload)!.championNames, ["(3) Schalcher Jasmin (R5)", "Elsayed Abdullah (R7)"]);
 });
 
 test("mapPoolStandings liefert die Pool-Tabelle nach Rang sortiert", () => {
