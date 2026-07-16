@@ -156,8 +156,8 @@
   "helpers.day.reserve": "Giorno di riserva",
   "helpers.note.playShift": "Partite dalle {a} · inizio turno {b}",
   "helpers.note.playReception": "Partite dalle {a} · accoglienza giocatori {b}",
-  "helpers.note.awards": "Premiazione {a}",
-  "helpers.note.cleanup": "Riordino {a}",
+  "helpers.note.awards": "Premiazione dalle {a}",
+  "helpers.note.cleanup": "Riordino dalle {a}",
   "helpers.note.helperInfo": "Info volontari {a} · tutti",
   "helpers.task.spielleitung": "Quote d'iscrizione, gift bag, carta parcheggio, palline, assegnazione campi, inserimento risultati, order of play per il giorno dopo.",
   "helpers.task.assistenz": "Assistere la direzione in caso di affluenza e partite difficili, aiutare a riorganizzare le partite in caso di pioggia, usare la cassetta di pronto soccorso per gli infortuni.",
@@ -176,5 +176,7 @@
   "brackets.matchesTitle": "Partite",
   "tournaments.swisstennisLink": "Link a Swiss Tennis",
   "helpers.role.barBereit": "Preparazione bar",
-  "infos.hintPayment": "Al check-in è possibile pagare con Twint o in contanti."
+  "infos.hintPayment": "Al check-in è possibile pagare con Twint o in contanti.",
+  "helpers.role.pastaGrill": "Pasta+insalata+griglia",
+  "helpers.note.shiftEnd": "Fine turno {a}"
 }

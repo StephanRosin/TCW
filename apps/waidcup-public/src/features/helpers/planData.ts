@@ -21,12 +21,11 @@ export type RoleKey =
   | "barPommes"
   | "barBereit"
   | "pasta"
+  | "pastaGrill"
   | "grill"
   | "springer"
   | "vorbereitung"
-  | "aufraeumen"
-  | "aufraeumenAbschliessen"
-  | "kasse";
+  | "aufraeumen";
 
 /** Hauptrollen für die Legende/Task-Beschreibungen. */
 export const LEGEND_ROLES: readonly RoleKey[] = [
@@ -39,15 +38,16 @@ export const LEGEND_ROLES: readonly RoleKey[] = [
 ];
 
 /**
- * Namens-Korrekturen: im PDF stehen (auch in der finalen Version) manche
- * Kürzel/falschen Namen. Hier zentral gemappt – beim nächsten PDF einfach mit
- * den Kürzeln transkribieren, die Korrektur greift automatisch.
+ * Namens-Korrekturen: im PDF stehen (auch final) manche Kürzel/falschen Namen.
+ * Hier zentral gemappt – beim nächsten PDF einfach mit den Kürzeln
+ * transkribieren, die Korrektur greift automatisch.
  */
 const NAME_FIX: Record<string, string> = {
   Ma: "Martina",
   Willi: "Stephan W.",
   Kuschi: "Stefan K.",
   Dani: "Daniela",
+  "Victoria B.": "Victoria K.",
 };
 
 /** Wendet die Namens-Korrekturen auf eine (ggf. mehrfache) Namensangabe an. */
@@ -156,9 +156,8 @@ export const DAYS: readonly PlanDay[] = [
       "15:30–16:30": cell(undefined, [...head("Markus"), line("barPommes", "Sofia"), line("pasta", "Jenny"), line("grill", "Manuel")]),
       "16:30–17:30": cell(undefined, [...head("Markus"), line("barPommes", "Sofia"), line("pasta", "Benjamin"), line("grill", "Manuel")]),
       "17:30–18:30": cell(undefined, [...head("Markus"), line("barPommes", "Sofia"), line("pasta", "Benjamin"), line("grill", "Manuel")]),
-      "18:30–19:30": cell(undefined, [...head("Markus"), line("barPommes", "Benjamin"), line("pasta", ""), line("grill", "")]),
-      "19:30–20:30": cell(undefined, [...head("Markus"), line("barPommes", "Benjamin"), line("pasta", ""), line("grill", "")]),
-      "20:30–22:00": cell(undefined, [...head("Markus"), line("barPommes", ""), line("aufraeumenAbschliessen", ""), line("kasse", "")]),
+      "18:30–19:30": cell(undefined, [...head("Markus"), line("barPommes", "Elena"), line("pastaGrill", "Benjamin")]),
+      "19:30–20:30": cell(NOTE("helpers.note.shiftEnd", "21:00"), [...head("Markus"), line("barPommes", "Elena"), line("pastaGrill", "Benjamin")]),
     },
   },
   {
@@ -169,17 +168,16 @@ export const DAYS: readonly PlanDay[] = [
     cells: {
       "08:30–09:30": cell(NOTE("helpers.note.playShift", "9:00", "8:30"), [...head("Anne"), line("bar", "Fränzi")]),
       "09:30–10:30": cell(undefined, [...head("Anne"), line("bar", "Fränzi")]),
-      "10:30–11:30": cell(undefined, [...head("Anne"), line("barPommes", "Victoria K."), line("pasta", "Fränzi"), line("grill", "")]),
-      "11:30–12:30": cell(undefined, [...head("Anne"), line("barPommes", "Victoria K."), line("pasta", "Fränzi"), line("grill", "Etienne")]),
-      "12:30–13:30": cell(undefined, [...head("Anne"), line("barPommes", "Willi"), line("pasta", "Victoria K."), line("grill", "Etienne")]),
-      "13:30–14:30": cell(undefined, [...head("Anne"), line("barPommes", "Willi"), line("pasta", "Victoria K."), line("grill", "Etienne")]),
+      "10:30–11:30": cell(undefined, [...head("Anne"), line("barPommes", "Victoria B."), line("pasta", "Fränzi"), line("grill", "")]),
+      "11:30–12:30": cell(undefined, [...head("Anne"), line("barPommes", "Victoria B."), line("pasta", "Fränzi"), line("grill", "Etienne")]),
+      "12:30–13:30": cell(undefined, [...head("Anne"), line("barPommes", "Willi"), line("pasta", "Victoria B."), line("grill", "Etienne")]),
+      "13:30–14:30": cell(undefined, [...head("Anne"), line("barPommes", "Willi"), line("pasta", "Victoria B."), line("grill", "Etienne")]),
       "14:30–15:30": cell(undefined, [...head("Anne; Markus"), line("barPommes", "Sofia"), line("pasta", "Willi"), line("grill", "Etienne")]),
-      "15:30–16:30": cell(undefined, [...head("Markus"), line("barPommes", "Sofia"), line("pasta", "Willi"), line("grill", "Flo")]),
-      "16:30–17:30": cell(undefined, [...head("Markus"), line("barPommes", "Sofia"), line("pasta", "Johanna"), line("grill", "Flo")]),
-      "17:30–18:30": cell(undefined, [...head("Markus"), line("barPommes", "Sofia"), line("pasta", "Johanna"), line("grill", "Flo")]),
-      "18:30–19:30": cell(undefined, [...head("Markus"), line("barPommes", "Johanna"), line("pasta", ""), line("grill", "Flo")]),
-      "19:30–20:30": cell(undefined, [...head("Markus"), line("barPommes", "Johanna"), line("pasta", ""), line("grill", "")]),
-      "20:30–22:00": cell(undefined, [...head("Markus"), line("barPommes", ""), line("aufraeumenAbschliessen", ""), line("kasse", "")]),
+      "15:30–16:30": cell(undefined, [...head("Markus"), line("barPommes", "Sofia"), line("pasta", "?"), line("grill", "Willi")]),
+      "16:30–17:30": cell(undefined, [...head("Markus"), line("barPommes", "Sofia"), line("pasta", "?"), line("grill", "Johanna")]),
+      "17:30–18:30": cell(undefined, [...head("Markus"), line("barPommes", "Sofia"), line("pasta", "?"), line("grill", "Johanna")]),
+      "18:30–19:30": cell(undefined, [...head("Markus"), line("barPommes", "Johanna"), line("pastaGrill", "Flo")]),
+      "19:30–20:30": cell(NOTE("helpers.note.shiftEnd", "21:00"), [...head("Markus"), line("barPommes", "Johanna"), line("pastaGrill", "Flo")]),
     },
   },
   {
@@ -215,8 +213,8 @@ export const DAYS: readonly PlanDay[] = [
     label: D("helpers.day.matchday", "5"),
     cells: {
       "16:30–17:30": cell(NOTE("helpers.note.playReception", "18:00", "17:00"), [line("spielleitung", SL), line("barBereit", "Dani")]),
-      "17:30–18:30": cell(undefined, [...head("Dani"), line("barPommes", "Isabel"), line("grill", "Nadia"), line("springer", "Domas")]),
-      "18:30–19:30": cell(undefined, [...head("Dani"), line("barPommes", "Isabel"), line("grill", "Nadia"), line("springer", "Domas")]),
+      "17:30–18:30": cell(undefined, [...head("Markus"), line("barPommes", "Isabel"), line("grill", "Domas"), line("springer", "Dani")]),
+      "18:30–19:30": cell(undefined, [...head("Markus"), line("barPommes", "Isabel"), line("grill", "Domas"), line("springer", "Dani")]),
       "19:30–20:30": cell(undefined, [...head("Dani"), line("barPommes", "Nadia"), line("grill", "Isabel"), line("springer", "Domas")]),
       "20:30–22:00": cell(undefined, [...head("Dani"), line("barPommes", "Nadia"), line("grill", "Isabel"), line("springer", "Domas")]),
     },
@@ -259,11 +257,10 @@ export const DAYS: readonly PlanDay[] = [
       "12:30–13:30": cell(undefined, [...head("Anne"), line("barPommes", "Quinten"), line("grill", "Kuschi"), line("springer", "Ma")]),
       "13:30–14:30": cell(undefined, [...head("Anne"), line("barPommes", "Kuschi"), line("grill", "Quinten"), line("springer", "Ma")]),
       "14:30–15:30": cell(undefined, [...head("Anne"), line("barPommes", "Kuschi"), line("grill", "Jose"), line("springer", "Ma")]),
-      "15:30–16:30": cell(undefined, [...head("Anne"), line("barPommes", ""), line("grill", "Jose"), line("springer", "Ma")]),
-      "16:30–17:30": cell(NOTE("helpers.note.awards", "17:00"), [...head("Anne"), line("barPommes", ""), line("grill", "Jose"), line("springer", "Ma")]),
-      "17:30–18:30": cell(NOTE("helpers.note.cleanup", "18:00"), [line("aufraeumen", "Jose")]),
-      "18:30–19:30": cell(undefined, [line("aufraeumen", "")]),
-      "19:30–20:30": cell(undefined, [line("aufraeumen", "")]),
+      "15:30–16:30": cell(NOTE("helpers.note.awards", "16:00"), [...head("Anne"), line("barPommes", "Carmen"), line("grill", "Jose"), line("springer", "Kerstin")]),
+      "16:30–17:30": cell(NOTE("helpers.note.cleanup", "17:00"), [...head("Anne"), line("barPommes", "Carmen"), line("grill", "Jose"), line("springer", "Kerstin")]),
+      "17:30–18:30": cell(undefined, [line("aufraeumen", "Stephan; Markus; Anne; Dani; Ma; Jose; Kerstin; Nadia; ?")]),
+      "18:30–19:30": cell(undefined, [line("aufraeumen", "Stephan; Markus; Anne; Dani; Ma; Jose; Kerstin; Nadia; ?")]),
     },
   },
   {
@@ -278,7 +275,7 @@ export const DAYS: readonly PlanDay[] = [
 /** Metadaten für Anzeige und Download. */
 export const PLAN_META = {
   /** Stand-Kennzeichnung; bei jedem neuen PDF anpassen. */
-  version: "V05",
+  version: "V09",
   provisional: false,
   /** Datei im public/-Ordner (Original-PDF zum Download). */
   pdfFile: "einsatzplan-waidcup-2026.pdf",

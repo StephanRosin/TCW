@@ -6,6 +6,7 @@
 import { useMemo, useState, type JSX } from "react";
 import {
   compareEvents,
+  playerNameKey,
   safeExternalUrl,
   type TournamentEventView,
   type TournamentView,
@@ -57,11 +58,33 @@ function CategoryRow({
   );
 }
 
-function selectedEvents(tournament: TournamentView, activeEventId: string): TournamentEventView[] {
-  if (activeEventId === ALL_EVENTS) {
-    return tournament.events;
+/** Ein Event ist im Matchmodus darstellbar, wenn es Tableau, Pools oder Partien
+ *  hat – so verschwinden abgesagte/leere Konkurrenzen (z. B. WS R1/R5). Im
+ *  Anmeldemodus bleiben alle Events (dort zählen die Anmeldungen). */
+function visibleEventsOf(tournament: TournamentView): TournamentEventView[] {
+  if (!tournament.showsMatches) return tournament.events;
+  return tournament.events.filter(
+    (event) => event.bracket !== null || event.pools.length > 0 || event.matches.length > 0,
+  );
+}
+
+/** name→URL-Karte aus den Anmeldungen (für Spieler-Links im Baum/Pool/Matchliste). */
+function playerUrlMap(events: TournamentEventView[]): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const event of events) {
+    for (const player of event.players) {
+      if (player.playerUrl) map[playerNameKey(player.name)] = player.playerUrl;
+      if (player.name2 && player.playerUrl2) map[playerNameKey(player.name2)] = player.playerUrl2;
+    }
   }
-  return tournament.events.filter((event) => String(event.eventId) === activeEventId);
+  return map;
+}
+
+function selectedEvents(events: TournamentEventView[], activeEventId: string): TournamentEventView[] {
+  if (activeEventId === ALL_EVENTS) {
+    return events;
+  }
+  return events.filter((event) => String(event.eventId) === activeEventId);
 }
 
 function matchesPlayerSearch(values: string[], search: string): boolean {
@@ -70,22 +93,24 @@ function matchesPlayerSearch(values: string[], search: string): boolean {
   return values.some((value) => value.toLowerCase().includes(needle));
 }
 
-function firstEventId(tournament: TournamentView): string {
-  const ordered = [...tournament.events].sort(compareEvents);
+function firstEventId(events: TournamentEventView[]): string {
+  const ordered = [...events].sort(compareEvents);
   return ordered.length > 0 ? String(ordered[0]!.eventId) : ALL_EVENTS;
 }
 
 function TournamentPanel({ tournament }: Readonly<{ tournament: TournamentView }>): JSX.Element {
   const { t } = useI18n();
+  const visibleEvents = useMemo(() => visibleEventsOf(tournament), [tournament]);
+  const playerUrls = useMemo(() => playerUrlMap(tournament.events), [tournament]);
   // Im Matchmodus ist "Alle" sinnvoll (alle Tableaux); im Anmeldemodus wird
   // direkt eine Kategorie gewählt.
   const [activeEventId, setActiveEventId] = useState<string>(
-    tournament.showsMatches ? ALL_EVENTS : firstEventId(tournament),
+    tournament.showsMatches ? ALL_EVENTS : firstEventId(visibleEvents),
   );
   const [search, setSearch] = useState<string>("");
   const [playedOnly, setPlayedOnly] = useState<boolean>(false);
 
-  const events = selectedEvents(tournament, activeEventId);
+  const events = selectedEvents(visibleEvents, activeEventId);
   // Bei genau einem gewählten Event zeigen wir je nach Modus den Tableau-Baum
   // bzw. die Round-robin-Tabelle zusätzlich zur Partienliste.
   const singleEvent = activeEventId !== ALL_EVENTS && events.length === 1 ? events[0]! : null;
@@ -112,19 +137,19 @@ function TournamentPanel({ tournament }: Readonly<{ tournament: TournamentView }
       <div className="team-picker">
         <CategoryRow
           labelKey="gender.women"
-          events={womenEvents(tournament.events)}
+          events={womenEvents(visibleEvents)}
           activeEventId={activeEventId}
           onSelect={setActiveEventId}
         />
         <CategoryRow
           labelKey="gender.men"
-          events={menEvents(tournament.events)}
+          events={menEvents(visibleEvents)}
           activeEventId={activeEventId}
           onSelect={setActiveEventId}
         />
         <CategoryRow
           labelKey="tournaments.categories"
-          events={otherEvents(tournament.events)}
+          events={otherEvents(visibleEvents)}
           activeEventId={activeEventId}
           onSelect={setActiveEventId}
         />
@@ -169,6 +194,7 @@ function TournamentPanel({ tournament }: Readonly<{ tournament: TournamentView }
         matches={matches}
         players={players}
         search={search}
+        playerUrls={playerUrls}
       />
     </div>
   );
@@ -185,6 +211,7 @@ function TournamentPanelBody({
   matches,
   players,
   search,
+  playerUrls,
 }: Readonly<{
   tournament: TournamentView;
   showsBracket: boolean;
@@ -192,17 +219,20 @@ function TournamentPanelBody({
   matches: EventView["matches"];
   players: EventView["players"];
   search: string;
+  playerUrls: Record<string, string>;
 }>): JSX.Element {
   if (!tournament.showsMatches) {
     return <RegistrationTable players={players} />;
   }
   if (showsBracket && singleEvent?.bracket) {
-    return <TournamentBracket bracket={singleEvent.bracket} search={search} />;
+    return <TournamentBracket bracket={singleEvent.bracket} search={search} playerUrls={playerUrls} />;
   }
   return (
     <>
-      <MatchList matches={matches} />
-      {singleEvent && singleEvent.pools.length > 0 ? <PoolStandings pools={singleEvent.pools} /> : null}
+      <MatchList matches={matches} playerUrls={playerUrls} />
+      {singleEvent && singleEvent.pools.length > 0 ? (
+        <PoolStandings pools={singleEvent.pools} playerUrls={playerUrls} />
+      ) : null}
     </>
   );
 }

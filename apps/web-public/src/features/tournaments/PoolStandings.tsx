@@ -4,9 +4,13 @@
  */
 import type { JSX } from "react";
 import type { PoolStanding } from "@tcw/shared";
+import { PlayerLink } from "@tcw/tournament-ui";
 import { useI18n } from "../../i18n/I18nProvider.js";
 
-export function PoolStandings({ pools }: Readonly<{ pools: PoolStanding[] }>): JSX.Element | null {
+export function PoolStandings({
+  pools,
+  playerUrls,
+}: Readonly<{ pools: PoolStanding[]; playerUrls?: Record<string, string> }>): JSX.Element | null {
   const { t } = useI18n();
   if (pools.length === 0) {
     return null;
@@ -35,7 +39,7 @@ export function PoolStandings({ pools }: Readonly<{ pools: PoolStanding[] }>): J
                     <td>
                       {row.names.map((name) => (
                         <div key={name} className="match-player">
-                          {name}
+                          <PlayerLink name={name} playerUrls={playerUrls} />
                         </div>
                       ))}
                     </td>

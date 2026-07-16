@@ -156,8 +156,8 @@
   "helpers.day.reserve": "Ersatztag",
   "helpers.note.playShift": "Spiele ab {a} · Schichtbeginn {b}",
   "helpers.note.playReception": "Spiele ab {a} · Empfang Spieler*innen {b}",
-  "helpers.note.awards": "Siegerehrung {a}",
-  "helpers.note.cleanup": "Aufräumen {a}",
+  "helpers.note.awards": "Siegerehrung ab {a}",
+  "helpers.note.cleanup": "Aufräumen ab {a}",
   "helpers.note.helperInfo": "Helferinfo {a} · alle",
   "helpers.task.spielleitung": "Nenngeld, Give-Away-Bags, Parkkarte, Bälle, Platzzuweisung, Resultaterfassung, Order of Play für Folgetag.",
   "helpers.task.assistenz": "Assistenz Spielleitung bei Andrang + schwierigen Begegnungen, Mithilfe bei ‘Umorganisation' der Spiele im Regenfall, Bedienung ‘Notfallköfferli' bei Verletzungen.",
@@ -176,5 +176,7 @@
   "brackets.matchesTitle": "Spiele",
   "tournaments.swisstennisLink": "Link zu Swisstennis",
   "helpers.role.barBereit": "Bar bereit machen",
-  "infos.hintPayment": "Beim Check-in kann mit Twint oder in bar bezahlt werden."
+  "infos.hintPayment": "Beim Check-in kann mit Twint oder in bar bezahlt werden.",
+  "helpers.role.pastaGrill": "Pasta+Salat+Grill",
+  "helpers.note.shiftEnd": "Schichtende {a}"
 }

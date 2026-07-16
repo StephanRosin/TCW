@@ -61,7 +61,6 @@ export function MatchList({
       <table className="board">
         <thead>
           <tr>
-            <th>{t("tournaments.matchDate")}</th>
             <th>{t("tournaments.tableau")}</th>
             <th>{t("tournaments.round")}</th>
             <th>{t("tournaments.player1")}</th>
@@ -74,9 +73,10 @@ export function MatchList({
             const round = [match.roundName, match.poolName]
               .filter((part, index, all) => part !== "" && all.indexOf(part) === index)
               .join(" · ");
+            // Eine Partie hat entweder ein Resultat (gespielt) ODER einen Termin
+            // (noch offen) – daher eine Spalte: Resultat, sonst Datum/Zeit/Platz.
             return (
               <tr key={match.matchKey}>
-                <td>{formatDate(match, t("tournaments.noDate"))}</td>
                 <td>{match.eventName}</td>
                 <td>{round}</td>
                 <td>
@@ -85,7 +85,7 @@ export function MatchList({
                 <td>
                   <SideCell names={match.side2Names} isWinner={match.winnerSide === 2} playerUrls={playerUrls} />
                 </td>
-                <td className="numeric">{match.result || t("common.none")}</td>
+                <td className="numeric">{match.result || formatDate(match, t("tournaments.noDate"))}</td>
               </tr>
             );
           })}
