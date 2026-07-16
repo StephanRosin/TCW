@@ -190,5 +190,11 @@
   "ticker.empty": "Noch keine gespielten Matches.",
   "ticker.more": "Mehr anzeigen",
   "ticker.loadError": "Ticker konnte nicht geladen werden.",
-  "nav.cmReservation": "CM-Reservation"
+  "nav.cmReservation": "CM-Reservation",
+  "brackets.pool.rank": "Rang",
+  "brackets.pool.pair": "Paar",
+  "brackets.pool.matches": "Spiele",
+  "brackets.pool.wins": "Siege",
+  "brackets.pool.sets": "Sätze",
+  "brackets.pool.games": "Games"
 }

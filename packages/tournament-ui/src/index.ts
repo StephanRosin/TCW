@@ -11,6 +11,7 @@ export { ThemeSwitch } from "./ThemeSwitch.js";
 export { THEMES, applyTheme, getStoredTheme } from "./theme.js";
 export { TournamentBracket } from "./TournamentBracket.js";
 export { MatchList } from "./MatchList.js";
+export { PoolStandings } from "./PoolStandings.js";
 export { PlayerLink } from "./PlayerLink.js";
 export { compareTournamentMatches, type MatchListOrder } from "./matchOrder.js";
 export { womenEvents, menEvents, otherEvents } from "./eventGrouping.js";

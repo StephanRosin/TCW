@@ -190,5 +190,11 @@
   "ticker.empty": "No matches played yet.",
   "ticker.more": "Show more",
   "ticker.loadError": "Ticker could not be loaded.",
-  "nav.cmReservation": "CM booking"
+  "nav.cmReservation": "CM booking",
+  "brackets.pool.rank": "Rank",
+  "brackets.pool.pair": "Pair",
+  "brackets.pool.matches": "Matches",
+  "brackets.pool.wins": "Wins",
+  "brackets.pool.sets": "Sets",
+  "brackets.pool.games": "Games"
 }

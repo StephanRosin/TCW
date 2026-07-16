@@ -190,5 +190,11 @@
   "ticker.empty": "Nessuna partita ancora giocata.",
   "ticker.more": "Mostra altri",
   "ticker.loadError": "Impossibile caricare il ticker.",
-  "nav.cmReservation": "Prenotazione CM"
+  "nav.cmReservation": "Prenotazione CM",
+  "brackets.pool.rank": "Pos.",
+  "brackets.pool.pair": "Coppia",
+  "brackets.pool.matches": "Partite",
+  "brackets.pool.wins": "Vittorie",
+  "brackets.pool.sets": "Set",
+  "brackets.pool.games": "Giochi"
 }

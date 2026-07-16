@@ -2405,3 +2405,60 @@ a.player-link:hover,
 a.player-link:focus-visible {
   text-decoration: underline;
 }
+
+/* --- Round-robin-Pooltabelle (geteilt, @tcw/tournament-ui PoolStandings) -----
+   Rangliste je Pool mit Spielen/Siegen/Satz-/Game-Verhältnis. Wird in beiden
+   Apps (Waidcup + Spielbetrieb) in der Turnierbaum-Ansicht gezeigt. */
+.wc-pools {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  color: var(--text);
+}
+.wc-pool__name {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--accent);
+}
+.wc-pool__scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  background: var(--surface);
+}
+.wc-pool__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.wc-pool__table th,
+.wc-pool__table td {
+  padding: 0.55rem 0.7rem;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.wc-pool__table thead th {
+  border-top: 0;
+  background: var(--surface-2);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.wc-pool__rank {
+  width: 3rem;
+}
+.wc-pool__pair {
+  text-align: left;
+  white-space: normal;
+}
+.wc-pool__player {
+  font-weight: 600;
+}
+/* Treffer-Hervorhebung in der Round-robin-Pooltabelle (analog Tableau). */
+.wc-pool__row--match td {
+  background: #ffe08a;
+  color: #172033;
+}
