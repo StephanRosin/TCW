@@ -217,6 +217,13 @@ function buildMatchParams(
   sortOrder: number,
   importedAt: string,
 ): Record<string, SqlValue> {
+  // Gespielte Partien behalten ihren zuletzt bekannten Termin, falls Swisstennis
+  // ihn nach dem Spiel entfernt (z. B. bei W/O den Platz/die Zeit): sonst würden
+  // sie mangels Termin aus dem Order of Play verschwinden, statt dort mit
+  // Ergebnis an ihrem Slot sichtbar zu bleiben.
+  const played = match.result.trim() !== "" || match.status === "played";
+  const keepIfPlayed = (incoming: string, previousValue: string | null | undefined): string =>
+    incoming !== "" ? incoming : played ? (previousValue ?? "") : incoming;
   return {
     tournament_id: tournamentId,
     event_id: match.eventId,
@@ -226,9 +233,9 @@ function buildMatchParams(
     mode: match.mode,
     pool_name: match.poolName,
     round_name: match.roundName,
-    scheduled_date: match.scheduledDate,
-    scheduled_time: match.scheduledTime,
-    court: match.court,
+    scheduled_date: keepIfPlayed(match.scheduledDate, previous?.scheduled_date),
+    scheduled_time: keepIfPlayed(match.scheduledTime, previous?.scheduled_time),
+    court: keepIfPlayed(match.court, previous?.court),
     player1_name: match.player1Name,
     player1_name_2: match.player1Name2,
     player2_name: match.player2Name,
@@ -445,6 +452,26 @@ export function recordRefreshError(
   database
     .prepare("UPDATE tournaments SET last_error = ? WHERE swisstennis_tournament_id = ?")
     .run(message, tournamentId);
+}
+
+/**
+ * match_keys aller Matches eines Turniers, die aktuell auf einen der `dates`
+ * ("YYYY-MM-DD") terminiert sind. Für den Order-of-Play-Refresh, damit eine
+ * gespielte Partie (die ihren Termin verloren hat) trotzdem aktualisiert wird.
+ */
+export function readScheduledMatchKeys(
+  database: TcwDatabase,
+  tournamentId: number,
+  dates: string[],
+): Set<string> {
+  if (dates.length === 0) return new Set();
+  const placeholders = dates.map(() => "?").join(",");
+  const rows = database
+    .prepare(
+      `SELECT match_key FROM tournament_matches WHERE tournament_id = ? AND scheduled_date IN (${placeholders})`,
+    )
+    .all(tournamentId, ...dates) as Array<{ match_key: string }>;
+  return new Set(rows.map((row) => row.match_key));
 }
 
 /** Anzahl der aktuell gespeicherten Matches eines Turniers. */

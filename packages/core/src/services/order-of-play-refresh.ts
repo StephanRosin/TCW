@@ -19,7 +19,11 @@ import {
   type TournamentEventMeta,
 } from "../integrations/swisstennis/tournament-events.js";
 import { mapEventMatches, type MatchRecord } from "../integrations/swisstennis/tournament-matches.js";
-import { upsertScheduledMatches, type TournamentConfig } from "./tournament-store.js";
+import {
+  readScheduledMatchKeys,
+  upsertScheduledMatches,
+  type TournamentConfig,
+} from "./tournament-store.js";
 
 const DOUBLE_MATCH_TYPE_IDS = new Set([3, 4, 5]);
 
@@ -82,7 +86,13 @@ export async function refreshOrderOfPlay(
 
   const dates = orderOfPlayDates(now, 1);
   const dateSet = new Set(dates);
-  const scoped = records.filter((match) => dateSet.has(match.scheduledDate));
+  // Auch Matches einbeziehen, die in der DB heute/morgen terminiert sind: eine
+  // gerade gespielte Partie (z. B. W/O) verliert bei Swisstennis ihren Termin und
+  // faellt sonst aus dem reinen Datum-Filter – ihr Ergebnis kaeme nicht mit.
+  const scheduledKeys = readScheduledMatchKeys(database, tournamentId, dates);
+  const scoped = records.filter(
+    (match) => dateSet.has(match.scheduledDate) || scheduledKeys.has(match.matchKey),
+  );
   const written = upsertScheduledMatches(
     database,
     tournamentId,
