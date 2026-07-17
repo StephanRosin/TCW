@@ -200,6 +200,9 @@ CREATE TABLE IF NOT EXISTS waidcup_payments (
   person_key TEXT NOT NULL,
   paid INTEGER NOT NULL DEFAULT 0,
   paid_at TEXT,
+  -- Status: 'paid' oder 'cancelled' (Absage, muss nicht zahlen). Eine fehlende
+  -- Zeile bedeutet 'open'. Default 'paid' für Altbestand (nur paid-Flag gesetzt).
+  status TEXT NOT NULL DEFAULT 'paid',
   PRIMARY KEY (tournament_id, person_key)
 );
 

@@ -147,13 +147,17 @@ export function registerWaidcupAdmin(
     async (request, reply) => {
       if (!enabled) return reply.code(503).send({ error: "Adminseite ist nicht konfiguriert." });
       if (!isAuthed(request, secret)) return reply.code(401).send({ error: "Nicht angemeldet." });
-      const body = (request.body ?? {}) as { personKey?: unknown; paid?: unknown };
-      if (typeof body.personKey !== "string" || typeof body.paid !== "boolean") {
+      const body = (request.body ?? {}) as { personKey?: unknown; status?: unknown };
+      const status = body.status;
+      if (
+        typeof body.personKey !== "string" ||
+        (status !== "open" && status !== "paid" && status !== "cancelled")
+      ) {
         return reply.code(400).send({ error: "Ungültige Anfrage." });
       }
       const writable = openDatabase({ filePath: config.dbFilePath });
       try {
-        setWaidcupPayment(writable, config.waidcupTournamentId, body.personKey, body.paid, new Date().toISOString());
+        setWaidcupPayment(writable, config.waidcupTournamentId, body.personKey, status, new Date().toISOString());
       } finally {
         writable.close();
       }

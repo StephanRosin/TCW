@@ -46,6 +46,8 @@ export function openDatabase(options: DatabaseOptions): TcwDatabase {
     // Weiche (nullable, ohne FK-Constraint) Register-Verknüpfung auf den Feed-Tabellen.
     ensureColumn(database, "tournament_players", "registry_id", "INTEGER");
     ensureColumn(database, "tournament_players", "registry_id_2", "INTEGER");
+    // Bezahlt-Tracking: Status-Spalte (Altbestand mit nur paid-Flag → 'paid').
+    ensureColumn(database, "waidcup_payments", "status", "TEXT NOT NULL DEFAULT 'paid'");
     for (const slot of ["s1p1", "s1p2", "s2p1", "s2p2"]) {
       ensureColumn(database, "player_matches", `${slot}_registry_id`, "INTEGER");
     }

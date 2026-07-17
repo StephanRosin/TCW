@@ -15,6 +15,7 @@ import {
   cleanPlayerName,
   playerNameKey,
   type WaidcupPaymentPerson,
+  type WaidcupPaymentStatus,
   type WaidcupPaymentsResponse,
 } from "@tcw/shared";
 import type { TcwDatabase } from "../db/connection.js";
@@ -120,20 +121,25 @@ export function getWaidcupPayments(database: TcwDatabase, tournamentId: number):
   }
 
   const firstMatch = firstMatchByPlayer(database, tournamentId);
-  const paidRows = database
-    .prepare(`SELECT person_key, paid FROM waidcup_payments WHERE tournament_id = ?`)
-    .all(tournamentId) as Array<{ person_key: string; paid: number }>;
-  const paidKeys = new Set(paidRows.filter((row) => row.paid).map((row) => row.person_key));
+  const statusRows = database
+    .prepare(`SELECT person_key, status FROM waidcup_payments WHERE tournament_id = ?`)
+    .all(tournamentId) as Array<{ person_key: string; status: string }>;
+  const statusByKey = new Map<string, WaidcupPaymentStatus>();
+  for (const row of statusRows) {
+    if (row.status === "paid" || row.status === "cancelled") statusByKey.set(row.person_key, row.status);
+  }
 
   const list: WaidcupPaymentPerson[] = [];
   let totalOpen = 0;
   let totalPaid = 0;
+  let totalCancelled = 0;
   for (const [key, person] of persons) {
     const playsSingles = [...person.disciplines].some((discipline) => SINGLES.has(discipline));
     const playsMixed = [...person.disciplines].some((discipline) => MIXED.has(discipline));
     const cost = costFor(playsSingles, playsMixed);
-    const paid = paidKeys.has(key);
-    if (paid) totalPaid += cost;
+    const status = statusByKey.get(key) ?? "open";
+    if (status === "paid") totalPaid += cost;
+    else if (status === "cancelled") totalCancelled += cost;
     else totalOpen += cost;
     const match = firstMatch.get(person.nameKey);
     list.push({
@@ -145,27 +151,37 @@ export function getWaidcupPayments(database: TcwDatabase, tournamentId: number):
       cost,
       firstMatchDate: match?.date ?? "",
       firstMatchTime: match?.time ?? "",
-      paid,
+      status,
     });
   }
   list.sort((a, b) => a.name.localeCompare(b.name));
-  return { persons: list, totalOpen, totalPaid };
+  return { persons: list, totalOpen, totalPaid, totalCancelled };
 }
 
-/** Setzt/entfernt das Bezahlt-Flag einer Person. */
+/**
+ * Setzt den Zahlungsstatus einer Person. „open" entfernt die Zeile (Standard),
+ * „paid"/„cancelled" legen sie an bzw. aktualisieren sie. Beide gelten als
+ * abgeschlossen und fallen aus dem Offen-Betrag.
+ */
 export function setWaidcupPayment(
   database: TcwDatabase,
   tournamentId: number,
   personKey: string,
-  paid: boolean,
-  paidAt: string,
+  status: WaidcupPaymentStatus,
+  at: string,
 ): void {
+  if (status === "open") {
+    database
+      .prepare(`DELETE FROM waidcup_payments WHERE tournament_id = ? AND person_key = ?`)
+      .run(tournamentId, personKey);
+    return;
+  }
   database
     .prepare(
-      `INSERT INTO waidcup_payments (tournament_id, person_key, paid, paid_at)
-       VALUES (?, ?, ?, ?)
+      `INSERT INTO waidcup_payments (tournament_id, person_key, paid, paid_at, status)
+       VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(tournament_id, person_key)
-       DO UPDATE SET paid = excluded.paid, paid_at = excluded.paid_at`,
+       DO UPDATE SET paid = excluded.paid, paid_at = excluded.paid_at, status = excluded.status`,
     )
-    .run(tournamentId, personKey, paid ? 1 : 0, paid ? paidAt : null);
+    .run(tournamentId, personKey, status === "paid" ? 1 : 0, at, status);
 }

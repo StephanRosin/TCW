@@ -1712,3 +1712,14 @@
 .wc-pay__sortarrow {
   color: var(--green-600);
 }
+.wc-pay__table tbody tr.is-cancelled td {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-color: rgba(194, 65, 50, 0.7);
+}
+.wc-pay__table tbody tr.is-cancelled .wc-pay__check {
+  text-decoration: none;
+}
+.wc-pay__check--cancel {
+  accent-color: var(--red-600);
+}

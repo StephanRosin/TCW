@@ -1,11 +1,16 @@
 /**
  * Bezahlt-Tracking-Tab der Waidcup-Adminseite: pro Person eine Zeile mit
- * Konkurrenzen, erstem Match, zu zahlendem Betrag und „bezahlt"-Haken. Suche,
- * Filter (unbezahlt/alle) und sortierbare Spalten. Im Look der Waidcup-Seite
- * (card / table.board / chip / player-search / sort-header).
+ * Konkurrenzen, erstem Match, zu zahlendem Betrag und Status-Haken „bezahlt"
+ * bzw. „storniert" (Absage, muss nicht zahlen). Beide gelten als abgeschlossen
+ * und fallen aus dem Offen-Betrag/Filter. Suche, Filter (offen/alle) und
+ * sortierbare Spalten. Im Look der Waidcup-Seite.
  */
 import { useEffect, useMemo, useState, type JSX } from "react";
-import type { WaidcupPaymentPerson, WaidcupPaymentsResponse } from "@tcw/shared";
+import type {
+  WaidcupPaymentPerson,
+  WaidcupPaymentStatus,
+  WaidcupPaymentsResponse,
+} from "@tcw/shared";
 import { waidcupApi } from "../../api/client.js";
 
 type SortKey = "name" | "match" | "cost";
@@ -28,6 +33,12 @@ function comparePersons(a: WaidcupPaymentPerson, b: WaidcupPaymentPerson, key: S
   if (key === "cost") return a.cost - b.cost || a.name.localeCompare(b.name);
   if (key === "match") return matchSortValue(a).localeCompare(matchSortValue(b)) || a.name.localeCompare(b.name);
   return a.name.localeCompare(b.name);
+}
+
+function rowClass(status: WaidcupPaymentStatus): string | undefined {
+  if (status === "paid") return "is-paid";
+  if (status === "cancelled") return "is-cancelled";
+  return undefined;
 }
 
 function SortHeader({
@@ -60,7 +71,7 @@ export function PaymentsPanel(): JSX.Element {
   const [data, setData] = useState<WaidcupPaymentsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [onlyUnpaid, setOnlyUnpaid] = useState(true);
+  const [onlyOpen, setOnlyOpen] = useState(true);
   const [sortKey, setSortKey] = useState<SortKey>("match");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [saving, setSaving] = useState<Set<string>>(new Set());
@@ -80,17 +91,28 @@ export function PaymentsPanel(): JSX.Element {
     }
   };
 
-  const togglePaid = async (person: WaidcupPaymentPerson): Promise<void> => {
-    const next = !person.paid;
+  const changeStatus = async (person: WaidcupPaymentPerson, next: WaidcupPaymentStatus): Promise<void> => {
+    if (person.status === next) return;
+    const previous = person.status;
     setSaving((prev) => new Set(prev).add(person.personKey));
     setError(null);
     try {
       await waidcupApi.admin.setPayment(person.personKey, next);
       setData((prev) => {
         if (!prev) return prev;
-        const persons = prev.persons.map((p) => (p.personKey === person.personKey ? { ...p, paid: next } : p));
-        const delta = next ? person.cost : -person.cost;
-        return { persons, totalPaid: prev.totalPaid + delta, totalOpen: prev.totalOpen - delta };
+        const persons = prev.persons.map((p) =>
+          p.personKey === person.personKey ? { ...p, status: next } : p,
+        );
+        let { totalOpen, totalPaid, totalCancelled } = prev;
+        const move = (status: WaidcupPaymentStatus, sign: number): void => {
+          const amount = sign * person.cost;
+          if (status === "paid") totalPaid += amount;
+          else if (status === "cancelled") totalCancelled += amount;
+          else totalOpen += amount;
+        };
+        move(previous, -1);
+        move(next, 1);
+        return { persons, totalOpen, totalPaid, totalCancelled };
       });
     } catch {
       setError("Speichern fehlgeschlagen.");
@@ -107,18 +129,18 @@ export function PaymentsPanel(): JSX.Element {
     if (!data) return [];
     const needle = search.trim().toLowerCase();
     return data.persons
-      .filter((p) => (onlyUnpaid ? !p.paid : true))
+      .filter((p) => (onlyOpen ? p.status === "open" : true))
       .filter((p) => needle === "" || p.name.toLowerCase().includes(needle))
       .sort((a, b) => {
         const cmp = comparePersons(a, b, sortKey);
         return sortDir === "asc" ? cmp : -cmp;
       });
-  }, [data, search, onlyUnpaid, sortKey, sortDir]);
+  }, [data, search, onlyOpen, sortKey, sortDir]);
 
   if (error && !data) return <div className="wc-admin__note">{error}</div>;
   if (!data) return <div className="wc-admin__note">Lädt …</div>;
 
-  const openCount = data.persons.filter((p) => !p.paid).length;
+  const openCount = data.persons.filter((p) => p.status === "open").length;
 
   return (
     <div className="card wc-admin__card">
@@ -134,24 +156,25 @@ export function PaymentsPanel(): JSX.Element {
           />
           <button
             type="button"
-            className={onlyUnpaid ? "chip is-active" : "chip"}
-            aria-pressed={onlyUnpaid}
-            onClick={() => setOnlyUnpaid(true)}
+            className={onlyOpen ? "chip is-active" : "chip"}
+            aria-pressed={onlyOpen}
+            onClick={() => setOnlyOpen(true)}
           >
-            Unbezahlt ({openCount})
+            Offen ({openCount})
           </button>
           <button
             type="button"
-            className={!onlyUnpaid ? "chip is-active" : "chip"}
-            aria-pressed={!onlyUnpaid}
-            onClick={() => setOnlyUnpaid(false)}
+            className={!onlyOpen ? "chip is-active" : "chip"}
+            aria-pressed={!onlyOpen}
+            onClick={() => setOnlyOpen(false)}
           >
             Alle ({data.persons.length})
           </button>
         </div>
 
         <div className="wc-pay__totals">
-          Offen: <strong>CHF {data.totalOpen}</strong> · Bezahlt: <strong>CHF {data.totalPaid}</strong>
+          Offen: <strong>CHF {data.totalOpen}</strong> · Bezahlt: <strong>CHF {data.totalPaid}</strong> ·
+          Storniert: <strong>CHF {data.totalCancelled}</strong>
         </div>
         {error ? <div className="wc-admin__error">{error}</div> : null}
 
@@ -164,30 +187,44 @@ export function PaymentsPanel(): JSX.Element {
                 <SortHeader label="Erstes Match" col="match" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
                 <SortHeader label="Kosten" col="cost" sortKey={sortKey} sortDir={sortDir} onSort={onSort} numeric />
                 <th className="numeric">Bezahlt</th>
+                <th className="numeric">Storniert</th>
               </tr>
             </thead>
             <tbody>
-              {visible.map((person) => (
-                <tr key={person.personKey} className={person.paid ? "is-paid" : undefined}>
-                  <td>{person.name}</td>
-                  <td className="wc-pay__disc">{person.disciplines.join(" · ")}</td>
-                  <td>{matchLabel(person)}</td>
-                  <td className="numeric">CHF {person.cost}</td>
-                  <td className="numeric">
-                    <input
-                      type="checkbox"
-                      className="wc-pay__check"
-                      checked={person.paid}
-                      disabled={saving.has(person.personKey)}
-                      onChange={() => void togglePaid(person)}
-                      aria-label={`${person.name} bezahlt`}
-                    />
-                  </td>
-                </tr>
-              ))}
+              {visible.map((person) => {
+                const busy = saving.has(person.personKey);
+                return (
+                  <tr key={person.personKey} className={rowClass(person.status)}>
+                    <td>{person.name}</td>
+                    <td className="wc-pay__disc">{person.disciplines.join(" · ")}</td>
+                    <td>{matchLabel(person)}</td>
+                    <td className="numeric">CHF {person.cost}</td>
+                    <td className="numeric">
+                      <input
+                        type="checkbox"
+                        className="wc-pay__check"
+                        checked={person.status === "paid"}
+                        disabled={busy}
+                        onChange={(event) => void changeStatus(person, event.target.checked ? "paid" : "open")}
+                        aria-label={`${person.name} bezahlt`}
+                      />
+                    </td>
+                    <td className="numeric">
+                      <input
+                        type="checkbox"
+                        className="wc-pay__check wc-pay__check--cancel"
+                        checked={person.status === "cancelled"}
+                        disabled={busy}
+                        onChange={(event) => void changeStatus(person, event.target.checked ? "cancelled" : "open")}
+                        aria-label={`${person.name} storniert`}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
               {visible.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="wc-pay__empty">
+                  <td colSpan={6} className="wc-pay__empty">
                     Keine Einträge.
                   </td>
                 </tr>

@@ -500,6 +500,9 @@ export interface WaidcupLiveMatch {
   winnerSide: number;
 }
 
+/** Zahlungsstatus einer Person: offen, bezahlt oder storniert (Absage, ok). */
+export type WaidcupPaymentStatus = "open" | "paid" | "cancelled";
+
 /** Eine Person im Bezahlt-Tracking (aggregiert über alle Konkurrenzen). */
 export interface WaidcupPaymentPerson {
   /** Stabiler Schlüssel (registry_id oder Namens-Schlüssel). */
@@ -514,14 +517,15 @@ export interface WaidcupPaymentPerson {
   /** Frühestes terminiertes Match ("YYYY-MM-DD" / "HH:MM"), sonst leer. */
   firstMatchDate: string;
   firstMatchTime: string;
-  paid: boolean;
+  status: WaidcupPaymentStatus;
 }
 
 export interface WaidcupPaymentsResponse {
   persons: WaidcupPaymentPerson[];
-  /** Summe der offenen bzw. bereits bezahlten Beträge (CHF). */
+  /** Summen (CHF) je Status. „offen" = weder bezahlt noch storniert. */
   totalOpen: number;
   totalPaid: number;
+  totalCancelled: number;
 }
 
 /** Live-Board des Waidcups: laufende und nächste Partien. */
