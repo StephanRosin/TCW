@@ -11,6 +11,13 @@ export const DEFAULT_VIEW: MainView = "location";
 /** Vollbild-Route für den Grossbildschirm am Turnier (ohne Header/Navigation). */
 export const KIOSK_HASH = "kiosk";
 
+/** Chromelose, login-geschützte Adminseite. */
+export const ADMIN_HASH = "admin";
+
+export function isAdminHash(hash: string): boolean {
+  return hash.replace(/^#/, "").trim() === ADMIN_HASH;
+}
+
 export interface NavItem {
   view: MainView;
   labelKey: string;

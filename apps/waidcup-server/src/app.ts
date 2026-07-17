@@ -24,6 +24,7 @@ import {
   type AppConfig,
 } from "@tcw/core";
 import type { HealthResponse } from "@tcw/shared";
+import { registerWaidcupAdmin } from "./admin.js";
 
 const WEB_DIST_DIR = resolve(loadConfig().repoRoot, "apps/waidcup-public/dist");
 
@@ -74,6 +75,9 @@ export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise
     tomorrow: getWaidcupOrderOfPlay(database, tournamentId, new Date(), 1),
     playerUrls: getWaidcupPlayerUrls(database, tournamentId),
   }));
+
+  // Login-geschützte Adminseite (erst mal nur: Order-of-Play-Refresh auslösen).
+  registerWaidcupAdmin(app, config);
 
   // Webcam: gleiches Standbild wie die Spielbetriebsseite, aus dem vom Admin
   // gepflegten Cache (kein Kamera-Abruf pro Client).

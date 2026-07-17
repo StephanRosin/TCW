@@ -5,7 +5,7 @@
  */
 import { useEffect, type JSX } from "react";
 import { I18nProvider, useHashRoute, useI18n } from "@tcw/tournament-ui";
-import { parseKioskTarget, viewFromHash, type MainView } from "./app/navigation.js";
+import { isAdminHash, parseKioskTarget, viewFromHash, type MainView } from "./app/navigation.js";
 import { SiteFooter, SiteHeader, TabBar } from "./components/SiteChrome.js";
 import { BracketsView } from "./features/brackets/BracketsView.js";
 import { MatchesView } from "./features/matches/MatchesView.js";
@@ -17,6 +17,7 @@ import { OrderOfPlayView } from "./features/orderofplay/OrderOfPlayView.js";
 import { WebcamView } from "./features/webcam/WebcamView.js";
 import { TourView } from "./features/tour/TourView.js";
 import { KioskView } from "./features/kiosk/KioskView.js";
+import { AdminView } from "./features/admin/AdminView.js";
 
 function ActiveView({ view }: Readonly<{ view: MainView }>): JSX.Element {
   switch (view) {
@@ -52,6 +53,10 @@ function Layout(): JSX.Element {
   const kioskTarget = parseKioskTarget(hash);
   if (kioskTarget) {
     return <KioskView target={kioskTarget} />;
+  }
+
+  if (isAdminHash(hash)) {
+    return <AdminView />;
   }
 
   const view = viewFromHash(hash);

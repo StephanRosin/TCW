@@ -94,6 +94,8 @@ export interface AppConfig {
   waidcupPort: number;
   waidcupHost: string;
   waidcupTournamentId: number;
+  /** Passwort der Waidcup-Adminseite (leer = Adminseite deaktiviert). Nur Server-Env. */
+  waidcupAdminPassword: string;
 }
 
 export function loadConfig(): AppConfig {
@@ -124,5 +126,6 @@ export function loadConfig(): AppConfig {
     waidcupPort: readNumber("IC_WAIDCUP_PORT", 8096),
     waidcupHost: process.env.IC_WAIDCUP_HOST?.trim() || "0.0.0.0",
     waidcupTournamentId: readNumber("WAIDCUP_TOURNAMENT_ID", 158138),
+    waidcupAdminPassword: process.env.WAIDCUP_ADMIN_PASSWORD ?? "",
   };
 }

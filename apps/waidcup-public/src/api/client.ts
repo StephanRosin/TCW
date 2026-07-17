@@ -56,4 +56,29 @@ export const waidcupApi = {
       playerUrls: data.playerUrls,
     };
   },
+  admin: {
+    session: async (): Promise<{ enabled: boolean; authenticated: boolean }> =>
+      fetchJson("/api/waidcup/admin/session"),
+    login: async (password: string): Promise<void> => {
+      const response = await fetch("/api/waidcup/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: "admin", password }),
+      });
+      if (!response.ok) throw new Error(response.status === 401 ? "invalid" : `HTTP ${response.status}`);
+    },
+    logout: async (): Promise<void> => {
+      await fetch("/api/waidcup/admin/logout", { method: "POST" });
+    },
+    refreshOrderOfPlay: async (): Promise<{
+      dates: string[];
+      matchesScoped: number;
+      written: number;
+      at: string;
+    }> => {
+      const response = await fetch("/api/waidcup/admin/order-of-play/refresh", { method: "POST" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return (await response.json()) as { dates: string[]; matchesScoped: number; written: number; at: string };
+    },
+  },
 };
