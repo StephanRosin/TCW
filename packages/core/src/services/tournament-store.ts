@@ -222,8 +222,10 @@ function buildMatchParams(
   // sie mangels Termin aus dem Order of Play verschwinden, statt dort mit
   // Ergebnis an ihrem Slot sichtbar zu bleiben.
   const played = match.result.trim() !== "" || match.status === "played";
-  const keepIfPlayed = (incoming: string, previousValue: string | null | undefined): string =>
-    incoming !== "" ? incoming : played ? (previousValue ?? "") : incoming;
+  const keepIfPlayed = (incoming: string, previousValue: string | null | undefined): string => {
+    if (incoming !== "") return incoming;
+    return played ? (previousValue ?? "") : incoming;
+  };
   return {
     tournament_id: tournamentId,
     event_id: match.eventId,
