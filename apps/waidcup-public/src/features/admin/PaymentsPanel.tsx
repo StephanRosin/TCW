@@ -1,7 +1,8 @@
 /**
  * Bezahlt-Tracking-Tab der Waidcup-Adminseite: pro Person eine Zeile mit
- * Konkurrenzen, erstem Match, zu zahlendem Betrag und einem „bezahlt"-Haken.
- * Suche, Filter (unbezahlt/alle) und sortierbare Spalten.
+ * Konkurrenzen, erstem Match, zu zahlendem Betrag und „bezahlt"-Haken. Suche,
+ * Filter (unbezahlt/alle) und sortierbare Spalten. Im Look der Waidcup-Seite
+ * (card / table.board / chip / player-search / sort-header).
  */
 import { useEffect, useMemo, useState, type JSX } from "react";
 import type { WaidcupPaymentPerson, WaidcupPaymentsResponse } from "@tcw/shared";
@@ -45,12 +46,11 @@ function SortHeader({
   numeric?: boolean;
 }>): JSX.Element {
   let arrow = "";
-  if (sortKey === col) arrow = sortDir === "asc" ? " ▲" : " ▼";
+  if (sortKey === col) arrow = sortDir === "asc" ? "▲" : "▼";
   return (
-    <th className={numeric ? "wc-pay__num" : undefined}>
-      <button type="button" className="wc-pay__sort" onClick={() => onSort(col)}>
-        {label}
-        {arrow}
+    <th className={numeric ? "numeric" : undefined}>
+      <button type="button" className="sort-header" onClick={() => onSort(col)}>
+        {label} {arrow !== "" ? <span className="wc-pay__sortarrow">{arrow}</span> : null}
       </button>
     </th>
   );
@@ -115,83 +115,86 @@ export function PaymentsPanel(): JSX.Element {
       });
   }, [data, search, onlyUnpaid, sortKey, sortDir]);
 
-  if (error && !data) return <div className="wc-admin__error">{error}</div>;
-  if (!data) return <div className="wc-pay__loading">Lädt …</div>;
+  if (error && !data) return <div className="wc-admin__note">{error}</div>;
+  if (!data) return <div className="wc-admin__note">Lädt …</div>;
 
   const openCount = data.persons.filter((p) => !p.paid).length;
 
   return (
-    <div className="wc-pay">
-      <div className="wc-pay__bar">
-        <input
-          type="search"
-          className="wc-admin__input wc-pay__search"
-          placeholder="Namen suchen …"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-        <div className="wc-pay__filter">
+    <div className="card wc-admin__card">
+      <div className="card__head">Bezahlt-Übersicht</div>
+      <div className="wc-pay__body">
+        <div className="tournament-filterbar">
+          <input
+            type="search"
+            className="player-search"
+            placeholder="Namen suchen …"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
           <button
             type="button"
-            className={onlyUnpaid ? "wc-pay__chip is-active" : "wc-pay__chip"}
+            className={onlyUnpaid ? "chip is-active" : "chip"}
+            aria-pressed={onlyUnpaid}
             onClick={() => setOnlyUnpaid(true)}
           >
             Unbezahlt ({openCount})
           </button>
           <button
             type="button"
-            className={!onlyUnpaid ? "wc-pay__chip is-active" : "wc-pay__chip"}
+            className={!onlyUnpaid ? "chip is-active" : "chip"}
+            aria-pressed={!onlyUnpaid}
             onClick={() => setOnlyUnpaid(false)}
           >
             Alle ({data.persons.length})
           </button>
         </div>
-      </div>
 
-      <div className="wc-pay__totals">
-        Offen: <strong>CHF {data.totalOpen}</strong> · Bezahlt: <strong>CHF {data.totalPaid}</strong>
-      </div>
-      {error ? <div className="wc-admin__error">{error}</div> : null}
+        <div className="wc-pay__totals">
+          Offen: <strong>CHF {data.totalOpen}</strong> · Bezahlt: <strong>CHF {data.totalPaid}</strong>
+        </div>
+        {error ? <div className="wc-admin__error">{error}</div> : null}
 
-      <div className="wc-pay__scroll">
-        <table className="wc-pay__table">
-          <thead>
-            <tr>
-              <SortHeader label="Name" col="name" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
-              <th>Konkurrenz</th>
-              <SortHeader label="Erstes Match" col="match" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
-              <SortHeader label="Kosten" col="cost" sortKey={sortKey} sortDir={sortDir} onSort={onSort} numeric />
-              <th className="wc-pay__num">Bezahlt</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visible.map((person) => (
-              <tr key={person.personKey} className={person.paid ? "wc-pay__row--paid" : undefined}>
-                <td>{person.name}</td>
-                <td className="wc-pay__disc">{person.disciplines.join(" · ")}</td>
-                <td>{matchLabel(person)}</td>
-                <td className="wc-pay__num">CHF {person.cost}</td>
-                <td className="wc-pay__num">
-                  <input
-                    type="checkbox"
-                    className="wc-pay__check"
-                    checked={person.paid}
-                    disabled={saving.has(person.personKey)}
-                    onChange={() => void togglePaid(person)}
-                    aria-label={`${person.name} bezahlt`}
-                  />
-                </td>
-              </tr>
-            ))}
-            {visible.length === 0 ? (
+        <div className="table-wrap wc-pay__scroll">
+          <table className="board">
+            <thead>
               <tr>
-                <td colSpan={5} className="wc-pay__empty">
-                  Keine Einträge.
-                </td>
+                <SortHeader label="Name" col="name" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                <th>Konkurrenz</th>
+                <SortHeader label="Erstes Match" col="match" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                <SortHeader label="Kosten" col="cost" sortKey={sortKey} sortDir={sortDir} onSort={onSort} numeric />
+                <th className="numeric">Bezahlt</th>
               </tr>
-            ) : null}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {visible.map((person) => (
+                <tr key={person.personKey} className={person.paid ? "is-paid" : undefined}>
+                  <td>{person.name}</td>
+                  <td className="wc-pay__disc">{person.disciplines.join(" · ")}</td>
+                  <td>{matchLabel(person)}</td>
+                  <td className="numeric">CHF {person.cost}</td>
+                  <td className="numeric">
+                    <input
+                      type="checkbox"
+                      className="wc-pay__check"
+                      checked={person.paid}
+                      disabled={saving.has(person.personKey)}
+                      onChange={() => void togglePaid(person)}
+                      aria-label={`${person.name} bezahlt`}
+                    />
+                  </td>
+                </tr>
+              ))}
+              {visible.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="wc-pay__empty">
+                    Keine Einträge.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

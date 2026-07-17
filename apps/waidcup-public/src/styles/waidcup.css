@@ -1568,245 +1568,147 @@
 }
 
 /* ==========================================================================
-   Waidcup-Adminseite (#admin, chromelos, login-geschützt)
+/* ==========================================================================
+   Waidcup-Adminseite (#admin) – im Look der Waidcup-Seite (Site-Design-Tokens)
    ========================================================================== */
-.wc-admin {
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: 2rem 1rem;
-  background: linear-gradient(180deg, #0d1119 0%, #0b0e14 60%, #090b10 100%);
-  color: #e9edf5;
+.wc-admin__main {
+  padding-top: 1.4rem;
+  padding-bottom: 2.5rem;
+  flex: 1;
 }
+.wc-admin__note {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--on-image);
+  font-weight: 600;
+}
+
+/* Header-Logout rechts */
+.site-header__top .wc-admin__logout {
+  margin-left: auto;
+}
+
+/* Karten (Login / Refresh / Bezahlt) */
 .wc-admin__card {
   width: 100%;
-  max-width: 26rem;
+}
+.wc-admin__card--login {
+  max-width: 28rem;
+  margin: 2.5rem auto 0;
+}
+.wc-admin__card-body {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  padding: 1.8rem 1.6rem;
-  background: rgba(21, 26, 38, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-}
-.wc-admin__title {
-  margin: 0 0 0.6rem;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.5rem;
-  color: #fff;
+  gap: 0.5rem;
+  padding: 1.2rem 1.3rem 1.4rem;
 }
 .wc-admin__label {
   margin-top: 0.4rem;
-  font-size: 0.85rem;
-  color: #8b94ad;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 .wc-admin__input {
-  padding: 0.6rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 8px;
-  background: rgba(13, 17, 25, 0.8);
-  color: #fff;
-  font-size: 1rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
 }
 .wc-admin__input:read-only {
-  color: #8b94ad;
+  background: var(--surface-2);
+  color: var(--text-muted);
 }
-.wc-admin__btn {
+.wc-admin__input:focus {
+  outline: 2px solid var(--blue-600);
+  outline-offset: 1px;
+}
+.wc-admin__primary {
+  align-self: flex-start;
   margin-top: 0.8rem;
-  padding: 0.7rem 1rem;
+  padding: 0.6rem 1.3rem;
   border: 0;
-  border-radius: 8px;
-  background: var(--accent, #c8f135);
-  color: #10240f;
-  font-weight: 800;
-  font-size: 1rem;
-  cursor: pointer;
-}
-.wc-admin__btn:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-.wc-admin__error {
-  margin-top: 0.3rem;
-  color: #ff9a9a;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-.wc-admin__result {
-  margin-top: 0.9rem;
-  padding: 0.7rem 0.85rem;
-  border: 1px solid rgba(200, 241, 53, 0.4);
-  border-radius: 8px;
-  background: #12210a;
-  color: #e6f6bf;
-  font-size: 0.92rem;
-  line-height: 1.4;
-}
-.wc-admin__section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-.wc-admin__section-title {
-  margin: 0;
-  font-size: 1.05rem;
+  border-radius: var(--radius-sm);
+  background: var(--own);
   color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.wc-admin__primary:hover {
+  background: var(--blue-700);
+}
+.wc-admin__primary:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 .wc-admin__hint {
   margin: 0;
-  color: #8b94ad;
-  font-size: 0.88rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.wc-admin__result {
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid rgba(79, 154, 50, 0.35);
+  border-radius: var(--radius-sm);
+  background: rgba(79, 154, 50, 0.12);
+  color: var(--green-700);
+  font-size: 0.9rem;
   line-height: 1.4;
 }
-.wc-admin__logout {
-  margin-top: 1.4rem;
-  align-self: flex-start;
-  padding: 0.4rem 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  background: transparent;
-  color: #c8d3ee;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-/* Adminseite: breite Karte, Kopf mit Logout, Tab-Navigation */
-.wc-admin__card--wide {
-  max-width: 56rem;
-}
-.wc-admin__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.4rem;
-}
-.wc-admin__head .wc-admin__logout {
-  margin-top: 0;
-}
-.wc-admin__tabs {
-  display: flex;
-  gap: 0.4rem;
-  margin-bottom: 0.9rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-.wc-admin__tab {
-  padding: 0.5rem 0.9rem;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: #8b94ad;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-.wc-admin__tab.is-active {
-  color: #fff;
-  border-bottom-color: var(--accent, #c8f135);
-}
-
-/* Bezahlt-Tracking-Tabelle */
-.wc-pay {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-.wc-pay__loading {
-  padding: 1rem 0;
-  color: #8b94ad;
-}
-.wc-pay__bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.7rem;
-}
-.wc-pay__search {
-  flex: 1;
-  min-width: 12rem;
-  margin-top: 0;
-}
-.wc-pay__filter {
-  display: flex;
-  gap: 0.4rem;
-}
-.wc-pay__chip {
-  padding: 0.5rem 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  background: rgba(13, 17, 25, 0.8);
-  color: #c8d3ee;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-.wc-pay__chip.is-active {
-  background: var(--accent, #c8f135);
-  border-color: var(--accent, #c8f135);
-  color: #10240f;
-}
-.wc-pay__totals {
-  font-size: 0.92rem;
-  color: #c8d3ee;
-}
-.wc-pay__totals strong {
-  color: #fff;
-}
-.wc-pay__scroll {
-  max-height: 62vh;
-  overflow: auto;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-}
-.wc-pay__table {
-  width: 100%;
-  border-collapse: collapse;
+.wc-admin__error {
+  color: var(--red-600);
+  font-weight: 600;
   font-size: 0.9rem;
 }
-.wc-pay__table th,
-.wc-pay__table td {
-  padding: 0.5rem 0.7rem;
-  text-align: left;
-  white-space: nowrap;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+/* Bezahlt-Tab */
+.wc-pay__body {
+  padding: 1.1rem 1.2rem 1.3rem;
 }
-.wc-pay__table thead th {
+.wc-pay__body .tournament-filterbar {
+  margin-bottom: 0.7rem;
+}
+.wc-pay__totals {
+  margin-bottom: 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+.wc-pay__totals strong {
+  color: var(--own);
+}
+.wc-pay__scroll {
+  max-height: 60vh;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.wc-pay__scroll table.board thead th {
   position: sticky;
   top: 0;
-  border-top: 0;
-  background: #171d29;
-  color: #8b94ad;
-  font-weight: 700;
-}
-.wc-pay__num {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.wc-pay__sort {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
+  z-index: 1;
 }
 .wc-pay__disc {
-  color: #8b94ad;
+  color: var(--text-muted);
 }
-.wc-pay__row--paid {
-  color: #6b7590;
+.wc-pay__table tbody tr.is-paid td {
+  color: var(--text-muted);
 }
 .wc-pay__check {
   width: 1.15rem;
   height: 1.15rem;
-  accent-color: var(--accent, #c8f135);
+  accent-color: var(--green-600);
   cursor: pointer;
 }
 .wc-pay__empty {
-  padding: 1.2rem;
+  padding: 1.4rem;
   text-align: center;
-  color: #8b94ad;
+  color: var(--text-muted);
+}
+.wc-pay__sortarrow {
+  color: var(--green-600);
 }

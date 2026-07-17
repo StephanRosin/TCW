@@ -1,14 +1,14 @@
 /**
- * Waidcup-Adminseite (chromelos, Route #admin): login-geschützt, erst mal nur
- * mit der Aktion „Order of Play aktualisieren" (löst den Sofort-Refresh am
- * Server aus). Die Sichtbarkeit der Seite ist harmlos – jede Aktion prüft
- * serverseitig das Login-Cookie.
+ * Waidcup-Adminseite (Route #admin): im Look der Waidcup-Seite (gleiche Chrome
+ * und Design-Tokens), login-geschützt. Tabs „Order of Play" (Sofort-Refresh)
+ * und „Bezahlt" (Bezahlt-Tracking). Bewusst ohne Theme-/Sprachumschalter.
  */
 import { useEffect, useState, type FormEvent, type JSX } from "react";
 import { waidcupApi } from "../../api/client.js";
 import { PaymentsPanel } from "./PaymentsPanel.js";
 
 type Phase = "loading" | "disabled" | "anon" | "authed";
+type AdminTab = "refresh" | "payments";
 
 interface RefreshInfo {
   matchesScoped: number;
@@ -41,28 +41,30 @@ function LoginForm({ onSuccess }: Readonly<{ onSuccess: () => void }>): JSX.Elem
   };
 
   return (
-    <form className="wc-admin__card" onSubmit={(event) => void submit(event)}>
-      <h1 className="wc-admin__title">Waidcup Admin</h1>
-      <label className="wc-admin__label" htmlFor="wc-admin-user">
-        Benutzer
-      </label>
-      <input id="wc-admin-user" className="wc-admin__input" value="admin" readOnly autoComplete="username" />
-      <label className="wc-admin__label" htmlFor="wc-admin-pass">
-        Passwort
-      </label>
-      <input
-        id="wc-admin-pass"
-        className="wc-admin__input"
-        type="password"
-        value={password}
-        autoFocus
-        autoComplete="current-password"
-        onChange={(event) => setPassword(event.target.value)}
-      />
-      {error ? <div className="wc-admin__error">{error}</div> : null}
-      <button className="wc-admin__btn" type="submit" disabled={busy || password === ""}>
-        {busy ? "Anmelden …" : "Anmelden"}
-      </button>
+    <form className="card wc-admin__card wc-admin__card--login" onSubmit={(event) => void submit(event)}>
+      <div className="card__head">Anmeldung</div>
+      <div className="wc-admin__card-body">
+        <label className="wc-admin__label" htmlFor="wc-admin-user">
+          Benutzer
+        </label>
+        <input id="wc-admin-user" className="wc-admin__input" value="admin" readOnly autoComplete="username" />
+        <label className="wc-admin__label" htmlFor="wc-admin-pass">
+          Passwort
+        </label>
+        <input
+          id="wc-admin-pass"
+          className="wc-admin__input"
+          type="password"
+          value={password}
+          autoFocus
+          autoComplete="current-password"
+          onChange={(event) => setPassword(event.target.value)}
+        />
+        {error ? <div className="wc-admin__error">{error}</div> : null}
+        <button className="wc-admin__primary" type="submit" disabled={busy || password === ""}>
+          {busy ? "Anmelden …" : "Anmelden"}
+        </button>
+      </div>
     </form>
   );
 }
@@ -86,71 +88,32 @@ function RefreshTab(): JSX.Element {
   };
 
   return (
-    <div className="wc-admin__section">
-      <p className="wc-admin__hint">
-        Holt heute &amp; morgen frisch von Swisstennis (Termine und Ergebnisse) – ohne auf den
-        regulären Import zu warten.
-      </p>
-      <button className="wc-admin__btn" type="button" onClick={() => void refresh()} disabled={busy}>
-        {busy ? "Aktualisiere …" : "Order of Play aktualisieren"}
-      </button>
-      {info ? (
-        <div className="wc-admin__result">
-          ✓ {info.matchesScoped} Partien abgeglichen, {info.written} aktualisiert (heute + morgen).
-          <br />
-          Stand {timeLabel(info.at)} Uhr.
-        </div>
-      ) : null}
-      {error ? <div className="wc-admin__error">{error}</div> : null}
-    </div>
-  );
-}
-
-type AdminTab = "refresh" | "payments";
-
-function AuthedView({ onLogout }: Readonly<{ onLogout: () => void }>): JSX.Element {
-  const [tab, setTab] = useState<AdminTab>("refresh");
-
-  const logout = async (): Promise<void> => {
-    await waidcupApi.admin.logout();
-    onLogout();
-  };
-
-  return (
-    <div className="wc-admin__card wc-admin__card--wide">
-      <div className="wc-admin__head">
-        <h1 className="wc-admin__title">Waidcup Admin</h1>
-        <button className="wc-admin__logout" type="button" onClick={() => void logout()}>
-          Abmelden
+    <div className="card wc-admin__card">
+      <div className="card__head">Order of Play</div>
+      <div className="wc-admin__card-body">
+        <p className="wc-admin__hint">
+          Holt heute &amp; morgen frisch von Swisstennis (Termine und Ergebnisse) – ohne auf den
+          regulären Import zu warten.
+        </p>
+        <button className="wc-admin__primary" type="button" onClick={() => void refresh()} disabled={busy}>
+          {busy ? "Aktualisiere …" : "Order of Play aktualisieren"}
         </button>
+        {info ? (
+          <div className="wc-admin__result">
+            ✓ {info.matchesScoped} Partien abgeglichen, {info.written} aktualisiert (heute + morgen).
+            <br />
+            Stand {timeLabel(info.at)} Uhr.
+          </div>
+        ) : null}
+        {error ? <div className="wc-admin__error">{error}</div> : null}
       </div>
-      <div className="wc-admin__tabs" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          className={tab === "refresh" ? "wc-admin__tab is-active" : "wc-admin__tab"}
-          aria-selected={tab === "refresh"}
-          onClick={() => setTab("refresh")}
-        >
-          Order of Play
-        </button>
-        <button
-          type="button"
-          role="tab"
-          className={tab === "payments" ? "wc-admin__tab is-active" : "wc-admin__tab"}
-          aria-selected={tab === "payments"}
-          onClick={() => setTab("payments")}
-        >
-          Bezahlt
-        </button>
-      </div>
-      {tab === "refresh" ? <RefreshTab /> : <PaymentsPanel />}
     </div>
   );
 }
 
 export function AdminView(): JSX.Element {
   const [phase, setPhase] = useState<Phase>("loading");
+  const [tab, setTab] = useState<AdminTab>("refresh");
 
   const loadSession = (): void => {
     waidcupApi.admin
@@ -164,14 +127,68 @@ export function AdminView(): JSX.Element {
 
   useEffect(loadSession, []);
 
+  const logout = async (): Promise<void> => {
+    await waidcupApi.admin.logout();
+    setPhase("anon");
+  };
+
+  const authed = phase === "authed";
+
   return (
-    <div className="wc-admin">
-      {phase === "loading" ? <div className="wc-admin__card">Lädt …</div> : null}
-      {phase === "disabled" ? (
-        <div className="wc-admin__card">Die Adminseite ist auf diesem Server nicht konfiguriert.</div>
+    <div className="layout">
+      <header className="site-header">
+        <div className="container">
+          <div className="site-header__top">
+            <div className="brand">
+              <img className="brand__logo" src="/logo-tcw.png" alt="TC Waidberg" />
+              <div>
+                <div className="brand__eyebrow">Waidcup 2026</div>
+                <div className="brand__title">Administration</div>
+              </div>
+            </div>
+            {authed ? (
+              <button type="button" className="link-btn wc-admin__logout" onClick={() => void logout()}>
+                Abmelden
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </header>
+
+      {authed ? (
+        <nav className="tabbar" aria-label="Adminbereich">
+          <div className="container tabbar__inner" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              className="tabbar__btn"
+              aria-selected={tab === "refresh"}
+              onClick={() => setTab("refresh")}
+            >
+              Order of Play
+            </button>
+            <button
+              type="button"
+              role="tab"
+              className="tabbar__btn"
+              aria-selected={tab === "payments"}
+              onClick={() => setTab("payments")}
+            >
+              Bezahlt
+            </button>
+          </div>
+        </nav>
       ) : null}
-      {phase === "anon" ? <LoginForm onSuccess={() => setPhase("authed")} /> : null}
-      {phase === "authed" ? <AuthedView onLogout={() => setPhase("anon")} /> : null}
+
+      <main className="container wc-admin__main">
+        {phase === "loading" ? <div className="wc-admin__note">Lädt …</div> : null}
+        {phase === "disabled" ? (
+          <div className="wc-admin__note">Die Adminseite ist auf diesem Server nicht konfiguriert.</div>
+        ) : null}
+        {phase === "anon" ? <LoginForm onSuccess={() => setPhase("authed")} /> : null}
+        {authed && tab === "refresh" ? <RefreshTab /> : null}
+        {authed && tab === "payments" ? <PaymentsPanel /> : null}
+      </main>
     </div>
   );
 }
