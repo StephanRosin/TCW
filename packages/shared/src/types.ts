@@ -500,6 +500,30 @@ export interface WaidcupLiveMatch {
   winnerSide: number;
 }
 
+/** Eine Person im Bezahlt-Tracking (aggregiert über alle Konkurrenzen). */
+export interface WaidcupPaymentPerson {
+  /** Stabiler Schlüssel (registry_id oder Namens-Schlüssel). */
+  personKey: string;
+  name: string;
+  /** Konkurrenz-Disziplinen der Person, z. B. ["MS","DM"]. */
+  disciplines: string[];
+  playsSingles: boolean;
+  playsMixed: boolean;
+  /** Zu zahlender Gesamtbetrag in CHF. */
+  cost: number;
+  /** Frühestes terminiertes Match ("YYYY-MM-DD" / "HH:MM"), sonst leer. */
+  firstMatchDate: string;
+  firstMatchTime: string;
+  paid: boolean;
+}
+
+export interface WaidcupPaymentsResponse {
+  persons: WaidcupPaymentPerson[];
+  /** Summe der offenen bzw. bereits bezahlten Beträge (CHF). */
+  totalOpen: number;
+  totalPaid: number;
+}
+
 /** Live-Board des Waidcups: laufende und nächste Partien. */
 export interface WaidcupLiveResponse {
   /** Läuft jetzt (heute terminiert, Startzeit erreicht, noch ohne Resultat); nach Platz sortiert. */

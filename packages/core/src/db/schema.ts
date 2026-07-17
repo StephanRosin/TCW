@@ -192,6 +192,17 @@ CREATE TABLE IF NOT EXISTS tournament_event_extras (
   PRIMARY KEY (tournament_id, event_id)
 );
 
+-- Bezahlt-Tracking der Waidcup-Adminseite: je Person (person_key = registry_id
+-- oder Namens-Schlüssel) ein Bezahlt-Flag. Rein admin-gepflegt, nicht aus dem
+-- Import; überlebt Imports (eigene Tabelle).
+CREATE TABLE IF NOT EXISTS waidcup_payments (
+  tournament_id INTEGER NOT NULL,
+  person_key TEXT NOT NULL,
+  paid INTEGER NOT NULL DEFAULT 0,
+  paid_at TEXT,
+  PRIMARY KEY (tournament_id, person_key)
+);
+
 -- Spielerzentrierte Einzel-/Doppelmatches (aktuelles Jahr), normalisiert über
 -- alle Wettbewerbe (IC, TC, Waidcup, CM). Pro Beteiligtem ein reihenfolge-
 -- unabhängiger Namens-Schlüssel (*_key) zum Suchen sowie die Profil-URL.

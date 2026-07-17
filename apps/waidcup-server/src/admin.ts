@@ -10,10 +10,13 @@
 import { createHmac, scryptSync, timingSafeEqual } from "node:crypto";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import {
+  getWaidcupPayments,
   openDatabase,
   readTournamentConfigs,
   refreshOrderOfPlay,
+  setWaidcupPayment,
   type AppConfig,
+  type TcwDatabase,
   type TournamentConfig,
 } from "@tcw/core";
 
@@ -87,7 +90,11 @@ async function runRefresh(config: AppConfig): Promise<Awaited<ReturnType<typeof 
   }
 }
 
-export function registerWaidcupAdmin(app: FastifyInstance, config: AppConfig): void {
+export function registerWaidcupAdmin(
+  app: FastifyInstance,
+  config: AppConfig,
+  database: TcwDatabase,
+): void {
   const password = config.waidcupAdminPassword;
   const enabled = password !== "";
   const secret = secretFor(password);
@@ -125,6 +132,32 @@ export function registerWaidcupAdmin(app: FastifyInstance, config: AppConfig): v
       if (!isAuthed(request, secret)) return reply.code(401).send({ error: "Nicht angemeldet." });
       const result = await runRefresh(config);
       return { ...result, at: new Date().toISOString() };
+    },
+  );
+
+  app.get("/api/waidcup/admin/payments", async (request, reply) => {
+    if (!enabled) return reply.code(503).send({ error: "Adminseite ist nicht konfiguriert." });
+    if (!isAuthed(request, secret)) return reply.code(401).send({ error: "Nicht angemeldet." });
+    return getWaidcupPayments(database, config.waidcupTournamentId);
+  });
+
+  app.post(
+    "/api/waidcup/admin/payments",
+    { config: { rateLimit: { max: 120, timeWindow: "1 minute" } } },
+    async (request, reply) => {
+      if (!enabled) return reply.code(503).send({ error: "Adminseite ist nicht konfiguriert." });
+      if (!isAuthed(request, secret)) return reply.code(401).send({ error: "Nicht angemeldet." });
+      const body = (request.body ?? {}) as { personKey?: unknown; paid?: unknown };
+      if (typeof body.personKey !== "string" || typeof body.paid !== "boolean") {
+        return reply.code(400).send({ error: "Ungültige Anfrage." });
+      }
+      const writable = openDatabase({ filePath: config.dbFilePath });
+      try {
+        setWaidcupPayment(writable, config.waidcupTournamentId, body.personKey, body.paid, new Date().toISOString());
+      } finally {
+        writable.close();
+      }
+      return { ok: true };
     },
   );
 }

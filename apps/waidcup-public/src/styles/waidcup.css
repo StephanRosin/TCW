@@ -1671,3 +1671,142 @@
   font-size: 0.85rem;
   cursor: pointer;
 }
+
+/* Adminseite: breite Karte, Kopf mit Logout, Tab-Navigation */
+.wc-admin__card--wide {
+  max-width: 56rem;
+}
+.wc-admin__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.4rem;
+}
+.wc-admin__head .wc-admin__logout {
+  margin-top: 0;
+}
+.wc-admin__tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.wc-admin__tab {
+  padding: 0.5rem 0.9rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #8b94ad;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.wc-admin__tab.is-active {
+  color: #fff;
+  border-bottom-color: var(--accent, #c8f135);
+}
+
+/* Bezahlt-Tracking-Tabelle */
+.wc-pay {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.wc-pay__loading {
+  padding: 1rem 0;
+  color: #8b94ad;
+}
+.wc-pay__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
+}
+.wc-pay__search {
+  flex: 1;
+  min-width: 12rem;
+  margin-top: 0;
+}
+.wc-pay__filter {
+  display: flex;
+  gap: 0.4rem;
+}
+.wc-pay__chip {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(13, 17, 25, 0.8);
+  color: #c8d3ee;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.wc-pay__chip.is-active {
+  background: var(--accent, #c8f135);
+  border-color: var(--accent, #c8f135);
+  color: #10240f;
+}
+.wc-pay__totals {
+  font-size: 0.92rem;
+  color: #c8d3ee;
+}
+.wc-pay__totals strong {
+  color: #fff;
+}
+.wc-pay__scroll {
+  max-height: 62vh;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.wc-pay__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.wc-pay__table th,
+.wc-pay__table td {
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  white-space: nowrap;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.wc-pay__table thead th {
+  position: sticky;
+  top: 0;
+  border-top: 0;
+  background: #171d29;
+  color: #8b94ad;
+  font-weight: 700;
+}
+.wc-pay__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.wc-pay__sort {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.wc-pay__disc {
+  color: #8b94ad;
+}
+.wc-pay__row--paid {
+  color: #6b7590;
+}
+.wc-pay__check {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--accent, #c8f135);
+  cursor: pointer;
+}
+.wc-pay__empty {
+  padding: 1.2rem;
+  text-align: center;
+  color: #8b94ad;
+}

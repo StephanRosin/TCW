@@ -8,6 +8,7 @@ import type {
   TournamentMatch,
   WaidcupLiveMatch,
   WaidcupLiveResponse,
+  WaidcupPaymentsResponse,
 } from "@tcw/shared";
 import { displayEventName } from "../lib/events.js";
 
@@ -79,6 +80,15 @@ export const waidcupApi = {
       const response = await fetch("/api/waidcup/admin/order-of-play/refresh", { method: "POST" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return (await response.json()) as { dates: string[]; matchesScoped: number; written: number; at: string };
+    },
+    payments: async (): Promise<WaidcupPaymentsResponse> => fetchJson("/api/waidcup/admin/payments"),
+    setPayment: async (personKey: string, paid: boolean): Promise<void> => {
+      const response = await fetch("/api/waidcup/admin/payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ personKey, paid }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
     },
   },
 };

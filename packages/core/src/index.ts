@@ -16,6 +16,7 @@ export * from "./services/tournament-store.js";
 export * from "./services/tournament-service.js";
 export * from "./services/waidcup-service.js";
 export * from "./services/order-of-play-refresh.js";
+export * from "./services/waidcup-payments-service.js";
 export * from "./services/matches-import-service.js";
 export * from "./services/player-matches-service.js";
 export * from "./services/agenda-service.js";

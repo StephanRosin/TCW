@@ -6,6 +6,7 @@
  */
 import { useEffect, useState, type FormEvent, type JSX } from "react";
 import { waidcupApi } from "../../api/client.js";
+import { PaymentsPanel } from "./PaymentsPanel.js";
 
 type Phase = "loading" | "disabled" | "anon" | "authed";
 
@@ -66,7 +67,7 @@ function LoginForm({ onSuccess }: Readonly<{ onSuccess: () => void }>): JSX.Elem
   );
 }
 
-function RefreshPanel({ onLogout }: Readonly<{ onLogout: () => void }>): JSX.Element {
+function RefreshTab(): JSX.Element {
   const [busy, setBusy] = useState(false);
   const [info, setInfo] = useState<RefreshInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -84,35 +85,66 @@ function RefreshPanel({ onLogout }: Readonly<{ onLogout: () => void }>): JSX.Ele
     }
   };
 
+  return (
+    <div className="wc-admin__section">
+      <p className="wc-admin__hint">
+        Holt heute &amp; morgen frisch von Swisstennis (Termine und Ergebnisse) – ohne auf den
+        regulären Import zu warten.
+      </p>
+      <button className="wc-admin__btn" type="button" onClick={() => void refresh()} disabled={busy}>
+        {busy ? "Aktualisiere …" : "Order of Play aktualisieren"}
+      </button>
+      {info ? (
+        <div className="wc-admin__result">
+          ✓ {info.matchesScoped} Partien abgeglichen, {info.written} aktualisiert (heute + morgen).
+          <br />
+          Stand {timeLabel(info.at)} Uhr.
+        </div>
+      ) : null}
+      {error ? <div className="wc-admin__error">{error}</div> : null}
+    </div>
+  );
+}
+
+type AdminTab = "refresh" | "payments";
+
+function AuthedView({ onLogout }: Readonly<{ onLogout: () => void }>): JSX.Element {
+  const [tab, setTab] = useState<AdminTab>("refresh");
+
   const logout = async (): Promise<void> => {
     await waidcupApi.admin.logout();
     onLogout();
   };
 
   return (
-    <div className="wc-admin__card">
-      <h1 className="wc-admin__title">Waidcup Admin</h1>
-      <div className="wc-admin__section">
-        <h2 className="wc-admin__section-title">Order of Play</h2>
-        <p className="wc-admin__hint">
-          Holt heute &amp; morgen frisch von Swisstennis (Termine und Ergebnisse) – ohne auf den
-          regulären Import zu warten.
-        </p>
-        <button className="wc-admin__btn" type="button" onClick={() => void refresh()} disabled={busy}>
-          {busy ? "Aktualisiere …" : "Order of Play aktualisieren"}
+    <div className="wc-admin__card wc-admin__card--wide">
+      <div className="wc-admin__head">
+        <h1 className="wc-admin__title">Waidcup Admin</h1>
+        <button className="wc-admin__logout" type="button" onClick={() => void logout()}>
+          Abmelden
         </button>
-        {info ? (
-          <div className="wc-admin__result">
-            ✓ {info.matchesScoped} Partien abgeglichen, {info.written} aktualisiert (heute + morgen).
-            <br />
-            Stand {timeLabel(info.at)} Uhr.
-          </div>
-        ) : null}
-        {error ? <div className="wc-admin__error">{error}</div> : null}
       </div>
-      <button className="wc-admin__logout" type="button" onClick={() => void logout()}>
-        Abmelden
-      </button>
+      <div className="wc-admin__tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          className={tab === "refresh" ? "wc-admin__tab is-active" : "wc-admin__tab"}
+          aria-selected={tab === "refresh"}
+          onClick={() => setTab("refresh")}
+        >
+          Order of Play
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className={tab === "payments" ? "wc-admin__tab is-active" : "wc-admin__tab"}
+          aria-selected={tab === "payments"}
+          onClick={() => setTab("payments")}
+        >
+          Bezahlt
+        </button>
+      </div>
+      {tab === "refresh" ? <RefreshTab /> : <PaymentsPanel />}
     </div>
   );
 }
@@ -139,7 +171,7 @@ export function AdminView(): JSX.Element {
         <div className="wc-admin__card">Die Adminseite ist auf diesem Server nicht konfiguriert.</div>
       ) : null}
       {phase === "anon" ? <LoginForm onSuccess={() => setPhase("authed")} /> : null}
-      {phase === "authed" ? <RefreshPanel onLogout={() => setPhase("anon")} /> : null}
+      {phase === "authed" ? <AuthedView onLogout={() => setPhase("anon")} /> : null}
     </div>
   );
 }

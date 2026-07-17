@@ -30,6 +30,9 @@ const WEB_DIST_DIR = resolve(loadConfig().repoRoot, "apps/waidcup-public/dist");
 
 export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise<FastifyInstance> {
   const app = Fastify({ logger: { ...SERVER_LOGGER_OPTIONS } });
+  // Einmalig schreibend öffnen, damit das Schema (u. a. waidcup_payments für die
+  // Adminseite) sicher existiert; danach nur noch lesend fürs Serving.
+  openDatabase({ filePath: config.dbFilePath }).close();
   const database = openDatabase({ filePath: config.dbFilePath, readonly: true });
   const tournamentId = config.waidcupTournamentId;
 
@@ -76,8 +79,8 @@ export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise
     playerUrls: getWaidcupPlayerUrls(database, tournamentId),
   }));
 
-  // Login-geschützte Adminseite (erst mal nur: Order-of-Play-Refresh auslösen).
-  registerWaidcupAdmin(app, config);
+  // Login-geschützte Adminseite (Order-of-Play-Refresh + Bezahlt-Tracking).
+  registerWaidcupAdmin(app, config, database);
 
   // Webcam: gleiches Standbild wie die Spielbetriebsseite, aus dem vom Admin
   // gepflegten Cache (kein Kamera-Abruf pro Client).
