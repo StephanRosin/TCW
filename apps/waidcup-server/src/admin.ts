@@ -7,7 +7,7 @@
  * Server-Env (WAIDCUP_ADMIN_PASSWORD, nie ins Repo), der Cookie-Secret wird
  * daraus abgeleitet. Ist kein Passwort gesetzt, ist die Adminseite deaktiviert.
  */
-import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, scryptSync, timingSafeEqual } from "node:crypto";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import {
   openDatabase,
@@ -21,8 +21,11 @@ const COOKIE = "wc_admin";
 const ADMIN_USER = "admin";
 const SESSION_MS = 12 * 60 * 60 * 1000; // 12 h
 
+// Cookie-Signaturschlüssel per scrypt (KDF) aus dem Admin-Passwort ableiten.
+// Deterministisch (fester Salt) → Sessions überleben Server-Neustarts; einmalig
+// beim Start berechnet, nicht pro Request.
 function secretFor(password: string): Buffer {
-  return createHash("sha256").update(`waidcup-admin::${password}`).digest();
+  return scryptSync(password, "waidcup-admin-cookie-v1", 32);
 }
 
 function sign(value: string, secret: Buffer): string {
