@@ -178,5 +178,6 @@
   "helpers.role.barBereit": "Bar bereit machen",
   "infos.hintPayment": "Beim Check-in kann mit Twint oder in bar bezahlt werden.",
   "helpers.role.pastaGrill": "Pasta+Salat+Grill",
-  "helpers.note.shiftEnd": "Schichtende {a}"
+  "helpers.note.shiftEnd": "Schichtende {a}",
+  "orderOfPlay.openKiosk": "Kiosk öffnen"
 }

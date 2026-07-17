@@ -178,5 +178,6 @@
   "helpers.role.barBereit": "Préparation du bar",
   "infos.hintPayment": "Au check-in, le paiement est possible par Twint ou en espèces.",
   "helpers.role.pastaGrill": "Pâtes+salade+grill",
-  "helpers.note.shiftEnd": "Fin de poste {a}"
+  "helpers.note.shiftEnd": "Fin de poste {a}",
+  "orderOfPlay.openKiosk": "Ouvrir le kiosque"
 }

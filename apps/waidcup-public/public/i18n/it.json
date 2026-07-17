@@ -178,5 +178,6 @@
   "helpers.role.barBereit": "Preparazione bar",
   "infos.hintPayment": "Al check-in è possibile pagare con Twint o in contanti.",
   "helpers.role.pastaGrill": "Pasta+insalata+griglia",
-  "helpers.note.shiftEnd": "Fine turno {a}"
+  "helpers.note.shiftEnd": "Fine turno {a}",
+  "orderOfPlay.openKiosk": "Apri chiosco"
 }

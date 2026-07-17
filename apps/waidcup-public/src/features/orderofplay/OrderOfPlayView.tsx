@@ -1,236 +1,20 @@
 /**
- * Order of Play: Tagesspielplan als Zeit-Band + Platz-Zeilen.
+ * Order of Play: Tagesspielplan als Zeit-Band + Platz-Zeilen (heute/morgen).
  *
- * Auf der Seite wird die Tabelle theme-angepasst dargestellt. Für den
- * E-Mail-Export liegt zusätzlich eine unsichtbare Tabelle mit exakt den
- * fixen Inline-Farben im DOM – „Für E-Mail kopieren" selektiert genau diese
- * und legt sie als Rich-HTML in die Zwischenablage (funktioniert auch über
- * http im LAN via execCommand).
+ * Das eigentliche Rendering (inkl. Ergebniszeile, fettem Gewinner und Tennisball
+ * an der laufenden Zeitzeile) liegt geteilt in OrderOfPlaySchedule.tsx – dieselbe
+ * Tabelle nutzt der Kiosk-Modus. Für den E-Mail-Export liegt zusätzlich eine
+ * unsichtbare Tabelle mit fixen Inline-Farben im DOM; „Für E-Mail kopieren"
+ * (Doppelklick aufs Datum) selektiert genau diese.
  */
-import { useMemo, useRef, useState, type CSSProperties, type JSX } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import type { WaidcupLiveMatch } from "@tcw/shared";
-import { ResourceView, PlayerLink, useI18n, useResource } from "@tcw/tournament-ui";
+import { ResourceView, useI18n, useResource } from "@tcw/tournament-ui";
+import { orderOfPlayKioskHash } from "../../app/navigation.js";
 import { waidcupApi } from "../../api/client.js";
+import { ScheduleTable, buildGrid, currentBandTime, formatDate } from "./OrderOfPlaySchedule.js";
 
-interface Grid {
-  times: string[];
-  courts: number[];
-  byKey: Map<string, WaidcupLiveMatch>;
-}
-
-/** „Weiss Xenia (R5)" → { label: "Weiss Xenia", ranking: "R5" }. */
-function splitRanking(name: string): { label: string; ranking: string } {
-  const m = /^(.*?)\(([^()]*)\)$/.exec(name.trim());
-  return m ? { label: m[1]!.trim(), ranking: m[2]!.trim() } : { label: name.trim(), ranking: "" };
-}
-
-/** Eine Seite als „(R5) Weiss Xenia" bzw. Doppel „(R5/R4) A / B". */
-function formatSide(names: string[]): string {
-  const parts = names.map(splitRanking);
-  const rankings = parts.map((p) => p.ranking).filter((r) => r !== "");
-  const labels = parts.map((p) => p.label).join(" / ");
-  return (rankings.length > 0 ? `(${rankings.join("/")}) ` : "") + labels;
-}
-
-function matchText(match: WaidcupLiveMatch): string {
-  return `${formatSide(match.side1Names)} vs. ${formatSide(match.side2Names)}`;
-}
-
-/** Ein Spieler als „(R5) Nachname Vorname" (fürs mehrzeilige Anzeige-Layout). */
-function playerLine(name: string): string {
-  const { label, ranking } = splitRanking(name);
-  return ranking !== "" ? `(${ranking}) ${label}` : label;
-}
-
-/** Anzeige-Zelle: jeder Spieler auf eigener Zeile, „vs" dazwischen.
- *  Namen verlinken (sofern URL vorhanden) auf das Swisstennis-Profil. */
-function MatchLines({
-  match,
-  playerUrls,
-}: Readonly<{
-  match: WaidcupLiveMatch;
-  playerUrls?: Record<string, string>;
-}>): JSX.Element {
-  return (
-    <span className="oopt__match">
-      {match.side1Names.map((n) => (
-        <span key={`a-${n}`} className="oopt__player">
-          <PlayerLink name={n} label={playerLine(n)} playerUrls={playerUrls} />
-        </span>
-      ))}
-      <span className="oopt__vs">vs</span>
-      {match.side2Names.map((n) => (
-        <span key={`b-${n}`} className="oopt__player">
-          <PlayerLink name={n} label={playerLine(n)} playerUrls={playerUrls} />
-        </span>
-      ))}
-    </span>
-  );
-}
-
-function courtNumber(court: string): number {
-  return Number(/\d+/.exec(court)?.[0] ?? 0);
-}
-
-function buildGrid(matches: WaidcupLiveMatch[]): Grid {
-  const times = [...new Set(matches.map((m) => m.scheduledTime))].sort((a, b) => a.localeCompare(b));
-  const maxCourt = Math.max(6, ...matches.map((m) => courtNumber(m.court)));
-  const courts = Array.from({ length: maxCourt }, (_, i) => i + 1);
-  const byKey = new Map<string, WaidcupLiveMatch>();
-  for (const m of matches) {
-    const key = `${courtNumber(m.court)}|${m.scheduledTime}`;
-    if (!byKey.has(key)) byKey.set(key, m);
-  }
-  return { times, courts, byKey };
-}
-
-/* --- Feste E-Mail-Farben (dürfen sich NICHT ans Theme anpassen) --- */
-const EMAIL: Record<string, CSSProperties> = {
-  table: {
-    borderCollapse: "collapse",
-    fontFamily: "Calibri, Arial, sans-serif",
-    border: "1px solid #1a8f4a",
-  },
-  court: {
-    width: 100,
-    backgroundColor: "#1a8f4a",
-    color: "#ffffff",
-    fontWeight: "bold",
-    fontSize: "10.5pt",
-    textAlign: "center",
-    padding: "8px 4px",
-    border: "1px solid #14713a",
-  },
-  band: {
-    backgroundColor: "#39b54a",
-    color: "#ffffff",
-    fontWeight: "bold",
-    fontSize: "10.5pt",
-    textAlign: "center",
-    padding: "6px 4px",
-    border: "1px solid #14713a",
-  },
-  cell: {
-    backgroundColor: "#ffffff",
-    fontSize: "9pt",
-    textAlign: "center",
-    verticalAlign: "middle",
-    padding: "8px 6px",
-    border: "1px solid #cdeed4",
-    color: "#1f4a2b",
-    lineHeight: 1.35,
-  },
-  empty: {
-    backgroundColor: "#ffffff",
-    fontSize: "9pt",
-    textAlign: "center",
-    verticalAlign: "middle",
-    padding: "8px 6px",
-    border: "1px solid #cdeed4",
-    color: "#b3b3b3",
-    fontStyle: "italic",
-  },
-};
-
-/** Eine Tabelle rendern – entweder theme-angepasst (CSS-Klassen) oder mit den
- *  festen E-Mail-Inline-Styles. Struktur ist identisch. */
-function ScheduleTable({
-  grid,
-  email,
-  playerUrls,
-}: Readonly<{
-  grid: Grid;
-  email: boolean;
-  playerUrls?: Record<string, string>;
-}>): JSX.Element {
-  const { times, courts, byKey } = grid;
-  const cls = (name: string): string | undefined => (email ? undefined : name);
-  const st = (name: keyof typeof EMAIL): CSSProperties | undefined =>
-    email ? { ...EMAIL[name], ...(name === "table" ? { width: courts.length * 100 } : {}) } : undefined;
-
-  return (
-    <table className={cls("oopt")} style={st("table")} cellPadding={0} cellSpacing={0}>
-      <tbody>
-        <tr>
-          {courts.map((c) => (
-            <td key={c} className={cls("oopt__court")} style={st("court")}>
-              Court {c}
-            </td>
-          ))}
-        </tr>
-        {times.map((time) => (
-          <ScheduleTimeBlock
-            key={time}
-            time={time}
-            courts={courts}
-            byKey={byKey}
-            email={email}
-            cls={cls}
-            st={st}
-            playerUrls={playerUrls}
-          />
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-function ScheduleTimeBlock({
-  time,
-  courts,
-  byKey,
-  email,
-  cls,
-  st,
-  playerUrls,
-}: Readonly<{
-  time: string;
-  courts: number[];
-  byKey: Map<string, WaidcupLiveMatch>;
-  email: boolean;
-  cls: (name: string) => string | undefined;
-  st: (name: keyof typeof EMAIL) => CSSProperties | undefined;
-  playerUrls?: Record<string, string>;
-}>): JSX.Element {
-  return (
-    <>
-      <tr>
-        <td className={cls("oopt__band")} style={st("band")} colSpan={courts.length}>
-          {time} Uhr
-        </td>
-      </tr>
-      <tr>
-        {courts.map((c) => {
-          const match = byKey.get(`${c}|${time}`);
-          if (!match) {
-            return (
-              <td key={c} className={cls("oopt__cell oopt__cell--empty")} style={st("empty")}>
-                –
-              </td>
-            );
-          }
-          return (
-            <td key={c} className={cls("oopt__cell")} style={st("cell")}>
-              {email ? matchText(match) : <MatchLines match={match} playerUrls={playerUrls} />}
-            </td>
-          );
-        })}
-      </tr>
-    </>
-  );
-}
-
-/** ISO-Datum → „Freitag, 3. Juli 2026" (Locale des Nutzers). */
-function formatDate(iso: string | undefined, language: string): string {
-  const p = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? "");
-  if (!p) return "";
-  return new Date(Number(p[1]), Number(p[2]) - 1, Number(p[3])).toLocaleDateString(language, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
+const NOW_TICK_MS = 30_000;
 
 function OrderOfPlayBoard({
   today,
@@ -244,8 +28,15 @@ function OrderOfPlayBoard({
   const { t, language } = useI18n();
   const emailRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
+  const [now, setNow] = useState(() => new Date());
   // Standard-Tab: heute – ausser heute ist leer und morgen hat Partien.
   const [day, setDay] = useState<"today" | "tomorrow">(today.length > 0 || tomorrow.length === 0 ? "today" : "tomorrow");
+
+  // Uhrzeit für den Tennisball an der aktuell laufenden Zeitzeile aktuell halten.
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), NOW_TICK_MS);
+    return () => window.clearInterval(id);
+  }, []);
 
   // Anzeige folgt dem gewählten Tab. Kopiervorlage für die E-Mail: morgen (Ankündigung).
   const gridToday = useMemo(() => buildGrid(today), [today]);
@@ -253,6 +44,7 @@ function OrderOfPlayBoard({
   const activeMatches = day === "today" ? today : tomorrow;
   const activeGrid = day === "today" ? gridToday : gridTomorrow;
   const dateLabel = useMemo(() => formatDate(activeMatches[0]?.scheduledDate, language), [activeMatches, language]);
+  const currentTime = currentBandTime(activeGrid.times, activeMatches[0]?.scheduledDate, now);
 
   const flagCopied = (): void => {
     setCopied(true);
@@ -339,10 +131,18 @@ function OrderOfPlayBoard({
           {dateLabel}
         </span>
         {copied ? <span className="oop__copied">✓ {t("orderOfPlay.copied")}</span> : null}
+        <a
+          className="link-btn oop__kiosk"
+          href={orderOfPlayKioskHash(day)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t("orderOfPlay.openKiosk")} ↗
+        </a>
       </div>
       {activeGrid.times.length > 0 ? (
         <div className="oop__scroll">
-          <ScheduleTable grid={activeGrid} email={false} playerUrls={playerUrls} />
+          <ScheduleTable grid={activeGrid} email={false} playerUrls={playerUrls} currentTime={currentTime} />
         </div>
       ) : (
         <div className="state">{day === "today" ? t("orderOfPlay.empty") : t("orderOfPlay.emptyTomorrow")}</div>

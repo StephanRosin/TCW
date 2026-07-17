@@ -13,7 +13,16 @@ import {
 const t = (key: string): string => key;
 
 function match(court: string, time: string, s1: string[], s2: string[]): WaidcupLiveMatch {
-  return { court, eventName: "Herren R1/R5", side1Names: s1, side2Names: s2, scheduledDate: "2026-07-18", scheduledTime: time };
+  return {
+    court,
+    eventName: "Herren R1/R5",
+    side1Names: s1,
+    side2Names: s2,
+    scheduledDate: "2026-07-18",
+    scheduledTime: time,
+    result: "",
+    winnerSide: 0,
+  };
 }
 
 function live(now: WaidcupLiveMatch[], upcoming: WaidcupLiveMatch[]): WaidcupLiveResponse {

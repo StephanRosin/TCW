@@ -34,5 +34,24 @@ export function viewFromHash(hash: string): MainView {
 }
 
 export function isKioskHash(hash: string): boolean {
-  return hash.replace(/^#/, "").trim() === KIOSK_HASH;
+  return hash.replace(/^#/, "").trim().split("/")[0] === KIOSK_HASH;
+}
+
+/** Was der Kiosk zeigen soll: Live-Board oder ein Order-of-Play-Tag. */
+export type KioskTarget = { kind: "live" } | { kind: "orderofplay"; day: "today" | "tomorrow" };
+
+/** Parst die Kiosk-Route: `kiosk` → Live, `kiosk/orderofplay/(today|tomorrow)`
+ *  → Tagesspielplan. Kein Kiosk-Hash → null. */
+export function parseKioskTarget(hash: string): KioskTarget | null {
+  const segs = hash.replace(/^#/, "").trim().split("/").filter((s) => s !== "");
+  if (segs[0] !== KIOSK_HASH) return null;
+  if (segs[1] === "orderofplay") {
+    return { kind: "orderofplay", day: segs[2] === "tomorrow" ? "tomorrow" : "today" };
+  }
+  return { kind: "live" };
+}
+
+/** Kiosk-Link für einen Order-of-Play-Tag (neuer Tab, Vollbild). */
+export function orderOfPlayKioskHash(day: "today" | "tomorrow"): string {
+  return `#${KIOSK_HASH}/orderofplay/${day}`;
 }

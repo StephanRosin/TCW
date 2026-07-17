@@ -494,6 +494,10 @@ export interface WaidcupLiveMatch {
   scheduledDate: string;
   /** "HH:MM". */
   scheduledTime: string;
+  /** Ergebnis (z. B. "6:2 6:3"), leer wenn noch nicht gespielt. */
+  result: string;
+  /** Gewinnerseite: 1, 2 oder 0 (offen/unbekannt). */
+  winnerSide: number;
 }
 
 /** Live-Board des Waidcups: laufende und nächste Partien. */

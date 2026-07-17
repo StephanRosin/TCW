@@ -75,6 +75,8 @@ interface LiveRow {
   player1_name_2: string | null;
   player2_name: string;
   player2_name_2: string | null;
+  result?: string | null;
+  winner_side?: number | null;
 }
 
 /**
@@ -104,6 +106,8 @@ function toLiveMatch(row: LiveRow): WaidcupLiveMatch {
     side2Names: sideNames(row.player2_name, row.player2_name_2),
     scheduledDate: row.scheduled_date,
     scheduledTime: row.scheduled_time,
+    result: (row.result ?? "").trim(),
+    winnerSide: row.winner_side ?? 0,
   };
 }
 
@@ -209,7 +213,8 @@ export function getWaidcupOrderOfPlay(
   const rows = database
     .prepare(
       `SELECT event_name, court, scheduled_date, scheduled_time,
-              player1_name, player1_name_2, player2_name, player2_name_2
+              player1_name, player1_name_2, player2_name, player2_name_2,
+              result, winner_side
        FROM tournament_matches
        WHERE tournament_id = ? AND scheduled_date = ?
          AND TRIM(COALESCE(scheduled_time, '')) <> ''

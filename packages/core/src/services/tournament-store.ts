@@ -174,6 +174,128 @@ function computeResultSeen(
   return hadResult ? null : importedAt; // vorbestehendes Ergebnis: unbekannt; sonst frischer Übergang
 }
 
+/* --- Geteilte Match-Statements/Params (von replaceTournamentData UND dem
+   gezielten Order-of-Play-Upsert genutzt, damit die SQL nur einmal existiert) --- */
+
+const SELECT_MATCHES_SQL = `SELECT match_key, event_id, tournament_name, event_name, mode, pool_name, round_name,
+        scheduled_date, scheduled_time, court, player1_name, player1_name_2, player2_name,
+        player2_name_2, result, status, winner_side, sort_order, result_seen_at
+ FROM tournament_matches WHERE tournament_id = ?`;
+
+const INSERT_MATCH_SQL = `INSERT INTO tournament_matches (tournament_id, event_id, match_key, tournament_name, event_name, mode, pool_name, round_name, scheduled_date, scheduled_time, court, player1_name, player1_name_2, player2_name, player2_name_2, result, status, winner_side, sort_order, updated_at, result_seen_at)
+     VALUES (@tournament_id, @event_id, @match_key, @tournament_name, @event_name, @mode, @pool_name, @round_name, @scheduled_date, @scheduled_time, @court, @player1_name, @player1_name_2, @player2_name, @player2_name_2, @result, @status, @winner_side, @sort_order, @updated_at, @result_seen_at)`;
+
+const UPDATE_MATCH_SQL = `UPDATE tournament_matches SET tournament_name=@tournament_name, event_name=@event_name, mode=@mode,
+        pool_name=@pool_name, round_name=@round_name, scheduled_date=@scheduled_date,
+        scheduled_time=@scheduled_time, court=@court, player1_name=@player1_name,
+        player1_name_2=@player1_name_2, player2_name=@player2_name, player2_name_2=@player2_name_2,
+        result=@result, status=@status, winner_side=@winner_side, sort_order=@sort_order,
+        updated_at=@updated_at, result_seen_at=@result_seen_at
+ WHERE tournament_id=@tournament_id AND event_id=@event_id AND match_key=@match_key`;
+
+const DELETE_MATCH_SQL =
+  "DELETE FROM tournament_matches WHERE tournament_id = ? AND event_id = ? AND match_key = ?";
+
+function prepareMatchStatements(database: TcwDatabase) {
+  return {
+    selectExisting: database.prepare(SELECT_MATCHES_SQL),
+    insertMatch: database.prepare(INSERT_MATCH_SQL),
+    updateMatch: database.prepare(UPDATE_MATCH_SQL),
+    deleteMatch: database.prepare(DELETE_MATCH_SQL),
+  };
+}
+
+/** Baut die (benannten) Parameter für Insert/Update einer Match-Zeile. */
+function buildMatchParams(
+  tournamentId: number,
+  tournamentName: string,
+  match: MatchRecord,
+  previous: ExistingMatchRow | undefined,
+  sortOrder: number,
+  importedAt: string,
+): Record<string, string | number | null> {
+  return {
+    tournament_id: tournamentId,
+    event_id: match.eventId,
+    match_key: match.matchKey,
+    tournament_name: tournamentName,
+    event_name: match.eventName,
+    mode: match.mode,
+    pool_name: match.poolName,
+    round_name: match.roundName,
+    scheduled_date: match.scheduledDate,
+    scheduled_time: match.scheduledTime,
+    court: match.court,
+    player1_name: match.player1Name,
+    player1_name_2: match.player1Name2,
+    player2_name: match.player2Name,
+    player2_name_2: match.player2Name2,
+    result: match.result,
+    status: match.status,
+    winner_side: match.winnerSide,
+    sort_order: sortOrder,
+    updated_at: importedAt,
+    result_seen_at: computeResultSeen(previous, match.result, importedAt),
+  };
+}
+
+/** Ob eine Match-Zeile geschrieben werden muss (neu oder inhaltlich geändert). */
+function matchNeedsWrite(
+  previous: ExistingMatchRow | undefined,
+  params: Record<string, string | number | null>,
+): boolean {
+  return (
+    !previous ||
+    matchChanged(previous, params) ||
+    (previous.result_seen_at ?? null) !== params.result_seen_at
+  );
+}
+
+/**
+ * Gezielter Sofort-Update einzelner Match-Zeilen (Termin + Ergebnis) OHNE die
+ * übrigen Importdaten anzufassen: nur die übergebenen Matches werden per
+ * (tournament_id, event_id, match_key) upgesertet, es wird nichts gelöscht und
+ * keine Player/Events/Extras berührt. Für den Order-of-Play-Sofort-Refresh.
+ * Gibt die Anzahl tatsächlich geschriebener Zeilen zurück.
+ */
+export function upsertScheduledMatches(
+  database: TcwDatabase,
+  tournamentId: number,
+  tournamentName: string,
+  matches: MatchRecord[],
+  importedAt: string,
+): number {
+  const { selectExisting, insertMatch, updateMatch } = prepareMatchStatements(database);
+  let written = 0;
+  const run = database.transaction(() => {
+    const existing = new Map<string, ExistingMatchRow>();
+    for (const row of selectExisting.all(tournamentId) as ExistingMatchRow[]) {
+      existing.set(row.match_key, row);
+    }
+    for (const match of matches) {
+      const previous = existing.get(match.matchKey);
+      // Bestehende Reihenfolge beibehalten (kein Reordering bei gezieltem Update).
+      const params = buildMatchParams(
+        tournamentId,
+        tournamentName,
+        match,
+        previous,
+        previous?.sort_order ?? 0,
+        importedAt,
+      );
+      if (!previous) {
+        insertMatch.run(params);
+        written += 1;
+      } else if (matchNeedsWrite(previous, params)) {
+        updateMatch.run(params);
+        written += 1;
+      }
+    }
+  });
+  run();
+  return written;
+}
+
 /** Ersetzt alle importierten Daten eines Turniers atomar (alte bleiben bei Fehler erhalten). */
 export function replaceTournamentData(
   database: TcwDatabase,
@@ -197,28 +319,12 @@ export function replaceTournamentData(
     `INSERT OR IGNORE INTO tournament_players (tournament_id, event_id, player_key, player_name, player_name_2, license_number, license_number_2, player_url, player_url_2, confirmed, registered_on, note, sort_order)
      VALUES (@tournament_id, @event_id, @player_key, @player_name, @player_name_2, @license_number, @license_number_2, @player_url, @player_url_2, @confirmed, @registered_on, @note, @sort_order_player)`,
   );
-  const selectExistingMatches = database.prepare(
-    `SELECT match_key, event_id, tournament_name, event_name, mode, pool_name, round_name,
-            scheduled_date, scheduled_time, court, player1_name, player1_name_2, player2_name,
-            player2_name_2, result, status, winner_side, sort_order, result_seen_at
-     FROM tournament_matches WHERE tournament_id = ?`,
-  );
-  const insertMatch = database.prepare(
-    `INSERT INTO tournament_matches (tournament_id, event_id, match_key, tournament_name, event_name, mode, pool_name, round_name, scheduled_date, scheduled_time, court, player1_name, player1_name_2, player2_name, player2_name_2, result, status, winner_side, sort_order, updated_at, result_seen_at)
-     VALUES (@tournament_id, @event_id, @match_key, @tournament_name, @event_name, @mode, @pool_name, @round_name, @scheduled_date, @scheduled_time, @court, @player1_name, @player1_name_2, @player2_name, @player2_name_2, @result, @status, @winner_side, @sort_order, @updated_at, @result_seen_at)`,
-  );
-  const updateMatch = database.prepare(
-    `UPDATE tournament_matches SET tournament_name=@tournament_name, event_name=@event_name, mode=@mode,
-            pool_name=@pool_name, round_name=@round_name, scheduled_date=@scheduled_date,
-            scheduled_time=@scheduled_time, court=@court, player1_name=@player1_name,
-            player1_name_2=@player1_name_2, player2_name=@player2_name, player2_name_2=@player2_name_2,
-            result=@result, status=@status, winner_side=@winner_side, sort_order=@sort_order,
-            updated_at=@updated_at, result_seen_at=@result_seen_at
-     WHERE tournament_id=@tournament_id AND event_id=@event_id AND match_key=@match_key`,
-  );
-  const deleteMatch = database.prepare(
-    "DELETE FROM tournament_matches WHERE tournament_id = ? AND event_id = ? AND match_key = ?",
-  );
+  const {
+    selectExisting: selectExistingMatches,
+    insertMatch,
+    updateMatch,
+    deleteMatch,
+  } = prepareMatchStatements(database);
 
   const run = database.transaction(() => {
     deletePlayers.run(tournamentId);
@@ -277,35 +383,13 @@ export function replaceTournamentData(
       }
     };
 
-    const syncMatch = (event: EventImport, match: EventImport["matches"][number], index: number): void => {
+    const syncMatch = (match: EventImport["matches"][number], index: number): void => {
       incomingKeys.add(match.matchKey);
       const previous = existingMatches.get(match.matchKey);
-      const params = {
-        tournament_id: tournamentId,
-        event_id: event.meta.eventId,
-        match_key: match.matchKey,
-        tournament_name: tournamentName,
-        event_name: match.eventName,
-        mode: match.mode,
-        pool_name: match.poolName,
-        round_name: match.roundName,
-        scheduled_date: match.scheduledDate,
-        scheduled_time: match.scheduledTime,
-        court: match.court,
-        player1_name: match.player1Name,
-        player1_name_2: match.player1Name2,
-        player2_name: match.player2Name,
-        player2_name_2: match.player2Name2,
-        result: match.result,
-        status: match.status,
-        winner_side: match.winnerSide,
-        sort_order: index,
-        updated_at: importedAt,
-        result_seen_at: computeResultSeen(previous, match.result, importedAt),
-      };
+      const params = buildMatchParams(tournamentId, tournamentName, match, previous, index, importedAt);
       if (!previous) {
         insertMatch.run(params);
-      } else if (matchChanged(previous, params) || (previous.result_seen_at ?? null) !== params.result_seen_at) {
+      } else if (matchNeedsWrite(previous, params)) {
         updateMatch.run(params);
       }
       // unverändert: nichts schreiben (updated_at/result_seen_at bleiben erhalten)
@@ -325,7 +409,7 @@ export function replaceTournamentData(
       for (const player of event.registrations) {
         syncPlayer(event, player);
       }
-      event.matches.forEach((match, index) => syncMatch(event, match, index));
+      event.matches.forEach((match, index) => syncMatch(match, index));
       insertExtras.run({
         tournament_id: tournamentId,
         event_id: event.meta.eventId,

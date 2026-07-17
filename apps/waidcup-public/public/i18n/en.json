@@ -178,5 +178,6 @@
   "helpers.role.barBereit": "Bar setup",
   "infos.hintPayment": "At check-in you can pay by Twint or in cash.",
   "helpers.role.pastaGrill": "Pasta+salad+grill",
-  "helpers.note.shiftEnd": "Shift ends {a}"
+  "helpers.note.shiftEnd": "Shift ends {a}",
+  "orderOfPlay.openKiosk": "Open kiosk"
 }

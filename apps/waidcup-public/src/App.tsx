@@ -5,7 +5,7 @@
  */
 import { useEffect, type JSX } from "react";
 import { I18nProvider, useHashRoute, useI18n } from "@tcw/tournament-ui";
-import { isKioskHash, viewFromHash, type MainView } from "./app/navigation.js";
+import { parseKioskTarget, viewFromHash, type MainView } from "./app/navigation.js";
 import { SiteFooter, SiteHeader, TabBar } from "./components/SiteChrome.js";
 import { BracketsView } from "./features/brackets/BracketsView.js";
 import { MatchesView } from "./features/matches/MatchesView.js";
@@ -49,8 +49,9 @@ function Layout(): JSX.Element {
     document.title = t("app.documentTitle");
   }, [t]);
 
-  if (isKioskHash(hash)) {
-    return <KioskView />;
+  const kioskTarget = parseKioskTarget(hash);
+  if (kioskTarget) {
+    return <KioskView target={kioskTarget} />;
   }
 
   const view = viewFromHash(hash);
