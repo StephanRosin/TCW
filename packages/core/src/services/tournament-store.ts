@@ -145,10 +145,13 @@ const MATCH_TEXT_FIELDS = [
   "status",
 ] as const;
 
+/** Ein an eine SQLite-Prepared-Statement-Spalte bindbarer Wert. */
+type SqlValue = string | number | null;
+
 /** Ob sich ein inhaltliches Feld gegenüber dem gespeicherten Stand geändert hat. */
 function matchChanged(previous: ExistingMatchRow, next: Record<string, unknown>): boolean {
   for (const field of MATCH_TEXT_FIELDS) {
-    if (String(previous[field] ?? "") !== String((next[field] as string | number | null) ?? "")) return true;
+    if (String(previous[field] ?? "") !== String((next[field] as SqlValue) ?? "")) return true;
   }
   return (
     Number(previous.winner_side ?? 0) !== Number(next.winner_side ?? 0) ||
@@ -213,7 +216,7 @@ function buildMatchParams(
   previous: ExistingMatchRow | undefined,
   sortOrder: number,
   importedAt: string,
-): Record<string, string | number | null> {
+): Record<string, SqlValue> {
   return {
     tournament_id: tournamentId,
     event_id: match.eventId,
@@ -242,7 +245,7 @@ function buildMatchParams(
 /** Ob eine Match-Zeile geschrieben werden muss (neu oder inhaltlich geändert). */
 function matchNeedsWrite(
   previous: ExistingMatchRow | undefined,
-  params: Record<string, string | number | null>,
+  params: Record<string, SqlValue>,
 ): boolean {
   return (
     !previous ||

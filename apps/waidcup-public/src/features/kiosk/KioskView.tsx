@@ -277,7 +277,8 @@ export function KioskView({ target }: Readonly<{ target: KioskTarget }>): JSX.El
   }, [isLive]);
 
   const day = target.kind === "orderofplay" ? target.day : "today";
-  const dayIso = orderOfPlay ? (day === "today" ? orderOfPlay.today : orderOfPlay.tomorrow)[0]?.scheduledDate : undefined;
+  const dayMatches = day === "today" ? orderOfPlay?.today : orderOfPlay?.tomorrow;
+  const dayIso = dayMatches?.[0]?.scheduledDate;
   const oopTitle =
     formatDate(dayIso, language) || t(day === "today" ? "orderOfPlay.today" : "orderOfPlay.tomorrow");
 
