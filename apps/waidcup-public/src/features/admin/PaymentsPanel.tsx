@@ -44,7 +44,8 @@ function SortHeader({
   onSort: (col: SortKey) => void;
   numeric?: boolean;
 }>): JSX.Element {
-  const arrow = sortKey === col ? (sortDir === "asc" ? " ▲" : " ▼") : "";
+  let arrow = "";
+  if (sortKey === col) arrow = sortDir === "asc" ? " ▲" : " ▼";
   return (
     <th className={numeric ? "wc-pay__num" : undefined}>
       <button type="button" className="wc-pay__sort" onClick={() => onSort(col)}>

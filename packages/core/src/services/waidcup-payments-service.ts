@@ -139,7 +139,7 @@ export function getWaidcupPayments(database: TcwDatabase, tournamentId: number):
     list.push({
       personKey: key,
       name: person.name,
-      disciplines: [...person.disciplines].sort(),
+      disciplines: [...person.disciplines].sort((a, b) => a.localeCompare(b)),
       playsSingles,
       playsMixed,
       cost,
