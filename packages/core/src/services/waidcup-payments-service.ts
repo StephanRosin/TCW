@@ -1,37 +1,35 @@
 /**
  * Bezahlt-Tracking für die Waidcup-Adminseite.
  *
- * Aggregiert die Anmeldungen (tournament_players) je Person über alle
- * Konkurrenzen und berechnet den zu zahlenden Betrag:
+ * Zählt nur Personen, die TATSÄCHLICH in einer Konkurrenz stehen – d. h. im
+ * Tableau (bracket_json), im Round-robin-Pool (pools_json) oder in den Matches
+ * auftauchen. Damit fallen automatisch weg: abgesagte Konkurrenzen (haben keine
+ * dieser Daten) und rein Angemeldete, die nicht ausgelost wurden. Betrag:
  *   - Einzel (MS/WS):  CHF 60 pro Person
  *   - Mixed  (DM):     CHF 25 pro Person – aber nur CHF 15, wenn die Person
  *                      auch Einzel spielt.
- * Das „bezahlt"-Flag wird in der separaten Tabelle waidcup_payments gepflegt
- * (überlebt Importe). Personen und Matches werden einheitlich über den
- * normalisierten Namens-Schlüssel (playerNameKey) verknüpft – robust auch wenn
- * die Register-Verknüpfung (registry_id) mal fehlt, und stabil über Importe.
+ * Das „bezahlt/storniert"-Flag wird in der separaten Tabelle waidcup_payments
+ * gepflegt (überlebt Importe). Personen und Matches werden einheitlich über den
+ * normalisierten Namens-Schlüssel (playerNameKey) verknüpft.
  */
 import {
   cleanPlayerName,
   playerNameKey,
+  type PoolStanding,
+  type TournamentBracket,
   type WaidcupPaymentPerson,
   type WaidcupPaymentStatus,
   type WaidcupPaymentsResponse,
 } from "@tcw/shared";
 import type { TcwDatabase } from "../db/connection.js";
 
+const BYE = /^(bye|noch offen)$/i;
+
 const SINGLES = new Set(["MS", "WS"]);
 const MIXED = new Set(["DM"]);
 const COST_SINGLES = 60;
 const COST_MIXED = 25;
 const COST_MIXED_WITH_SINGLES = 15;
-
-interface RegistrationRow {
-  event_id: number;
-  player_name: string;
-  player_name_2: string | null;
-  discipline: string;
-}
 
 interface MatchNameRow {
   scheduled_date: string;
@@ -87,24 +85,76 @@ function firstMatchByPlayer(database: TcwDatabase, tournamentId: number): Map<st
 }
 
 /**
- * event_ids der aktiven Konkurrenzen: eine abgesagte Konkurrenz (z. B. WS R1/R5)
- * hat weder Matches noch Tableau noch Round-robin-Pools. Nur Anmeldungen in
- * aktiven Konkurrenzen zählen für die Kosten.
+ * Sammelt je Person die Disziplinen, in denen sie tatsächlich spielt, aus den
+ * Matches, dem Tableau (bracket_json) und den Round-robin-Pools (pools_json).
+ * Rein Angemeldete ohne Auslosung und abgesagte Konkurrenzen tauchen hier nicht
+ * auf. Verknüpfung über den Namens-Schlüssel.
  */
-function activeEventIds(database: TcwDatabase, tournamentId: number): Set<number> {
-  const ids = new Set<number>();
-  const withMatches = database
-    .prepare(`SELECT DISTINCT event_id FROM tournament_matches WHERE tournament_id = ?`)
-    .all(tournamentId) as Array<{ event_id: number }>;
-  for (const row of withMatches) ids.add(row.event_id);
-  const withExtras = database
+function collectPersons(database: TcwDatabase, tournamentId: number): Map<string, PersonAcc> {
+  const disciplineByEvent = new Map<number, string>();
+  for (const event of database
+    .prepare(`SELECT event_id, discipline FROM tournament_events WHERE tournament_id = ?`)
+    .all(tournamentId) as Array<{ event_id: number; discipline: string }>) {
+    disciplineByEvent.set(event.event_id, event.discipline);
+  }
+
+  const persons = new Map<string, PersonAcc>();
+  const add = (rawName: string, discipline: string): void => {
+    const clean = cleanPlayerName(rawName);
+    if (clean === "" || BYE.test(clean)) return;
+    const key = personKeyFor(clean);
+    let person = persons.get(key);
+    if (!person) {
+      person = { name: clean, nameKey: playerNameKey(rawName), disciplines: new Set() };
+      persons.set(key, person);
+    }
+    if (discipline !== "") person.disciplines.add(discipline);
+  };
+
+  // 1) Aus den Matches (jede Seite, beide Doppelspieler).
+  const matches = database
     .prepare(
-      `SELECT event_id FROM tournament_event_extras
-       WHERE tournament_id = ? AND (bracket_json IS NOT NULL OR (pools_json IS NOT NULL AND pools_json <> '[]'))`,
+      `SELECT event_id, player1_name, player1_name_2, player2_name, player2_name_2
+       FROM tournament_matches WHERE tournament_id = ?`,
     )
-    .all(tournamentId) as Array<{ event_id: number }>;
-  for (const row of withExtras) ids.add(row.event_id);
-  return ids;
+    .all(tournamentId) as Array<{
+    event_id: number;
+    player1_name: string;
+    player1_name_2: string | null;
+    player2_name: string;
+    player2_name_2: string | null;
+  }>;
+  for (const match of matches) {
+    const discipline = disciplineByEvent.get(match.event_id) ?? "";
+    for (const name of [match.player1_name, match.player1_name_2, match.player2_name, match.player2_name_2]) {
+      if (name) add(name, discipline);
+    }
+  }
+
+  // 2) Aus Tableau (bracket_json) und Round-robin-Pools (pools_json).
+  const extras = database
+    .prepare(`SELECT event_id, bracket_json, pools_json FROM tournament_event_extras WHERE tournament_id = ?`)
+    .all(tournamentId) as Array<{ event_id: number; bracket_json: string | null; pools_json: string | null }>;
+  for (const extra of extras) {
+    const discipline = disciplineByEvent.get(extra.event_id) ?? "";
+    if (extra.bracket_json) {
+      const bracket = JSON.parse(extra.bracket_json) as TournamentBracket;
+      for (const round of bracket.rounds) {
+        for (const match of round.matches) {
+          for (const name of [...match.side1Names, ...match.side2Names]) add(name, discipline);
+        }
+      }
+    }
+    if (extra.pools_json && extra.pools_json !== "[]") {
+      const pools = JSON.parse(extra.pools_json) as PoolStanding[];
+      for (const pool of pools) {
+        for (const row of pool.rows) {
+          for (const name of row.names) add(name, discipline);
+        }
+      }
+    }
+  }
+  return persons;
 }
 
 function costFor(playsSingles: boolean, playsMixed: boolean): number {
@@ -115,36 +165,7 @@ function costFor(playsSingles: boolean, playsMixed: boolean): number {
 }
 
 export function getWaidcupPayments(database: TcwDatabase, tournamentId: number): WaidcupPaymentsResponse {
-  const active = activeEventIds(database, tournamentId);
-  const registrations = database
-    .prepare(
-      `SELECT tp.event_id, tp.player_name, tp.player_name_2, te.discipline
-       FROM tournament_players tp
-       JOIN tournament_events te
-         ON te.tournament_id = tp.tournament_id AND te.event_id = tp.event_id
-       WHERE tp.tournament_id = ?`,
-    )
-    .all(tournamentId) as RegistrationRow[];
-
-  const persons = new Map<string, PersonAcc>();
-  const addPerson = (name: string, discipline: string): void => {
-    const clean = cleanPlayerName(name);
-    if (clean === "") return;
-    const key = personKeyFor(clean);
-    let person = persons.get(key);
-    if (!person) {
-      person = { name: clean, nameKey: playerNameKey(name), disciplines: new Set() };
-      persons.set(key, person);
-    }
-    if (discipline !== "") person.disciplines.add(discipline);
-  };
-  for (const row of registrations) {
-    // Anmeldungen in abgesagten Konkurrenzen ignorieren (keine Kosten).
-    if (!active.has(row.event_id)) continue;
-    addPerson(row.player_name, row.discipline);
-    if (row.player_name_2) addPerson(row.player_name_2, row.discipline);
-  }
-
+  const persons = collectPersons(database, tournamentId);
   const firstMatch = firstMatchByPlayer(database, tournamentId);
   const statusRows = database
     .prepare(`SELECT person_key, status FROM waidcup_payments WHERE tournament_id = ?`)
