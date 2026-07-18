@@ -90,70 +90,94 @@ function firstMatchByPlayer(database: TcwDatabase, tournamentId: number): Map<st
  * Rein Angemeldete ohne Auslosung und abgesagte Konkurrenzen tauchen hier nicht
  * auf. Verknüpfung über den Namens-Schlüssel.
  */
-function collectPersons(database: TcwDatabase, tournamentId: number): Map<string, PersonAcc> {
-  const disciplineByEvent = new Map<number, string>();
-  for (const event of database
-    .prepare(`SELECT event_id, discipline FROM tournament_events WHERE tournament_id = ?`)
-    .all(tournamentId) as Array<{ event_id: number; discipline: string }>) {
-    disciplineByEvent.set(event.event_id, event.discipline);
+function addPlayer(persons: Map<string, PersonAcc>, rawName: string, discipline: string): void {
+  const clean = cleanPlayerName(rawName);
+  if (clean === "" || BYE.test(clean)) return;
+  const key = personKeyFor(clean);
+  let person = persons.get(key);
+  if (!person) {
+    person = { name: clean, nameKey: playerNameKey(rawName), disciplines: new Set() };
+    persons.set(key, person);
   }
+  if (discipline !== "") person.disciplines.add(discipline);
+}
 
-  const persons = new Map<string, PersonAcc>();
-  const add = (rawName: string, discipline: string): void => {
-    const clean = cleanPlayerName(rawName);
-    if (clean === "" || BYE.test(clean)) return;
-    const key = personKeyFor(clean);
-    let person = persons.get(key);
-    if (!person) {
-      person = { name: clean, nameKey: playerNameKey(rawName), disciplines: new Set() };
-      persons.set(key, person);
-    }
-    if (discipline !== "") person.disciplines.add(discipline);
-  };
+function disciplinesByEvent(database: TcwDatabase, tournamentId: number): Map<number, string> {
+  const map = new Map<number, string>();
+  const rows = database
+    .prepare(`SELECT event_id, discipline FROM tournament_events WHERE tournament_id = ?`)
+    .all(tournamentId) as Array<{ event_id: number; discipline: string }>;
+  for (const row of rows) map.set(row.event_id, row.discipline);
+  return map;
+}
 
-  // 1) Aus den Matches (jede Seite, beide Doppelspieler).
+interface MatchPlayersRow {
+  event_id: number;
+  player1_name: string;
+  player1_name_2: string | null;
+  player2_name: string;
+  player2_name_2: string | null;
+}
+
+function collectFromMatches(
+  database: TcwDatabase,
+  tournamentId: number,
+  disciplineOfEvent: Map<number, string>,
+  persons: Map<string, PersonAcc>,
+): void {
   const matches = database
     .prepare(
       `SELECT event_id, player1_name, player1_name_2, player2_name, player2_name_2
        FROM tournament_matches WHERE tournament_id = ?`,
     )
-    .all(tournamentId) as Array<{
-    event_id: number;
-    player1_name: string;
-    player1_name_2: string | null;
-    player2_name: string;
-    player2_name_2: string | null;
-  }>;
+    .all(tournamentId) as MatchPlayersRow[];
   for (const match of matches) {
-    const discipline = disciplineByEvent.get(match.event_id) ?? "";
+    const discipline = disciplineOfEvent.get(match.event_id) ?? "";
     for (const name of [match.player1_name, match.player1_name_2, match.player2_name, match.player2_name_2]) {
-      if (name) add(name, discipline);
+      if (name) addPlayer(persons, name, discipline);
     }
   }
+}
 
-  // 2) Aus Tableau (bracket_json) und Round-robin-Pools (pools_json).
+function collectFromBracket(bracketJson: string, discipline: string, persons: Map<string, PersonAcc>): void {
+  const bracket = JSON.parse(bracketJson) as TournamentBracket;
+  for (const round of bracket.rounds) {
+    for (const match of round.matches) {
+      for (const name of [...match.side1Names, ...match.side2Names]) addPlayer(persons, name, discipline);
+    }
+  }
+}
+
+function collectFromPools(poolsJson: string, discipline: string, persons: Map<string, PersonAcc>): void {
+  const pools = JSON.parse(poolsJson) as PoolStanding[];
+  for (const pool of pools) {
+    for (const row of pool.rows) {
+      for (const name of row.names) addPlayer(persons, name, discipline);
+    }
+  }
+}
+
+function collectFromExtras(
+  database: TcwDatabase,
+  tournamentId: number,
+  disciplineOfEvent: Map<number, string>,
+  persons: Map<string, PersonAcc>,
+): void {
   const extras = database
     .prepare(`SELECT event_id, bracket_json, pools_json FROM tournament_event_extras WHERE tournament_id = ?`)
     .all(tournamentId) as Array<{ event_id: number; bracket_json: string | null; pools_json: string | null }>;
   for (const extra of extras) {
-    const discipline = disciplineByEvent.get(extra.event_id) ?? "";
-    if (extra.bracket_json) {
-      const bracket = JSON.parse(extra.bracket_json) as TournamentBracket;
-      for (const round of bracket.rounds) {
-        for (const match of round.matches) {
-          for (const name of [...match.side1Names, ...match.side2Names]) add(name, discipline);
-        }
-      }
-    }
-    if (extra.pools_json && extra.pools_json !== "[]") {
-      const pools = JSON.parse(extra.pools_json) as PoolStanding[];
-      for (const pool of pools) {
-        for (const row of pool.rows) {
-          for (const name of row.names) add(name, discipline);
-        }
-      }
-    }
+    const discipline = disciplineOfEvent.get(extra.event_id) ?? "";
+    if (extra.bracket_json) collectFromBracket(extra.bracket_json, discipline, persons);
+    if (extra.pools_json && extra.pools_json !== "[]") collectFromPools(extra.pools_json, discipline, persons);
   }
+}
+
+function collectPersons(database: TcwDatabase, tournamentId: number): Map<string, PersonAcc> {
+  const disciplineOfEvent = disciplinesByEvent(database, tournamentId);
+  const persons = new Map<string, PersonAcc>();
+  collectFromMatches(database, tournamentId, disciplineOfEvent, persons);
+  collectFromExtras(database, tournamentId, disciplineOfEvent, persons);
   return persons;
 }
 
