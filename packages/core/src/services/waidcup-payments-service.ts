@@ -27,6 +27,7 @@ const COST_MIXED = 25;
 const COST_MIXED_WITH_SINGLES = 15;
 
 interface RegistrationRow {
+  event_id: number;
   player_name: string;
   player_name_2: string | null;
   discipline: string;
@@ -85,6 +86,27 @@ function firstMatchByPlayer(database: TcwDatabase, tournamentId: number): Map<st
   return map;
 }
 
+/**
+ * event_ids der aktiven Konkurrenzen: eine abgesagte Konkurrenz (z. B. WS R1/R5)
+ * hat weder Matches noch Tableau noch Round-robin-Pools. Nur Anmeldungen in
+ * aktiven Konkurrenzen zählen für die Kosten.
+ */
+function activeEventIds(database: TcwDatabase, tournamentId: number): Set<number> {
+  const ids = new Set<number>();
+  const withMatches = database
+    .prepare(`SELECT DISTINCT event_id FROM tournament_matches WHERE tournament_id = ?`)
+    .all(tournamentId) as Array<{ event_id: number }>;
+  for (const row of withMatches) ids.add(row.event_id);
+  const withExtras = database
+    .prepare(
+      `SELECT event_id FROM tournament_event_extras
+       WHERE tournament_id = ? AND (bracket_json IS NOT NULL OR (pools_json IS NOT NULL AND pools_json <> '[]'))`,
+    )
+    .all(tournamentId) as Array<{ event_id: number }>;
+  for (const row of withExtras) ids.add(row.event_id);
+  return ids;
+}
+
 function costFor(playsSingles: boolean, playsMixed: boolean): number {
   const singles = playsSingles ? COST_SINGLES : 0;
   let mixed = 0;
@@ -93,9 +115,10 @@ function costFor(playsSingles: boolean, playsMixed: boolean): number {
 }
 
 export function getWaidcupPayments(database: TcwDatabase, tournamentId: number): WaidcupPaymentsResponse {
+  const active = activeEventIds(database, tournamentId);
   const registrations = database
     .prepare(
-      `SELECT tp.player_name, tp.player_name_2, te.discipline
+      `SELECT tp.event_id, tp.player_name, tp.player_name_2, te.discipline
        FROM tournament_players tp
        JOIN tournament_events te
          ON te.tournament_id = tp.tournament_id AND te.event_id = tp.event_id
@@ -116,6 +139,8 @@ export function getWaidcupPayments(database: TcwDatabase, tournamentId: number):
     if (discipline !== "") person.disciplines.add(discipline);
   };
   for (const row of registrations) {
+    // Anmeldungen in abgesagten Konkurrenzen ignorieren (keine Kosten).
+    if (!active.has(row.event_id)) continue;
     addPerson(row.player_name, row.discipline);
     if (row.player_name_2) addPerson(row.player_name_2, row.discipline);
   }
