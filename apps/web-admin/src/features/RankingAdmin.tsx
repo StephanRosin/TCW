@@ -70,8 +70,8 @@ export function RankingAdmin(): JSX.Element {
                   <td><input value={row.oldKlassierung} onChange={(e) => update(row.id, "oldKlassierung", e.target.value)} /></td>
                   <td className="muted">{row.changedAt}</td>
                   <td className="actions-cell">
-                    <button className="btn btn--primary" disabled={busy} onClick={() => save(row)}>Speichern</button>
-                    <button className="btn btn--danger" disabled={busy} onClick={() => remove(row)}>Löschen</button>
+                    <button type="button" className="btn btn--primary" disabled={busy} onClick={() => save(row)}>Speichern</button>
+                    <button type="button" className="btn btn--danger" disabled={busy} onClick={() => remove(row)}>Löschen</button>
                   </td>
                 </tr>
               );

@@ -80,10 +80,10 @@ export function ActionsAdmin(): JSX.Element {
       <h2>Aktionen / Importe</h2>
       <p className="hint">Die Aktionen rufen Swisstennis bzw. MyTennis serverseitig auf und können einen Moment dauern.</p>
       <div className="toolbar">
-        <button className="btn btn--primary" disabled={busy !== ""} onClick={updateRanking}>
+        <button type="button" className="btn btn--primary" disabled={busy !== ""} onClick={updateRanking}>
           {busy === "ranking" ? "Aktualisiere…" : "Klassierungen aktualisieren"}
         </button>
-        <button className="btn btn--primary" disabled={busy !== ""} onClick={importMatches}>
+        <button type="button" className="btn btn--primary" disabled={busy !== ""} onClick={importMatches}>
           {busy === "matches" ? "Importiere…" : "Spieltermine importieren"}
         </button>
       </div>

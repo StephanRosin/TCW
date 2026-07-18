@@ -148,8 +148,8 @@ export function PlayersAdmin(): JSX.Element {
                   </select>
                 </td>
                 <td className="actions-cell">
-                  <button className="btn btn--primary" disabled={busy} onClick={() => run(() => adminApi.updatePlayer(player.id, toBody(player)), "Spieler gespeichert.")}>Speichern</button>
-                  <button className="btn btn--danger" disabled={busy} onClick={() => remove(player)}>Löschen</button>
+                  <button type="button" className="btn btn--primary" disabled={busy} onClick={() => run(() => adminApi.updatePlayer(player.id, toBody(player)), "Spieler gespeichert.")}>Speichern</button>
+                  <button type="button" className="btn btn--danger" disabled={busy} onClick={() => remove(player)}>Löschen</button>
                 </td>
               </tr>
             ))}
@@ -184,7 +184,7 @@ export function PlayersAdmin(): JSX.Element {
                 </select>
               </td>
               <td>
-                <button className="btn btn--primary" disabled={busy} onClick={() => run(async () => {
+                <button type="button" className="btn btn--primary" disabled={busy} onClick={() => run(async () => {
                   await adminApi.createPlayer(toBody(newPlayer));
                   setNewPlayer(emptyPlayer(newPlayer.teamId));
                 }, "Spieler angelegt.")}>Hinzufügen</button>

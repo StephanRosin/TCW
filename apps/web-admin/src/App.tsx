@@ -36,6 +36,7 @@ export function App(): JSX.Element {
         {TABS.map((tab) => (
           <button
             key={tab.key}
+            type="button"
             role="tab"
             aria-selected={tab.key === active}
             onClick={() => setActive(tab.key)}

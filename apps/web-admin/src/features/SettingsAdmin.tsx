@@ -50,7 +50,7 @@ export function SettingsAdmin(): JSX.Element {
         Spieltermine anzeigen
       </label>
       <div className="toolbar toolbar--top-gap">
-        <button className="btn btn--primary" disabled={busy} onClick={save}>
+        <button type="button" className="btn btn--primary" disabled={busy} onClick={save}>
           Speichern
         </button>
       </div>

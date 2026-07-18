@@ -136,13 +136,14 @@ export function TrainingAdmin(): JSX.Element {
         {TRAINING_DAYS.map((day) => (
           <button
             key={day}
+            type="button"
             className={`btn${day === activeDay ? " btn--primary" : ""}`}
             onClick={() => setActiveDay(day)}
           >
             {day}
           </button>
         ))}
-        <button className="btn btn--primary btn--push-right" disabled={busy} onClick={save}>
+        <button type="button" className="btn btn--primary btn--push-right" disabled={busy} onClick={save}>
           Alles speichern
         </button>
       </div>

@@ -100,8 +100,8 @@ export function TournamentsAdmin(): JSX.Element {
                   {row.lastError ? <div className="msg--err">Fehler: {row.lastError}</div> : null}
                 </td>
                 <td className="actions-cell">
-                  <button className="btn" disabled={busy} onClick={() => refresh(row)}>Refresh</button>
-                  <button className="btn btn--danger" onClick={() => removeDraft(index)}>Entfernen</button>
+                  <button type="button" className="btn" disabled={busy} onClick={() => refresh(row)}>Refresh</button>
+                  <button type="button" className="btn btn--danger" onClick={() => removeDraft(index)}>Entfernen</button>
                 </td>
               </tr>
             ))}
@@ -109,8 +109,8 @@ export function TournamentsAdmin(): JSX.Element {
         </table>
       </div>
       <div className="toolbar toolbar--top-gap">
-        <button className="btn" onClick={() => setDrafts((c) => [...c, emptyDraft(c.length)])}>Turnier hinzufügen</button>
-        <button className="btn btn--primary" disabled={busy} onClick={saveAll}>Alles speichern</button>
+        <button type="button" className="btn" onClick={() => setDrafts((c) => [...c, emptyDraft(c.length)])}>Turnier hinzufügen</button>
+        <button type="button" className="btn btn--primary" disabled={busy} onClick={saveAll}>Alles speichern</button>
       </div>
     </div>
   );

@@ -80,8 +80,8 @@ export function TeamsAdmin(): JSX.Element {
                 <td><input value={team.teamziel} onChange={(e) => updateDraft(team.id, "teamziel", e.target.value)} /></td>
                 <td><input value={team.trainingstag} onChange={(e) => updateDraft(team.id, "trainingstag", e.target.value)} /></td>
                 <td className="actions-cell">
-                  <button className="btn btn--primary" disabled={busy} onClick={() => save(team)}>Speichern</button>
-                  <button className="btn btn--danger" disabled={busy} onClick={() => remove(team)}>Löschen</button>
+                  <button type="button" className="btn btn--primary" disabled={busy} onClick={() => save(team)}>Speichern</button>
+                  <button type="button" className="btn btn--danger" disabled={busy} onClick={() => remove(team)}>Löschen</button>
                 </td>
               </tr>
             ))}
@@ -98,7 +98,7 @@ export function TeamsAdmin(): JSX.Element {
               <td><input value={newTeam.liga} onChange={(e) => setNewTeam({ ...newTeam, liga: e.target.value })} /></td>
               <td><input value={newTeam.teamziel} onChange={(e) => setNewTeam({ ...newTeam, teamziel: e.target.value })} /></td>
               <td><input value={newTeam.trainingstag} onChange={(e) => setNewTeam({ ...newTeam, trainingstag: e.target.value })} /></td>
-              <td><button className="btn btn--primary" disabled={busy} onClick={create}>Hinzufügen</button></td>
+              <td><button type="button" className="btn btn--primary" disabled={busy} onClick={create}>Hinzufügen</button></td>
             </tr>
           </tbody>
         </table>
