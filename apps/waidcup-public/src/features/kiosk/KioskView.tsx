@@ -131,10 +131,16 @@ function KioskShell({
 function LiveBody({ board }: Readonly<{ board: WaidcupLiveResponse | null }>): JSX.Element {
   const { t } = useI18n();
   if (board === null) return <div className="kiosk__empty">{t("common.loading")}</div>;
-  if (board.now.length === 0) return <div className="kiosk__empty">{t("live.nobodyPlaying")}</div>;
+  // Läuft gerade: die aktuellen Partien – sonst der Hinweis „niemand spielt".
+  // Die „Als Nächstes"-Leiste wird UNABHÄNGIG davon gezeigt (auch wenn gerade
+  // niemand spielt, z. B. vor dem ersten Match), solange es kommende Partien gibt.
   return (
     <>
-      <LiveMatchRows matches={board.now} ballCourts header />
+      {board.now.length > 0 ? (
+        <LiveMatchRows matches={board.now} ballCourts header />
+      ) : (
+        <div className="kiosk__empty">{t("live.nobodyPlaying")}</div>
+      )}
       {board.upcoming.length > 0 ? (
         <footer className="kiosk__upcoming">
           <div className="kiosk__upcoming-title">{t("live.upcomingTitle")}</div>
