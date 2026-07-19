@@ -17,7 +17,7 @@ import {
   formatDate,
 } from "../orderofplay/OrderOfPlaySchedule.js";
 
-const REFRESH_MS = 60_000;
+const REFRESH_MS = 30_000;
 const MODE_KEY = "waidcup-kiosk-mode";
 const ANIMATION_KEY = "waidcup-kiosk-animation";
 
