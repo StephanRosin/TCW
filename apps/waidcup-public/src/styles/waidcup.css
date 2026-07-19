@@ -460,6 +460,25 @@
   color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
+/* Noch nicht feststehende Spieler: „tbd" bzw. „Event · Runde" gedämpft/kursiv. */
+.oopt__tbd {
+  color: var(--text-muted);
+  font-style: italic;
+}
+.oopt__match--tbd {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+.kiosk__oop .oopt__tbd,
+.kiosk__oop .oopt__match--tbd {
+  color: #8b94ad;
+}
+.kiosk--light .kiosk__oop .oopt__tbd,
+.kiosk--light .kiosk__oop .oopt__match--tbd {
+  color: #57627b;
+}
 /* Aktuell laufende Zeitzeile: hervorgehoben, Tennisball links. */
 /* Aktuell laufende Zeitzeile: kräftig grün (klar abgesetzt vom Blau der übrigen
    Bänder), damit man sofort sieht, welche Runde gerade läuft. */

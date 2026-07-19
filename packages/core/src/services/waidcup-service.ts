@@ -10,6 +10,7 @@
  * Resultat den ganzen Abend als „laufend" hängen bleibt.
  */
 import {
+  type TournamentBracket,
   type TournamentEventView,
   type TournamentMatch,
   type WaidcupLiveMatch,
@@ -77,6 +78,7 @@ interface LiveRow {
   player2_name_2: string | null;
   result?: string | null;
   winner_side?: number | null;
+  round_name?: string | null;
 }
 
 /**
@@ -103,6 +105,7 @@ function toLiveMatch(row: LiveRow): WaidcupLiveMatch {
   return {
     court: (row.court ?? "").trim(),
     eventName: row.event_name,
+    roundName: (row.round_name ?? "").trim(),
     side1Names: sideNames(row.player1_name, row.player1_name_2),
     side2Names: sideNames(row.player2_name, row.player2_name_2),
     scheduledDate: row.scheduled_date,
@@ -196,11 +199,70 @@ export function getWaidcupLive(
   return { now: live, upcoming };
 }
 
+const BYE_NAME = /^bye$/i;
+
+function realSideNames(names: string[]): string[] {
+  return names.map((name) => name.trim()).filter((name) => name !== "" && !BYE_NAME.test(name));
+}
+
+/**
+ * Terminierte Tableau-Slots eines Tages, bei denen mind. eine Seite noch offen
+ * ist („tbd"). Diese fehlen in tournament_matches (der Draw-Import übernimmt nur
+ * Partien mit beiden bekannten Spielern), stehen aber mit Termin im bracket_json.
+ * Beidseitig bekannte Partien werden ausgelassen (die liegen in tournament_matches).
+ */
+function tbdMatchesFromBrackets(
+  database: TcwDatabase,
+  tournamentId: number,
+  day: string,
+): WaidcupLiveMatch[] {
+  const extras = database
+    .prepare(
+      `SELECT te.event_name, tee.bracket_json
+       FROM tournament_event_extras tee
+       JOIN tournament_events te
+         ON te.tournament_id = tee.tournament_id AND te.event_id = tee.event_id
+       WHERE tee.tournament_id = ? AND tee.bracket_json IS NOT NULL`,
+    )
+    .all(tournamentId) as Array<{ event_name: string; bracket_json: string }>;
+  const matches: WaidcupLiveMatch[] = [];
+  for (const extra of extras) {
+    const bracket = JSON.parse(extra.bracket_json) as TournamentBracket;
+    for (const round of bracket.rounds) {
+      for (const node of round.matches) {
+        const court = (node.court ?? "").trim();
+        const time = (node.scheduledTime ?? "").trim();
+        if ((node.scheduledDate ?? "") !== day || court === "" || time === "") continue;
+        // Freilose sind keine echten Partien.
+        const anyBye = [...node.side1Names, ...node.side2Names].some((n) => BYE_NAME.test(n.trim()));
+        if (anyBye) continue;
+        const side1 = realSideNames(node.side1Names);
+        const side2 = realSideNames(node.side2Names);
+        // Nur „tbd"-Partien (mind. eine Seite offen).
+        if (side1.length > 0 && side2.length > 0) continue;
+        matches.push({
+          court,
+          eventName: extra.event_name,
+          roundName: round.roundName,
+          side1Names: side1,
+          side2Names: side2,
+          scheduledDate: day,
+          scheduledTime: time,
+          result: "",
+          winnerSide: 0,
+        });
+      }
+    }
+  }
+  return matches;
+}
+
 /**
  * Tagesspielplan („Order of Play"): alle für einen Tag terminierten Partien mit
- * bekanntem Platz, Zeit und beiden Spielern – unabhängig vom Status
- * (gespielt/laufend/anstehend). `dayOffset` verschiebt den Tag (0 = heute,
- * 1 = morgen). Sortiert nach Zeit, dann Platz.
+ * bekanntem Platz und Zeit – unabhängig vom Status. Beidseitig bekannte Partien
+ * aus tournament_matches, dazu terminierte Tableau-Slots mit noch offenen
+ * Spielern („tbd") aus dem bracket_json. `dayOffset` verschiebt den Tag (0 =
+ * heute, 1 = morgen). Sortiert nach Zeit, dann Platz.
  */
 export function getWaidcupOrderOfPlay(
   database: TcwDatabase,
@@ -215,7 +277,7 @@ export function getWaidcupOrderOfPlay(
     .prepare(
       `SELECT event_name, court, scheduled_date, scheduled_time,
               player1_name, player1_name_2, player2_name, player2_name_2,
-              result, winner_side
+              result, winner_side, round_name
        FROM tournament_matches
        WHERE tournament_id = ? AND scheduled_date = ?
          AND TRIM(COALESCE(scheduled_time, '')) <> ''
@@ -225,10 +287,8 @@ export function getWaidcupOrderOfPlay(
        ORDER BY scheduled_time`,
     )
     .all(tournamentId, today) as LiveRow[];
-  return rows
-    .map(toLiveMatch)
-    .sort(
-      (a, b) =>
-        a.scheduledTime.localeCompare(b.scheduledTime) || courtSortKey(a.court) - courtSortKey(b.court),
-    );
+  return [...rows.map(toLiveMatch), ...tbdMatchesFromBrackets(database, tournamentId, today)].sort(
+    (a, b) =>
+      a.scheduledTime.localeCompare(b.scheduledTime) || courtSortKey(a.court) - courtSortKey(b.court),
+  );
 }

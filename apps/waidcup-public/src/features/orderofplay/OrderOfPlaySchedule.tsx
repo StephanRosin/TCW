@@ -32,9 +32,17 @@ function formatSide(names: string[]): string {
   return (rankings.length > 0 ? `(${rankings.join("/")}) ` : "") + labels;
 }
 
+/** Label für Partien mit noch offenen Spielern: „Event · Runde". */
+function tbdLabel(match: WaidcupLiveMatch): string {
+  return [match.eventName, match.roundName].filter((part) => part !== "").join(" · ");
+}
+
 /** Nur für die E-Mail-Vorlage: reine Textzeile ohne Ergebnis. */
 function matchText(match: WaidcupLiveMatch): string {
-  return `${formatSide(match.side1Names)} vs. ${formatSide(match.side2Names)}`;
+  const has1 = match.side1Names.length > 0;
+  const has2 = match.side2Names.length > 0;
+  if (!has1 && !has2) return tbdLabel(match);
+  return `${has1 ? formatSide(match.side1Names) : "tbd"} vs. ${has2 ? formatSide(match.side2Names) : "tbd"}`;
 }
 
 /** Ein Spieler als „(R5) Nachname Vorname" (fürs mehrzeilige Anzeige-Layout). */
@@ -69,7 +77,9 @@ function MatchSide({
   );
 }
 
-/** Anzeige-Zelle: beide Seiten, „vs" dazwischen, darunter ggf. das Ergebnis. */
+/** Anzeige-Zelle: beide Seiten, „vs" dazwischen, darunter ggf. das Ergebnis.
+ *  Noch offene Spieler werden als „tbd" gezeigt; stehen beide noch nicht fest,
+ *  erscheint stattdessen „Event · Runde". */
 function MatchLines({
   match,
   playerUrls,
@@ -77,11 +87,24 @@ function MatchLines({
   match: WaidcupLiveMatch;
   playerUrls?: Record<string, string>;
 }>): JSX.Element {
+  const has1 = match.side1Names.length > 0;
+  const has2 = match.side2Names.length > 0;
+  if (!has1 && !has2) {
+    return <span className="oopt__match oopt__match--tbd">{tbdLabel(match)}</span>;
+  }
   return (
     <span className="oopt__match">
-      <MatchSide names={match.side1Names} side="a" winner={match.winnerSide === 1} playerUrls={playerUrls} />
+      {has1 ? (
+        <MatchSide names={match.side1Names} side="a" winner={match.winnerSide === 1} playerUrls={playerUrls} />
+      ) : (
+        <span className="oopt__player oopt__tbd">tbd</span>
+      )}
       <span className="oopt__vs">vs</span>
-      <MatchSide names={match.side2Names} side="b" winner={match.winnerSide === 2} playerUrls={playerUrls} />
+      {has2 ? (
+        <MatchSide names={match.side2Names} side="b" winner={match.winnerSide === 2} playerUrls={playerUrls} />
+      ) : (
+        <span className="oopt__player oopt__tbd">tbd</span>
+      )}
       {match.result !== "" ? <span className="oopt__result">{match.result}</span> : null}
     </span>
   );

@@ -488,6 +488,9 @@ export interface TickerResponse {
 export interface WaidcupLiveMatch {
   court: string;
   eventName: string;
+  /** Runde (z. B. "Achtelfinal") – für die Beschriftung noch offener Partien. */
+  roundName: string;
+  /** Kann bei noch nicht feststehenden Spielern leer sein (dann „tbd"). */
   side1Names: string[];
   side2Names: string[];
   /** "YYYY-MM-DD" (für „Als Nächstes" über Tagesgrenzen). */

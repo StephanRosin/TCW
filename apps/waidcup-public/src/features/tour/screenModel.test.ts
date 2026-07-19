@@ -16,6 +16,7 @@ function match(court: string, time: string, s1: string[], s2: string[]): Waidcup
   return {
     court,
     eventName: "Herren R1/R5",
+    roundName: "",
     side1Names: s1,
     side2Names: s2,
     scheduledDate: "2026-07-18",
