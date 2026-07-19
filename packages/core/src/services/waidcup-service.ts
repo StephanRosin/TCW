@@ -82,9 +82,10 @@ interface LiveRow {
 /**
  * Maximale Zeitspanne (Stunden), die eine Partie ab Startzeit als „laufend"
  * gilt. Verhindert, dass eine Partie ohne erfasstes Resultat den ganzen Abend
- * als „laufend" hängen bleibt.
+ * als „laufend" hängen bleibt. 3h decken auch lange 3-Satz-Matches ab, während
+ * ein späterer Slot auf demselben Platz eine Partie ohnehin früher verdrängt.
  */
-const MAX_LIVE_MATCH_HOURS = 2;
+const MAX_LIVE_MATCH_HOURS = 3;
 
 function pad2(value: number): string {
   return String(value).padStart(2, "0");

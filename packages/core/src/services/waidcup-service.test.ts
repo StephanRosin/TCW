@@ -95,9 +95,9 @@ test("getWaidcupLive: Resultat erfasst → Partie verschwindet aus live; gestrig
 
 test("getWaidcupLive: Partie ohne Resultat faellt nach der Zeitobergrenze aus live", () => {
   const db = openDatabase({ filePath: ":memory:" });
-  // NOW = 14:30, Obergrenze 2h → Fenster ab 12:30.
+  // NOW = 14:30, Obergrenze 3h → Fenster ab 11:30.
   seed(db, [
-    { key: "stale-no-result", date: "2026-07-04", time: "12:00", court: "Platz 8" }, // 2.5h her → raus
+    { key: "stale-no-result", date: "2026-07-04", time: "11:00", court: "Platz 8" }, // 3.5h her → raus
     { key: "still-live", date: "2026-07-04", time: "13:00", court: "Platz 9" }, // 1.5h her → live
   ]);
 
