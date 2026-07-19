@@ -89,18 +89,19 @@ function RefreshTab(): JSX.Element {
 
   return (
     <div className="card wc-admin__card">
-      <div className="card__head">Order of Play</div>
+      <div className="card__head">Order of Play &amp; Tableau</div>
       <div className="wc-admin__card-body">
         <p className="wc-admin__hint">
-          Holt heute &amp; morgen frisch von Swisstennis (Termine und Ergebnisse) – ohne auf den
+          Holt alles frisch von Swisstennis (Termine, Ergebnisse und Tableaux) – ohne auf den
           regulären Import zu warten.
         </p>
         <button className="wc-admin__primary" type="button" onClick={() => void refresh()} disabled={busy}>
-          {busy ? "Aktualisiere …" : "Order of Play aktualisieren"}
+          {busy ? "Aktualisiere …" : "Order of Play & Tableau aktualisieren"}
         </button>
         {info ? (
           <div className="wc-admin__result">
-            ✓ {info.matchesScoped} Partien abgeglichen, {info.written} aktualisiert (heute + morgen).
+            ✓ Order of Play & Tableaux aktualisiert – {info.matchesScoped} Partien abgeglichen,{" "}
+            {info.written} geändert.
             <br />
             Stand {timeLabel(info.at)} Uhr.
           </div>

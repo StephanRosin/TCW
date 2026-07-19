@@ -308,6 +308,28 @@ export function upsertScheduledMatches(
   return written;
 }
 
+/**
+ * Aktualisiert gezielt die Zusatzdaten (Tableau/Round-robin-Pools) eines Events,
+ * ohne den übrigen Import anzufassen. Für den Order-of-Play-Refresh, der damit
+ * auch das Tableau aktuell hält.
+ */
+export function upsertEventExtras(
+  database: TcwDatabase,
+  tournamentId: number,
+  eventId: number,
+  pools: PoolStanding[],
+  bracket: TournamentBracket | null,
+): void {
+  database
+    .prepare(
+      `INSERT INTO tournament_event_extras (tournament_id, event_id, pools_json, bracket_json)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(tournament_id, event_id)
+       DO UPDATE SET pools_json = excluded.pools_json, bracket_json = excluded.bracket_json`,
+    )
+    .run(tournamentId, eventId, JSON.stringify(pools), bracket ? JSON.stringify(bracket) : null);
+}
+
 /** Ersetzt alle importierten Daten eines Turniers atomar (alte bleiben bei Fehler erhalten). */
 export function replaceTournamentData(
   database: TcwDatabase,

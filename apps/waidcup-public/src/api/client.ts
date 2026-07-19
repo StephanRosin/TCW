@@ -76,11 +76,18 @@ export const waidcupApi = {
       dates: string[];
       matchesScoped: number;
       written: number;
+      extrasUpdated: number;
       at: string;
     }> => {
       const response = await fetch("/api/waidcup/admin/order-of-play/refresh", { method: "POST" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return (await response.json()) as { dates: string[]; matchesScoped: number; written: number; at: string };
+      return (await response.json()) as {
+        dates: string[];
+        matchesScoped: number;
+        written: number;
+        extrasUpdated: number;
+        at: string;
+      };
     },
     payments: async (): Promise<WaidcupPaymentsResponse> => fetchJson("/api/waidcup/admin/payments"),
     setPayment: async (personKey: string, status: WaidcupPaymentStatus): Promise<void> => {

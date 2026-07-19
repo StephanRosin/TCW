@@ -35,7 +35,7 @@ async function main(): Promise<void> {
   console.log(`Order-of-Play-Refresh (Turnier ${tournamentConfig.swisstennisTournamentId}), frischer Abruf …`);
   const result = await refreshOrderOfPlay(config, database, tournamentConfig);
   console.log(
-    `Tage ${result.dates.join(" + ")}: ${result.matchesScoped} terminierte Matches abgeglichen, ${result.written} aktualisiert.`,
+    `Tage ${result.dates.join(" + ")}: ${result.matchesScoped} terminierte Matches abgeglichen, ${result.written} aktualisiert; ${result.extrasUpdated} Tableaux/Pools aktualisiert.`,
   );
   database.close();
   console.log("Fertig.");

@@ -1,12 +1,13 @@
 /**
  * Gezielter Sofort-Refresh des „Order of Play": holt FRISCH von Swisstennis
- * (eigener Client mit TTL 0 → kein Cache) und aktualisiert nur die für heute
- * und morgen terminierten Matches (Termin + Ergebnis) in der DB. Der reguläre
- * 30-Minuten-Import bleibt unberührt; dieser Aufruf macht nur die aktuell
- * relevanten Spiele ohne Wartezeit sichtbar (z. B. wenn kurzfristig ein Termin
- * oder Ergebnis in Swisstennis geändert wurde).
+ * (eigener Client mit TTL 0 → kein Cache) und aktualisiert die für heute und
+ * morgen terminierten Matches (Termin + Ergebnis) SOWIE die Tableau-/Pool-Daten
+ * aller Konkurrenzen (aus denselben Event-Abrufen, ohne Extra-Requests). Damit
+ * sind Order of Play, Matchliste, Live UND Tableau mit einem Klick aktuell. Der
+ * reguläre 30-Minuten-Import bleibt unberührt.
  */
 import type { AppConfig } from "../config.js";
+import type { PoolStanding, TournamentBracket } from "@tcw/shared";
 import type { TcwDatabase } from "../db/connection.js";
 import { SwisstennisClient } from "../integrations/swisstennis/raw-client.js";
 import {
@@ -18,14 +19,26 @@ import {
   mapTournamentMeta,
   type TournamentEventMeta,
 } from "../integrations/swisstennis/tournament-events.js";
-import { mapEventMatches, type MatchRecord } from "../integrations/swisstennis/tournament-matches.js";
+import {
+  mapDrawBracket,
+  mapEventMatches,
+  mapPoolStandings,
+  type MatchRecord,
+} from "../integrations/swisstennis/tournament-matches.js";
 import {
   readScheduledMatchKeys,
+  upsertEventExtras,
   upsertScheduledMatches,
   type TournamentConfig,
 } from "./tournament-store.js";
 
 const DOUBLE_MATCH_TYPE_IDS = new Set([3, 4, 5]);
+
+interface EventExtras {
+  eventId: number;
+  pools: PoolStanding[];
+  bracket: TournamentBracket | null;
+}
 
 export interface OrderOfPlayRefreshResult {
   tournamentId: number;
@@ -35,6 +48,8 @@ export interface OrderOfPlayRefreshResult {
   matchesScoped: number;
   /** Wie viele Zeilen tatsächlich geschrieben wurden (neu/geändert). */
   written: number;
+  /** Wie viele Tableaux/Pools (Konkurrenzen) aktualisiert wurden. */
+  extrasUpdated: number;
 }
 
 function pad2(value: number): string {
@@ -74,6 +89,7 @@ export async function refreshOrderOfPlay(
   const meta = mapTournamentMeta(await client.fetchData(tournamentDisplayUrl(tournamentId)));
 
   const records: MatchRecord[] = [];
+  const extras: EventExtras[] = [];
   for (const eventMeta of meta.events) {
     const matchesUrl = matchesUrlFor(eventMeta);
     if (!matchesUrl) continue;
@@ -82,6 +98,12 @@ export async function refreshOrderOfPlay(
     records.push(
       ...mapEventMatches(payload, eventMeta.mode, eventMeta.eventName, eventMeta.eventId, isDouble),
     );
+    // Tableau/Pools aus demselben Payload für die Tableau-Ansicht.
+    extras.push({
+      eventId: eventMeta.eventId,
+      bracket: eventMeta.mode === "Draw" ? mapDrawBracket(payload) : null,
+      pools: eventMeta.mode === "Round-robin" ? mapPoolStandings(payload, isDouble) : [],
+    });
   }
 
   const dates = orderOfPlayDates(now, 1);
@@ -100,5 +122,9 @@ export async function refreshOrderOfPlay(
     scoped,
     now.toISOString(),
   );
-  return { tournamentId, dates, matchesScoped: scoped.length, written };
+  // Tableau/Pools aller Konkurrenzen aktualisieren (kein zusätzlicher Abruf).
+  for (const extra of extras) {
+    upsertEventExtras(database, tournamentId, extra.eventId, extra.pools, extra.bracket);
+  }
+  return { tournamentId, dates, matchesScoped: scoped.length, written, extrasUpdated: extras.length };
 }
