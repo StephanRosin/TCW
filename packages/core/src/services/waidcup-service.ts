@@ -11,6 +11,7 @@
  */
 import {
   type TournamentBracket,
+  type TournamentBracketMatch,
   type TournamentEventView,
   type TournamentMatch,
   type WaidcupLiveMatch,
@@ -206,10 +207,40 @@ function realSideNames(names: string[]): string[] {
 }
 
 /**
- * Terminierte Tableau-Slots eines Tages, bei denen mind. eine Seite noch offen
- * ist („tbd"). Diese fehlen in tournament_matches (der Draw-Import übernimmt nur
- * Partien mit beiden bekannten Spielern), stehen aber mit Termin im bracket_json.
- * Beidseitig bekannte Partien werden ausgelassen (die liegen in tournament_matches).
+ * Prüft einen Tableau-Slot: liefert eine „tbd"-Partie, wenn er auf `day`
+ * terminiert ist (Platz+Zeit), kein Freilos enthält und mind. eine Seite noch
+ * offen ist; sonst null (beidseitig bekannt → steht schon in tournament_matches).
+ */
+function tbdMatchFromNode(
+  eventName: string,
+  roundName: string,
+  node: TournamentBracketMatch,
+  day: string,
+): WaidcupLiveMatch | null {
+  const court = (node.court ?? "").trim();
+  const time = (node.scheduledTime ?? "").trim();
+  if ((node.scheduledDate ?? "") !== day || court === "" || time === "") return null;
+  if ([...node.side1Names, ...node.side2Names].some((name) => BYE_NAME.test(name.trim()))) return null;
+  const side1 = realSideNames(node.side1Names);
+  const side2 = realSideNames(node.side2Names);
+  if (side1.length > 0 && side2.length > 0) return null;
+  return {
+    court,
+    eventName,
+    roundName,
+    side1Names: side1,
+    side2Names: side2,
+    scheduledDate: day,
+    scheduledTime: time,
+    result: "",
+    winnerSide: 0,
+  };
+}
+
+/**
+ * Terminierte Tableau-Slots eines Tages mit noch offenen Spielern („tbd").
+ * Diese fehlen in tournament_matches (der Draw-Import übernimmt nur Partien mit
+ * beiden bekannten Spielern), stehen aber mit Termin im bracket_json.
  */
 function tbdMatchesFromBrackets(
   database: TcwDatabase,
@@ -230,27 +261,8 @@ function tbdMatchesFromBrackets(
     const bracket = JSON.parse(extra.bracket_json) as TournamentBracket;
     for (const round of bracket.rounds) {
       for (const node of round.matches) {
-        const court = (node.court ?? "").trim();
-        const time = (node.scheduledTime ?? "").trim();
-        if ((node.scheduledDate ?? "") !== day || court === "" || time === "") continue;
-        // Freilose sind keine echten Partien.
-        const anyBye = [...node.side1Names, ...node.side2Names].some((n) => BYE_NAME.test(n.trim()));
-        if (anyBye) continue;
-        const side1 = realSideNames(node.side1Names);
-        const side2 = realSideNames(node.side2Names);
-        // Nur „tbd"-Partien (mind. eine Seite offen).
-        if (side1.length > 0 && side2.length > 0) continue;
-        matches.push({
-          court,
-          eventName: extra.event_name,
-          roundName: round.roundName,
-          side1Names: side1,
-          side2Names: side2,
-          scheduledDate: day,
-          scheduledTime: time,
-          result: "",
-          winnerSide: 0,
-        });
+        const match = tbdMatchFromNode(extra.event_name, round.roundName, node, day);
+        if (match) matches.push(match);
       }
     }
   }
