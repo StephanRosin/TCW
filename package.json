@@ -24,6 +24,7 @@
     "sync:tcw3d": "tsx scripts/sync-tcw3d.ts",
     "import:live": "tsx scripts/import-live-snapshot.ts",
     "refresh:tournaments": "tsx scripts/refresh-tournaments.ts",
+    "apply:cm-dates": "tsx scripts/apply-cm-dates.ts",
     "backfill:player-matches": "tsx scripts/backfill-player-matches.ts",
     "backfill:player-registry": "tsx scripts/backfill-player-registry.ts",
     "repair:registry-names": "tsx scripts/repair-registry-names.ts",

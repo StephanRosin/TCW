@@ -9,6 +9,7 @@
  * (Mai–Juni). Die Agenda (kein Swisstennis) ist davon ausgenommen.
  */
 import {
+  applyCmReservationDates,
   createAgendaImporter,
   createMatchesImporter,
   createTournamentService,
@@ -101,6 +102,21 @@ export function startBackgroundJobs(
         });
         const total = results.reduce((sum, result) => sum + result.matches, 0);
         logger.info(`Turniere aktualisiert: ${results.length} Turniere, ${total} Matches.`);
+        // Swisstennis liefert für die CM nur Deadlines; die echten Spieltermine
+        // stehen als bestätigte Reservationen in der CM-Platz-DB. Nach jedem
+        // Import (der die Termine zurücksetzt) erneut auf die offenen CM-Partien
+        // schreiben. Getrennt gefangen, damit ein Fehler die Turniere nicht kippt.
+        try {
+          const cm = applyCmReservationDates(database, config.cmPlatzDbPath);
+          if (cm.reservations > 0) {
+            logger.info(
+              `CM-Termine übernommen: ${cm.matchesUpdated} Matches, ${cm.bracketNodesUpdated} Tableau-Knoten ` +
+                `(aus ${cm.reservations} bestätigten Reservationen).`,
+            );
+          }
+        } catch (error) {
+          logger.error({ error }, "CM-Termin-Übernahme fehlgeschlagen – Turnierdaten bleiben erhalten.");
+        }
       } catch (error) {
         logger.error({ error }, "Turnier-Polling fehlgeschlagen – bestehende Daten bleiben erhalten.");
       }
