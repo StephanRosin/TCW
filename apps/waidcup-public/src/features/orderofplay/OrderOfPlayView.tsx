@@ -38,9 +38,10 @@ function OrderOfPlayBoard({
     return () => window.clearInterval(id);
   }, []);
 
-  // Anzeige folgt dem gewählten Tab. Kopiervorlage für die E-Mail: morgen (Ankündigung).
-  const gridToday = useMemo(() => buildGrid(today), [today]);
-  const gridTomorrow = useMemo(() => buildGrid(tomorrow), [tomorrow]);
+  // Nur belegte Plätze als Spalten (wie im Kiosk) – gilt für die sichtbare
+  // Ansicht UND die E-Mail-Kopiervorlage (morgen). Leere Plätze fallen weg.
+  const gridToday = useMemo(() => buildGrid(today, { occupiedOnly: true }), [today]);
+  const gridTomorrow = useMemo(() => buildGrid(tomorrow, { occupiedOnly: true }), [tomorrow]);
   const activeMatches = day === "today" ? today : tomorrow;
   const activeGrid = day === "today" ? gridToday : gridTomorrow;
   const dateLabel = useMemo(() => formatDate(activeMatches[0]?.scheduledDate, language), [activeMatches, language]);
