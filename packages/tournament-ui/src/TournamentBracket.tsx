@@ -7,6 +7,7 @@ import type { JSX } from "react";
 import type { TournamentBracket as Bracket, TournamentBracketMatch } from "@tcw/shared";
 import { useI18n } from "./I18nProvider.js";
 import { PlayerLink } from "./PlayerLink.js";
+import { translateRound } from "./roundLabel.js";
 
 function Slot({
   names,
@@ -101,7 +102,7 @@ export function TournamentBracket({
       <div className="tbracket">
         {bracket.rounds.map((round) => (
           <div key={round.roundName} className="tbracket-round">
-            <div className="tbracket-round__title">{round.roundName}</div>
+            <div className="tbracket-round__title">{translateRound(round.roundName, t)}</div>
             <div className="tbracket-round__matches">
               {round.matches.map((match, index) => (
                 <BracketMatch key={index} match={match} matchesSearch={matchesSearch} playerUrls={playerUrls} />

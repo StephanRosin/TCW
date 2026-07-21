@@ -10,7 +10,7 @@
  */
 import type { CSSProperties, JSX } from "react";
 import type { WaidcupLiveMatch } from "@tcw/shared";
-import { PlayerLink, useI18n } from "@tcw/tournament-ui";
+import { PlayerLink, translateRound, useI18n } from "@tcw/tournament-ui";
 
 export interface Grid {
   times: string[];
@@ -53,26 +53,6 @@ export function formatTimeBand(time: string, language: string): string {
     default: // de (Basissprache)
       return `${time} Uhr`;
   }
-}
-
-/** Von Swisstennis/unserem Mapper erzeugte (deutsche) Rundennamen → i18n-Key. */
-const ROUND_KEY: Record<string, string> = {
-  Final: "round.final",
-  Halbfinal: "round.semifinal",
-  Viertelfinal: "round.quarterfinal",
-  Achtelfinal: "round.round16",
-  "1/16 Final": "round.round32",
-};
-
-/** Übersetzt einen Rundennamen in die UI-Sprache. Bekannte Runden über den
- *  i18n-Key, „Runde N" mit übersetztem Wort + Nummer; alles andere (z. B.
- *  Gruppennamen) bleibt unverändert. */
-function translateRound(roundName: string, t: Translate): string {
-  const key = ROUND_KEY[roundName];
-  if (key) return t(key);
-  const numbered = /^Runde (\d+)$/.exec(roundName);
-  if (numbered) return t("round.round", { number: numbered[1]! });
-  return roundName;
 }
 
 /** Label für Partien mit noch offenen Spielern: „Event · Runde". */

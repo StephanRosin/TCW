@@ -8,6 +8,7 @@ import type { TournamentMatch } from "@tcw/shared";
 import { useI18n } from "./I18nProvider.js";
 import { compareTournamentMatches, type MatchListOrder } from "./matchOrder.js";
 import { PlayerLink } from "./PlayerLink.js";
+import { translateRound } from "./roundLabel.js";
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -70,7 +71,7 @@ export function MatchList({
         </thead>
         <tbody>
           {sorted.map((match) => {
-            const round = [match.roundName, match.poolName]
+            const round = [translateRound(match.roundName, t), match.poolName]
               .filter((part, index, all) => part !== "" && all.indexOf(part) === index)
               .join(" · ");
             // Eine Partie hat entweder ein Resultat (gespielt) ODER einen Termin
