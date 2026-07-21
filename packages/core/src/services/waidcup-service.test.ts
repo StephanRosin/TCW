@@ -3,7 +3,12 @@ import { test } from "node:test";
 import { playerNameKey } from "@tcw/shared";
 import { openDatabase, type TcwDatabase } from "../db/connection.js";
 import { upsertPlayer } from "./player-registry.js";
-import { getWaidcupLive, getWaidcupMatches, getWaidcupPlayerUrls } from "./waidcup-service.js";
+import {
+  getWaidcupLive,
+  getWaidcupMatches,
+  getWaidcupOrderOfPlay,
+  getWaidcupPlayerUrls,
+} from "./waidcup-service.js";
 
 const TID = 999001;
 // Fester Bezugszeitpunkt für deterministische Tests: 2026-07-04, 14:30 lokal.
@@ -19,6 +24,8 @@ interface SeedMatch {
   result?: string;
   p1?: string;
   p2?: string;
+  mode?: string;
+  round?: string;
 }
 
 function seed(db: TcwDatabase, matches: SeedMatch[]): void {
@@ -28,13 +35,15 @@ function seed(db: TcwDatabase, matches: SeedMatch[]): void {
        pool_name, round_name, scheduled_date, scheduled_time, court,
        player1_name, player1_name_2, player2_name, player2_name_2,
        result, status, winner_side, sort_order, updated_at
-     ) VALUES (?, 1, ?, 'Waidcup (Test)', ?, 'Draw', '', '', ?, ?, ?, ?, '', ?, '', ?, ?, 0, 0, 'x')`,
+     ) VALUES (?, 1, ?, 'Waidcup (Test)', ?, ?, '', ?, ?, ?, ?, ?, '', ?, '', ?, ?, 0, 0, 'x')`,
   );
   for (const m of matches) {
     insert.run(
       TID,
       m.key,
       m.event ?? "MS A",
+      m.mode ?? "Draw",
+      m.round ?? "",
       m.date ?? "",
       m.time ?? "",
       m.court ?? "",
@@ -124,6 +133,25 @@ test("getWaidcupMatches: liefert nur Matches des konfigurierten Turniers", () =>
   const matches = getWaidcupMatches(db, TID);
   assert.equal(matches.length, 1);
   assert.equal(matches[0]!.matchKey, "m1");
+  db.close();
+});
+
+test("getWaidcupOrderOfPlay: Draw behält die Runde, Round-robin zeigt nur den Event (roundName leer)", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  seed(db, [
+    { key: "draw", event: "MS R1/R5", mode: "Draw", round: "Viertelfinal", date: "2026-07-04", time: "10:00", court: "Platz 1" },
+    { key: "rr", event: "DM A R1/R5", mode: "Round-robin", round: "Mixed", date: "2026-07-04", time: "11:00", court: "Platz 2" },
+  ]);
+
+  const board = getWaidcupOrderOfPlay(db, TID, NOW);
+  const draw = board.find((m) => m.court === "Platz 1");
+  const rr = board.find((m) => m.court === "Platz 2");
+  // Draw: Runde bleibt → Zeile „MS R1/R5 Viertelfinal".
+  assert.equal(draw?.roundName, "Viertelfinal");
+  assert.equal(draw?.eventName, "MS R1/R5");
+  // Round-robin: Gruppe („Mixed") wird nicht als Runde geführt → nur der Event.
+  assert.equal(rr?.roundName, "");
+  assert.equal(rr?.eventName, "DM A R1/R5");
   db.close();
 });
 

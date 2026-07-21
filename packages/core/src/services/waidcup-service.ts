@@ -80,6 +80,7 @@ interface LiveRow {
   result?: string | null;
   winner_side?: number | null;
   round_name?: string | null;
+  mode?: string | null;
 }
 
 /**
@@ -103,10 +104,14 @@ function sideNames(name: string, name2: string | null): string[] {
 }
 
 function toLiveMatch(row: LiveRow): WaidcupLiveMatch {
+  // Bei Round-robin ist round_name die Gruppe (z. B. „Mixed") – für die
+  // Order-of-Play-Zeile unter der Begegnung nicht gewünscht (dort soll nur der
+  // Event stehen). Nur bei Draws bleibt die Runde („Viertelfinal" …) erhalten.
+  const isRoundRobin = (row.mode ?? "").toLowerCase().includes("robin");
   return {
     court: (row.court ?? "").trim(),
     eventName: row.event_name,
-    roundName: (row.round_name ?? "").trim(),
+    roundName: isRoundRobin ? "" : (row.round_name ?? "").trim(),
     side1Names: sideNames(row.player1_name, row.player1_name_2),
     side2Names: sideNames(row.player2_name, row.player2_name_2),
     scheduledDate: row.scheduled_date,
@@ -289,7 +294,7 @@ export function getWaidcupOrderOfPlay(
     .prepare(
       `SELECT event_name, court, scheduled_date, scheduled_time,
               player1_name, player1_name_2, player2_name, player2_name_2,
-              result, winner_side, round_name
+              result, winner_side, round_name, mode
        FROM tournament_matches
        WHERE tournament_id = ? AND scheduled_date = ?
          AND TRIM(COALESCE(scheduled_time, '')) <> ''
