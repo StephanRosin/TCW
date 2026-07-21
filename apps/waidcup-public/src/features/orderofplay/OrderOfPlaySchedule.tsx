@@ -37,6 +37,12 @@ function tbdLabel(match: WaidcupLiveMatch): string {
   return [match.eventName, match.roundName].filter((part) => part !== "").join(" · ");
 }
 
+/** Untertitel unter der Begegnung, solange kein Ergebnis vorliegt: „Event Runde"
+ *  (z. B. „MS R1/R5 Viertelfinal"). */
+function roundLine(match: WaidcupLiveMatch): string {
+  return [match.eventName, match.roundName].filter((part) => part !== "").join(" ");
+}
+
 /** Nur für die E-Mail-Vorlage: reine Textzeile ohne Ergebnis. */
 function matchText(match: WaidcupLiveMatch): string {
   const has1 = match.side1Names.length > 0;
@@ -105,9 +111,22 @@ function MatchLines({
       ) : (
         <span className="oopt__player oopt__tbd">tbd</span>
       )}
-      {match.result !== "" ? <span className="oopt__result">{match.result}</span> : null}
+      <MatchFooter match={match} />
     </span>
   );
+}
+
+/** Zeile unter dem Matchup: Ergebnis, sobald vorhanden – sonst die Runde
+ *  („Event Runde"), solange die Partie noch offen ist. */
+function MatchFooter({ match }: Readonly<{ match: WaidcupLiveMatch }>): JSX.Element | null {
+  if (match.result !== "") {
+    return <span className="oopt__result">{match.result}</span>;
+  }
+  const round = roundLine(match);
+  if (round !== "") {
+    return <span className="oopt__round">{round}</span>;
+  }
+  return null;
 }
 
 function courtNumber(court: string): number {

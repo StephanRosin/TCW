@@ -460,6 +460,15 @@
   color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
+/* Runde unter dem Matchup (offene Partie, noch kein Ergebnis): „Event Runde"
+   gedämpft/klein – nimmt denselben Platz ein wie später die Ergebniszeile. */
+.oopt__round {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
 /* Noch nicht feststehende Spieler: „tbd" bzw. „Event · Runde" gedämpft/kursiv. */
 .oopt__tbd {
   color: var(--text-muted);
@@ -1046,6 +1055,12 @@
 }
 .kiosk__oop .oopt__result {
   color: #c8f135;
+}
+.kiosk__oop .oopt__round {
+  color: #8b94ad;
+}
+.kiosk--light .kiosk__oop .oopt__round {
+  color: #57627b;
 }
 /* Helle Kiosk-Variante */
 .kiosk--light .kiosk__oop .oopt,
