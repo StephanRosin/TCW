@@ -10,7 +10,7 @@
  */
 import type { CSSProperties, JSX } from "react";
 import type { WaidcupLiveMatch } from "@tcw/shared";
-import { PlayerLink } from "@tcw/tournament-ui";
+import { PlayerLink, useI18n } from "@tcw/tournament-ui";
 
 export interface Grid {
   times: string[];
@@ -254,6 +254,7 @@ export function ScheduleTable({
   playerUrls?: Record<string, string>;
   currentTime?: string | null;
 }>): JSX.Element {
+  const { t } = useI18n();
   const { times, courts, byKey } = grid;
   const cls = (name: string): string | undefined => (email ? undefined : name);
   const st = (name: keyof typeof EMAIL): CSSProperties | undefined =>
@@ -265,7 +266,7 @@ export function ScheduleTable({
         <tr>
           {courts.map((c) => (
             <td key={c} className={cls("oopt__court")} style={st("court")}>
-              Court {c}
+              {t("live.court", { number: c })}
             </td>
           ))}
         </tr>
