@@ -32,22 +32,65 @@ function formatSide(names: string[]): string {
   return (rankings.length > 0 ? `(${rankings.join("/")}) ` : "") + labels;
 }
 
+type Translate = (key: string, params?: Record<string, string | number>) => string;
+
+/** Zeit-Band-Beschriftung in der jeweils gängigen Schreibweise der UI-Sprache:
+ *  de „18:00 Uhr", en „6:00 PM" (12-Stunden), fr „18h00", it „ore 18:00". */
+export function formatTimeBand(time: string, language: string): string {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(time);
+  if (!m) return time;
+  const hour = Number(m[1]);
+  const minute = m[2]!;
+  switch (language) {
+    case "en": {
+      const hour12 = ((hour + 11) % 12) + 1;
+      return `${hour12}:${minute} ${hour < 12 ? "AM" : "PM"}`;
+    }
+    case "fr":
+      return `${String(hour).padStart(2, "0")}h${minute}`;
+    case "it":
+      return `ore ${time}`;
+    default: // de (Basissprache)
+      return `${time} Uhr`;
+  }
+}
+
+/** Von Swisstennis/unserem Mapper erzeugte (deutsche) Rundennamen → i18n-Key. */
+const ROUND_KEY: Record<string, string> = {
+  Final: "round.final",
+  Halbfinal: "round.semifinal",
+  Viertelfinal: "round.quarterfinal",
+  Achtelfinal: "round.round16",
+  "1/16 Final": "round.round32",
+};
+
+/** Übersetzt einen Rundennamen in die UI-Sprache. Bekannte Runden über den
+ *  i18n-Key, „Runde N" mit übersetztem Wort + Nummer; alles andere (z. B.
+ *  Gruppennamen) bleibt unverändert. */
+function translateRound(roundName: string, t: Translate): string {
+  const key = ROUND_KEY[roundName];
+  if (key) return t(key);
+  const numbered = /^Runde (\d+)$/.exec(roundName);
+  if (numbered) return t("round.round", { number: numbered[1]! });
+  return roundName;
+}
+
 /** Label für Partien mit noch offenen Spielern: „Event · Runde". */
-function tbdLabel(match: WaidcupLiveMatch): string {
-  return [match.eventName, match.roundName].filter((part) => part !== "").join(" · ");
+function tbdLabel(match: WaidcupLiveMatch, t: Translate): string {
+  return [match.eventName, translateRound(match.roundName, t)].filter((part) => part !== "").join(" · ");
 }
 
 /** Untertitel unter der Begegnung, solange kein Ergebnis vorliegt: „Event Runde"
  *  (z. B. „MS R1/R5 Viertelfinal"). */
-function roundLine(match: WaidcupLiveMatch): string {
-  return [match.eventName, match.roundName].filter((part) => part !== "").join(" ");
+function roundLine(match: WaidcupLiveMatch, t: Translate): string {
+  return [match.eventName, translateRound(match.roundName, t)].filter((part) => part !== "").join(" ");
 }
 
 /** Nur für die E-Mail-Vorlage: reine Textzeile ohne Ergebnis. */
-function matchText(match: WaidcupLiveMatch): string {
+function matchText(match: WaidcupLiveMatch, t: Translate): string {
   const has1 = match.side1Names.length > 0;
   const has2 = match.side2Names.length > 0;
-  if (!has1 && !has2) return tbdLabel(match);
+  if (!has1 && !has2) return tbdLabel(match, t);
   return `${has1 ? formatSide(match.side1Names) : "tbd"} vs. ${has2 ? formatSide(match.side2Names) : "tbd"}`;
 }
 
@@ -93,10 +136,11 @@ function MatchLines({
   match: WaidcupLiveMatch;
   playerUrls?: Record<string, string>;
 }>): JSX.Element {
+  const { t } = useI18n();
   const has1 = match.side1Names.length > 0;
   const has2 = match.side2Names.length > 0;
   if (!has1 && !has2) {
-    return <span className="oopt__match oopt__match--tbd">{tbdLabel(match)}</span>;
+    return <span className="oopt__match oopt__match--tbd">{tbdLabel(match, t)}</span>;
   }
   return (
     <span className="oopt__match">
@@ -119,10 +163,11 @@ function MatchLines({
 /** Zeile unter dem Matchup: Ergebnis, sobald vorhanden – sonst die Runde
  *  („Event Runde"), solange die Partie noch offen ist. */
 function MatchFooter({ match }: Readonly<{ match: WaidcupLiveMatch }>): JSX.Element | null {
+  const { t } = useI18n();
   if (match.result !== "") {
     return <span className="oopt__result">{match.result}</span>;
   }
-  const round = roundLine(match);
+  const round = roundLine(match, t);
   if (round !== "") {
     return <span className="oopt__round">{round}</span>;
   }
@@ -307,13 +352,14 @@ function ScheduleTimeBlock({
   st: (name: keyof typeof EMAIL) => CSSProperties | undefined;
   playerUrls?: Record<string, string>;
 }>): JSX.Element {
+  const { t, language } = useI18n();
   const bandClass = current ? "oopt__band oopt__band--current" : "oopt__band";
   return (
     <>
       <tr>
         <td className={cls(bandClass)} style={st("band")} colSpan={courts.length}>
           {current ? <span className="oopt__ball" aria-hidden="true">🎾 </span> : null}
-          {time} Uhr
+          {formatTimeBand(time, language)}
         </td>
       </tr>
       <tr>
@@ -328,7 +374,7 @@ function ScheduleTimeBlock({
           }
           return (
             <td key={c} className={cls("oopt__cell")} style={st("cell")}>
-              {email ? matchText(match) : <MatchLines match={match} playerUrls={playerUrls} />}
+              {email ? matchText(match, t) : <MatchLines match={match} playerUrls={playerUrls} />}
             </td>
           );
         })}
