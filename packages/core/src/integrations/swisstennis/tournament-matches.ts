@@ -250,11 +250,15 @@ const ROUND_NAMES: Record<number, string> = {
   1: "Halbfinal",
   2: "Viertelfinal",
   3: "Achtelfinal",
-  4: "1/16 Final",
 };
 
-function roundName(level: number): string {
-  return ROUND_NAMES[level] ?? `Runde ${level}`;
+/**
+ * Rundenname aus dem Level (0 = Final). Ab Level 4 die „1/N Final"-Schreibweise
+ * (Level 4 = 1/16, 5 = 1/32, 6 = 1/64, 7 = 1/128 Final …) statt eines generischen
+ * „Runde N". `translateRound` (@tcw/tournament-ui) übersetzt diese Namen.
+ */
+export function roundName(level: number): string {
+  return ROUND_NAMES[level] ?? `1/${2 ** level} Final`;
 }
 
 function rankingPrefixTokens(content: string): { name: string; rankings: string[]; seed: string } {

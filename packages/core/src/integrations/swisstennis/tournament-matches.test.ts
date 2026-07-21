@@ -4,8 +4,20 @@ import {
   mapDrawBracket,
   mapEventMatches,
   mapPoolStandings,
+  roundName,
   winnerSideFromScore,
 } from "./tournament-matches.js";
+
+test("roundName: benannte Runden 0–3, ab Level 4 die 1/N-Final-Schreibweise", () => {
+  assert.equal(roundName(0), "Final");
+  assert.equal(roundName(1), "Halbfinal");
+  assert.equal(roundName(2), "Viertelfinal");
+  assert.equal(roundName(3), "Achtelfinal");
+  assert.equal(roundName(4), "1/16 Final");
+  assert.equal(roundName(5), "1/32 Final");
+  assert.equal(roundName(6), "1/64 Final");
+  assert.equal(roundName(7), "1/128 Final");
+});
 
 test("winnerSideFromScore zählt Sätze – auch für Doppel und mit '/'-Trenner", () => {
   assert.equal(winnerSideFromScore("6:1 6:1"), 1);

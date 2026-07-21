@@ -5,13 +5,17 @@
  */
 type Translate = (key: string, params?: Record<string, string | number>) => string;
 
-/** Von unserem Mapper erzeugte (deutsche) Rundennamen → i18n-Key. */
+/** Von unserem Mapper erzeugte (deutsche) Rundennamen → i18n-Key
+ *  (round.round<N> = N Spieler in dieser Runde). */
 const ROUND_KEY: Record<string, string> = {
   Final: "round.final",
   Halbfinal: "round.semifinal",
   Viertelfinal: "round.quarterfinal",
   Achtelfinal: "round.round16",
   "1/16 Final": "round.round32",
+  "1/32 Final": "round.round64",
+  "1/64 Final": "round.round128",
+  "1/128 Final": "round.round256",
 };
 
 /**
