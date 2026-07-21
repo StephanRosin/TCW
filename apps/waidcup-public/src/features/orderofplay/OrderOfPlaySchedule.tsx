@@ -114,10 +114,22 @@ function courtNumber(court: string): number {
   return Number(/\d+/.exec(court)?.[0] ?? 0);
 }
 
-export function buildGrid(matches: WaidcupLiveMatch[]): Grid {
+/**
+ * Raster (Zeiten × Plätze) aus den Tagesmatches aufbauen.
+ *
+ * `occupiedOnly` (Kiosk): nur tatsächlich bespielte Plätze als Spalten – leere
+ * Plätze fallen ganz weg, sodass die belegten den Platz voll nutzen. Standard
+ * (Web/E-Mail): feste Spalten 1…max(6, höchster Platz), damit das Layout stabil
+ * bleibt und der E-Mail-Export unverändert bleibt.
+ */
+export function buildGrid(
+  matches: WaidcupLiveMatch[],
+  options: Readonly<{ occupiedOnly?: boolean }> = {},
+): Grid {
   const times = [...new Set(matches.map((m) => m.scheduledTime))].sort((a, b) => a.localeCompare(b));
-  const maxCourt = Math.max(6, ...matches.map((m) => courtNumber(m.court)));
-  const courts = Array.from({ length: maxCourt }, (_, i) => i + 1);
+  const courts = options.occupiedOnly
+    ? [...new Set(matches.map((m) => courtNumber(m.court)))].filter((c) => c > 0).sort((a, b) => a - b)
+    : Array.from({ length: Math.max(6, ...matches.map((m) => courtNumber(m.court))) }, (_, i) => i + 1);
   const byKey = new Map<string, WaidcupLiveMatch>();
   for (const m of matches) {
     const key = `${courtNumber(m.court)}|${m.scheduledTime}`;

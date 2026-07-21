@@ -206,7 +206,8 @@ function OrderOfPlayBody({
       </div>
     );
   }
-  const grid = buildGrid(matches);
+  // Kiosk: leere Plätze ganz ausblenden, damit die belegten den Platz voll nutzen.
+  const grid = buildGrid(matches, { occupiedOnly: true });
   return (
     <FitBox deps={`${day}|${matches.length}|${grid.times.length}`}>
       <div className="kiosk__oop">
