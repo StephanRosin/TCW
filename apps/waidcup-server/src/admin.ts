@@ -143,11 +143,15 @@ export function registerWaidcupAdmin(
     },
   );
 
-  app.get("/api/waidcup/admin/payments", async (request, reply) => {
-    if (!enabled) return reply.code(503).send({ error: "Adminseite ist nicht konfiguriert." });
-    if (!isAuthed(request, secret)) return reply.code(401).send({ error: "Nicht angemeldet." });
-    return getWaidcupPayments(database, config.waidcupTournamentId);
-  });
+  app.get(
+    "/api/waidcup/admin/payments",
+    { config: { rateLimit: { max: 120, timeWindow: "1 minute" } } },
+    async (request, reply) => {
+      if (!enabled) return reply.code(503).send({ error: "Adminseite ist nicht konfiguriert." });
+      if (!isAuthed(request, secret)) return reply.code(401).send({ error: "Nicht angemeldet." });
+      return getWaidcupPayments(database, config.waidcupTournamentId);
+    },
+  );
 
   app.post(
     "/api/waidcup/admin/payments",
@@ -178,11 +182,15 @@ export function registerWaidcupAdmin(
     },
   );
 
-  app.get("/api/waidcup/admin/checkin", async (request, reply) => {
-    if (!enabled) return reply.code(503).send({ error: "Adminseite ist nicht konfiguriert." });
-    if (!isAuthed(request, secret)) return reply.code(401).send({ error: "Nicht angemeldet." });
-    return getWaidcupCheckin(database, config.waidcupTournamentId, todayIso());
-  });
+  app.get(
+    "/api/waidcup/admin/checkin",
+    { config: { rateLimit: { max: 120, timeWindow: "1 minute" } } },
+    async (request, reply) => {
+      if (!enabled) return reply.code(503).send({ error: "Adminseite ist nicht konfiguriert." });
+      if (!isAuthed(request, secret)) return reply.code(401).send({ error: "Nicht angemeldet." });
+      return getWaidcupCheckin(database, config.waidcupTournamentId, todayIso());
+    },
+  );
 
   app.post(
     "/api/waidcup/admin/checkin",
