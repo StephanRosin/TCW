@@ -49,6 +49,8 @@ test("getWaidcupCheckin: listet nur heutige Spieler, distinct, früheste Zeit", 
   const names = board.persons.map((p) => p.name);
   assert.deepEqual(names.sort(), ["Kunz Eva", "Roth Anna", "Weiss Xenia"]);
   assert.equal(board.persons.find((p) => p.name === "Weiss Xenia")?.matchTime, "09:00");
+  // Platz des frühesten Matches (m2, 09:00) wird mitgeführt.
+  assert.equal(board.persons.find((p) => p.name === "Weiss Xenia")?.matchCourt, "Platz 1");
   assert.equal(board.totalCount, 3);
   assert.equal(board.presentCount, 0);
   assert.ok(!names.includes("Berg Tom")); // Folgetag nicht enthalten

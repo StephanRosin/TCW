@@ -542,6 +542,8 @@ export interface WaidcupCheckinPerson {
   name: string;
   /** Früheste Startzeit der Person an diesem Tag ("HH:MM"), sonst leer. */
   matchTime: string;
+  /** Platz des frühesten Matches an diesem Tag, sonst leer. */
+  matchCourt: string;
   /** Anwesend an diesem Tag? */
   present: boolean;
 }
@@ -552,6 +554,42 @@ export interface WaidcupCheckinResponse {
   persons: WaidcupCheckinPerson[];
   presentCount: number;
   totalCount: number;
+}
+
+/**
+ * Eine Person im Empfang (Bezahlt + Check-In zusammengeführt): turnierweite
+ * Zahlungsdaten plus die tagesbezogene Anwesenheit.
+ */
+export interface WaidcupDeskPerson {
+  /** Stabiler Schlüssel (identisch zu Bezahlt-Tracking und Check-In). */
+  personKey: string;
+  name: string;
+  /** Konkurrenz-Disziplinen der Person, z. B. ["MS","DM"]. */
+  disciplines: string[];
+  /** Zu zahlender Gesamtbetrag in CHF. */
+  cost: number;
+  status: WaidcupPaymentStatus;
+  /** Frühestes terminiertes Match des Turniers ("YYYY-MM-DD" / "HH:MM"), sonst leer. */
+  firstMatchDate: string;
+  firstMatchTime: string;
+  /** Spielt die Person am abgefragten Tag? */
+  playsToday: boolean;
+  /** Früheste Startzeit am abgefragten Tag ("HH:MM"), sonst leer. */
+  todayMatchTime: string;
+  /** Platz des frühesten Matches am abgefragten Tag, sonst leer. */
+  todayMatchCourt: string;
+  /** Am abgefragten Tag anwesend (eingecheckt)? */
+  present: boolean;
+}
+
+export interface WaidcupDeskResponse {
+  /** Abgefragter Tag ("YYYY-MM-DD"). */
+  day: string;
+  persons: WaidcupDeskPerson[];
+  /** Summen (CHF) je Status, turnierweit. „offen" = weder bezahlt noch storniert. */
+  totalOpen: number;
+  totalPaid: number;
+  totalCancelled: number;
 }
 
 /** Live-Board des Waidcups: laufende und nächste Partien. */

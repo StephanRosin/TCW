@@ -10,8 +10,7 @@
 import { createHmac, scryptSync, timingSafeEqual } from "node:crypto";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import {
-  getWaidcupCheckin,
-  getWaidcupPayments,
+  getWaidcupDesk,
   openDatabase,
   readTournamentConfigs,
   refreshOrderOfPlay,
@@ -144,12 +143,12 @@ export function registerWaidcupAdmin(
   );
 
   app.get(
-    "/api/waidcup/admin/payments",
+    "/api/waidcup/admin/desk",
     { config: { rateLimit: { max: 120, timeWindow: "1 minute" } } },
     async (request, reply) => {
       if (!enabled) return reply.code(503).send({ error: "Adminseite ist nicht konfiguriert." });
       if (!isAuthed(request, secret)) return reply.code(401).send({ error: "Nicht angemeldet." });
-      return getWaidcupPayments(database, config.waidcupTournamentId);
+      return getWaidcupDesk(database, config.waidcupTournamentId, todayIso());
     },
   );
 
@@ -179,16 +178,6 @@ export function registerWaidcupAdmin(
         writable.close();
       }
       return { ok: true };
-    },
-  );
-
-  app.get(
-    "/api/waidcup/admin/checkin",
-    { config: { rateLimit: { max: 120, timeWindow: "1 minute" } } },
-    async (request, reply) => {
-      if (!enabled) return reply.code(503).send({ error: "Adminseite ist nicht konfiguriert." });
-      if (!isAuthed(request, secret)) return reply.code(401).send({ error: "Nicht angemeldet." });
-      return getWaidcupCheckin(database, config.waidcupTournamentId, todayIso());
     },
   );
 

@@ -1,15 +1,14 @@
 /**
  * Waidcup-Adminseite (Route #admin): im Look der Waidcup-Seite (gleiche Chrome
- * und Design-Tokens), login-geschützt. Tabs „Order of Play" (Sofort-Refresh)
- * und „Bezahlt" (Bezahlt-Tracking). Bewusst ohne Theme-/Sprachumschalter.
+ * und Design-Tokens), login-geschützt. Tabs „Empfang" (Bezahlt + Check-In) und
+ * „Order of Play" (Sofort-Refresh). Bewusst ohne Theme-/Sprachumschalter.
  */
 import { useEffect, useState, type FormEvent, type JSX } from "react";
 import { waidcupApi } from "../../api/client.js";
-import { CheckinPanel } from "./CheckinPanel.js";
-import { PaymentsPanel } from "./PaymentsPanel.js";
+import { DeskPanel } from "./DeskPanel.js";
 
 type Phase = "loading" | "disabled" | "anon" | "authed";
-type AdminTab = "refresh" | "checkin" | "payments";
+type AdminTab = "desk" | "refresh";
 
 interface RefreshInfo {
   matchesScoped: number;
@@ -115,7 +114,7 @@ function RefreshTab(): JSX.Element {
 
 export function AdminView(): JSX.Element {
   const [phase, setPhase] = useState<Phase>("loading");
-  const [tab, setTab] = useState<AdminTab>("refresh");
+  const [tab, setTab] = useState<AdminTab>("desk");
 
   const loadSession = (): void => {
     waidcupApi.admin
@@ -164,28 +163,19 @@ export function AdminView(): JSX.Element {
               type="button"
               role="tab"
               className="tabbar__btn"
+              aria-selected={tab === "desk"}
+              onClick={() => setTab("desk")}
+            >
+              Empfang
+            </button>
+            <button
+              type="button"
+              role="tab"
+              className="tabbar__btn"
               aria-selected={tab === "refresh"}
               onClick={() => setTab("refresh")}
             >
               Order of Play
-            </button>
-            <button
-              type="button"
-              role="tab"
-              className="tabbar__btn"
-              aria-selected={tab === "checkin"}
-              onClick={() => setTab("checkin")}
-            >
-              Check-In
-            </button>
-            <button
-              type="button"
-              role="tab"
-              className="tabbar__btn"
-              aria-selected={tab === "payments"}
-              onClick={() => setTab("payments")}
-            >
-              Bezahlt
             </button>
           </div>
         </nav>
@@ -197,9 +187,8 @@ export function AdminView(): JSX.Element {
           <div className="wc-admin__note">Die Adminseite ist auf diesem Server nicht konfiguriert.</div>
         ) : null}
         {phase === "anon" ? <LoginForm onSuccess={() => setPhase("authed")} /> : null}
+        {authed && tab === "desk" ? <DeskPanel /> : null}
         {authed && tab === "refresh" ? <RefreshTab /> : null}
-        {authed && tab === "checkin" ? <CheckinPanel /> : null}
-        {authed && tab === "payments" ? <PaymentsPanel /> : null}
       </main>
     </div>
   );

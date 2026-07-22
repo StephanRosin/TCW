@@ -20,6 +20,7 @@ const BYE = /^(bye|noch offen)$/i;
 
 interface DayMatchRow {
   scheduled_time: string;
+  court: string | null;
   player1_name: string;
   player1_name_2: string | null;
   player2_name: string;
@@ -31,18 +32,26 @@ interface PersonAcc {
   name: string;
   /** Früheste Startzeit der Person an dem Tag. */
   time: string;
+  /** Platz des frühesten Matches an dem Tag. */
+  court: string;
 }
 
-function considerPlayer(persons: Map<string, PersonAcc>, rawName: string | null, time: string): void {
+function considerPlayer(
+  persons: Map<string, PersonAcc>,
+  rawName: string | null,
+  time: string,
+  court: string,
+): void {
   if (!rawName) return;
   const clean = cleanPlayerName(rawName);
   if (clean === "" || BYE.test(clean)) return;
   const key = waidcupPersonKey(rawName);
   const existing = persons.get(key);
   if (!existing) {
-    persons.set(key, { key, name: clean, time });
+    persons.set(key, { key, name: clean, time, court });
   } else if (time !== "" && (existing.time === "" || time < existing.time)) {
     existing.time = time;
+    existing.court = court;
   }
 }
 
@@ -50,7 +59,7 @@ function considerPlayer(persons: Map<string, PersonAcc>, rawName: string | null,
 function personsPlayingOn(database: TcwDatabase, tournamentId: number, day: string): Map<string, PersonAcc> {
   const rows = database
     .prepare(
-      `SELECT scheduled_time, player1_name, player1_name_2, player2_name, player2_name_2
+      `SELECT scheduled_time, court, player1_name, player1_name_2, player2_name, player2_name_2
        FROM tournament_matches
        WHERE tournament_id = ? AND scheduled_date = ?
          AND TRIM(COALESCE(player1_name, '')) <> '' AND TRIM(COALESCE(player2_name, '')) <> ''`,
@@ -58,10 +67,11 @@ function personsPlayingOn(database: TcwDatabase, tournamentId: number, day: stri
     .all(tournamentId, day) as DayMatchRow[];
   const persons = new Map<string, PersonAcc>();
   for (const row of rows) {
-    considerPlayer(persons, row.player1_name, row.scheduled_time);
-    considerPlayer(persons, row.player1_name_2, row.scheduled_time);
-    considerPlayer(persons, row.player2_name, row.scheduled_time);
-    considerPlayer(persons, row.player2_name_2, row.scheduled_time);
+    const court = row.court ?? "";
+    considerPlayer(persons, row.player1_name, row.scheduled_time, court);
+    considerPlayer(persons, row.player1_name_2, row.scheduled_time, court);
+    considerPlayer(persons, row.player2_name, row.scheduled_time, court);
+    considerPlayer(persons, row.player2_name_2, row.scheduled_time, court);
   }
   return persons;
 }
@@ -86,7 +96,13 @@ export function getWaidcupCheckin(
   for (const person of persons.values()) {
     const isPresent = present.has(person.key);
     if (isPresent) presentCount += 1;
-    list.push({ personKey: person.key, name: person.name, matchTime: person.time, present: isPresent });
+    list.push({
+      personKey: person.key,
+      name: person.name,
+      matchTime: person.time,
+      matchCourt: person.court,
+      present: isPresent,
+    });
   }
   list.sort((a, b) => a.matchTime.localeCompare(b.matchTime) || a.name.localeCompare(b.name));
   return { day, persons: list, presentCount, totalCount: list.length };

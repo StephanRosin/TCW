@@ -1741,6 +1741,9 @@
 .wc-pay__disc {
   color: var(--text-muted);
 }
+.wc-pay__na {
+  color: var(--text-muted);
+}
 .wc-pay__table tbody tr.is-paid td {
   color: var(--text-muted);
 }
