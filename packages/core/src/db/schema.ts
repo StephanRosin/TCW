@@ -206,6 +206,17 @@ CREATE TABLE IF NOT EXISTS waidcup_payments (
   PRIMARY KEY (tournament_id, person_key)
 );
 
+-- Check-In der Waidcup-Adminseite: je Person und Tag ein Anwesenheits-Eintrag.
+-- Vorhandene Zeile = anwesend an dem Tag; keine Zeile = nicht anwesend. Rein
+-- admin-gepflegt (überlebt Importe). „bezahlt" setzt zusätzlich den heutigen Tag.
+CREATE TABLE IF NOT EXISTS waidcup_checkin (
+  tournament_id INTEGER NOT NULL,
+  person_key TEXT NOT NULL,
+  day TEXT NOT NULL, -- 'YYYY-MM-DD'
+  checked_in_at TEXT NOT NULL,
+  PRIMARY KEY (tournament_id, person_key, day)
+);
+
 -- Spielerzentrierte Einzel-/Doppelmatches (aktuelles Jahr), normalisiert über
 -- alle Wettbewerbe (IC, TC, Waidcup, CM). Pro Beteiligtem ein reihenfolge-
 -- unabhängiger Namens-Schlüssel (*_key) zum Suchen sowie die Profil-URL.

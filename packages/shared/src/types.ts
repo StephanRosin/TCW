@@ -501,6 +501,10 @@ export interface WaidcupLiveMatch {
   result: string;
   /** Gewinnerseite: 1, 2 oder 0 (offen/unbekannt). */
   winnerSide: number;
+  /** Anwesend-Häkchen je Spieler, parallel zu side1Names/side2Names. Nur im
+   *  Order of Play gesetzt (heutige Partien); sonst leer. */
+  side1Present?: boolean[];
+  side2Present?: boolean[];
 }
 
 /** Zahlungsstatus einer Person: offen, bezahlt oder storniert (Absage, ok). */
@@ -529,6 +533,25 @@ export interface WaidcupPaymentsResponse {
   totalOpen: number;
   totalPaid: number;
   totalCancelled: number;
+}
+
+/** Eine Person im Check-In eines Tages (Anwesenheitskontrolle). */
+export interface WaidcupCheckinPerson {
+  /** Stabiler Schlüssel (identisch zum Bezahlt-Tracking). */
+  personKey: string;
+  name: string;
+  /** Früheste Startzeit der Person an diesem Tag ("HH:MM"), sonst leer. */
+  matchTime: string;
+  /** Anwesend an diesem Tag? */
+  present: boolean;
+}
+
+export interface WaidcupCheckinResponse {
+  /** Tag der Kontrolle ("YYYY-MM-DD"). */
+  day: string;
+  persons: WaidcupCheckinPerson[];
+  presentCount: number;
+  totalCount: number;
 }
 
 /** Live-Board des Waidcups: laufende und nächste Partien. */

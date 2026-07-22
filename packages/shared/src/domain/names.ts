@@ -45,3 +45,12 @@ export function playerNameKey(rawName: string): string {
     .filter((token) => token !== "");
   return [...tokens].sort((a, b) => a.localeCompare(b)).join(" ");
 }
+
+/**
+ * Stabiler Personen-Schlüssel für das Waidcup-Admin (Bezahlt- & Check-In-
+ * Tracking) und die Anwesenheits-Anzeige im Order of Play. Bewusst identisch
+ * über alle drei Verwendungen, damit dieselbe Person überall zusammenfällt.
+ */
+export function waidcupPersonKey(rawName: string): string {
+  return `name:${playerNameKey(rawName)}`;
+}

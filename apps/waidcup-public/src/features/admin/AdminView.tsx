@@ -5,10 +5,11 @@
  */
 import { useEffect, useState, type FormEvent, type JSX } from "react";
 import { waidcupApi } from "../../api/client.js";
+import { CheckinPanel } from "./CheckinPanel.js";
 import { PaymentsPanel } from "./PaymentsPanel.js";
 
 type Phase = "loading" | "disabled" | "anon" | "authed";
-type AdminTab = "refresh" | "payments";
+type AdminTab = "refresh" | "checkin" | "payments";
 
 interface RefreshInfo {
   matchesScoped: number;
@@ -172,6 +173,15 @@ export function AdminView(): JSX.Element {
               type="button"
               role="tab"
               className="tabbar__btn"
+              aria-selected={tab === "checkin"}
+              onClick={() => setTab("checkin")}
+            >
+              Check-In
+            </button>
+            <button
+              type="button"
+              role="tab"
+              className="tabbar__btn"
               aria-selected={tab === "payments"}
               onClick={() => setTab("payments")}
             >
@@ -188,6 +198,7 @@ export function AdminView(): JSX.Element {
         ) : null}
         {phase === "anon" ? <LoginForm onSuccess={() => setPhase("authed")} /> : null}
         {authed && tab === "refresh" ? <RefreshTab /> : null}
+        {authed && tab === "checkin" ? <CheckinPanel /> : null}
         {authed && tab === "payments" ? <PaymentsPanel /> : null}
       </main>
     </div>

@@ -10,6 +10,7 @@
  * Resultat den ganzen Abend als „laufend" hängen bleibt.
  */
 import {
+  waidcupPersonKey,
   type TournamentBracket,
   type TournamentBracketMatch,
   type TournamentEventView,
@@ -18,6 +19,7 @@ import {
   type WaidcupLiveResponse,
 } from "@tcw/shared";
 import type { TcwDatabase } from "../db/connection.js";
+import { readPresentPersonKeys } from "./waidcup-checkin-service.js";
 import { resolveUrlsForNames } from "./player-registry.js";
 import { loadTournamentEvents } from "./tournament-store.js";
 
@@ -304,7 +306,14 @@ export function getWaidcupOrderOfPlay(
        ORDER BY scheduled_time`,
     )
     .all(tournamentId, today) as LiveRow[];
-  return [...rows.map(toLiveMatch), ...tbdMatchesFromBrackets(database, tournamentId, today)].sort(
+  const matches = [...rows.map(toLiveMatch), ...tbdMatchesFromBrackets(database, tournamentId, today)];
+  // Anwesend-Häkchen je Spieler für den angezeigten Tag (Check-In der Adminseite).
+  const present = readPresentPersonKeys(database, tournamentId, today);
+  for (const match of matches) {
+    match.side1Present = match.side1Names.map((name) => present.has(waidcupPersonKey(name)));
+    match.side2Present = match.side2Names.map((name) => present.has(waidcupPersonKey(name)));
+  }
+  return matches.sort(
     (a, b) =>
       a.scheduledTime.localeCompare(b.scheduledTime) || courtSortKey(a.court) - courtSortKey(b.court),
   );

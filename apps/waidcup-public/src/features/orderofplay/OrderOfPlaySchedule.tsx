@@ -80,26 +80,34 @@ function playerLine(name: string): string {
   return ranking !== "" ? `(${ranking}) ${label}` : label;
 }
 
-/** Eine Spielerseite (ein/zwei Namen), bei Sieg fett hervorgehoben. */
+/** Eine Spielerseite (ein/zwei Namen), bei Sieg fett hervorgehoben. Anwesende
+ *  Spieler (Check-In) bekommen ein kleines grünes Häkchen hinter den Namen. */
 function MatchSide({
   names,
   side,
   winner,
+  present,
   playerUrls,
 }: Readonly<{
   names: string[];
   side: "a" | "b";
   winner: boolean;
+  present?: boolean[];
   playerUrls?: Record<string, string>;
 }>): JSX.Element {
   return (
     <>
-      {names.map((n) => (
+      {names.map((n, index) => (
         <span
           key={`${side}-${n}`}
           className={winner ? "oopt__player oopt__player--winner" : "oopt__player"}
         >
           <PlayerLink name={n} label={playerLine(n)} playerUrls={playerUrls} />
+          {present?.[index] ? (
+            <span className="oopt__present" title="anwesend" aria-label="anwesend">
+              ✓
+            </span>
+          ) : null}
         </span>
       ))}
     </>
@@ -125,13 +133,25 @@ function MatchLines({
   return (
     <span className="oopt__match">
       {has1 ? (
-        <MatchSide names={match.side1Names} side="a" winner={match.winnerSide === 1} playerUrls={playerUrls} />
+        <MatchSide
+          names={match.side1Names}
+          side="a"
+          winner={match.winnerSide === 1}
+          present={match.side1Present}
+          playerUrls={playerUrls}
+        />
       ) : (
         <span className="oopt__player oopt__tbd">tbd</span>
       )}
       <span className="oopt__vs">vs</span>
       {has2 ? (
-        <MatchSide names={match.side2Names} side="b" winner={match.winnerSide === 2} playerUrls={playerUrls} />
+        <MatchSide
+          names={match.side2Names}
+          side="b"
+          winner={match.winnerSide === 2}
+          present={match.side2Present}
+          playerUrls={playerUrls}
+        />
       ) : (
         <span className="oopt__player oopt__tbd">tbd</span>
       )}

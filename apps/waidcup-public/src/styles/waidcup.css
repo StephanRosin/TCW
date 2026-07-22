@@ -452,6 +452,15 @@
 .oopt__player--winner {
   font-weight: 800;
 }
+/* Anwesend-Häkchen (Check-In) hinter dem Spielernamen – klar sichtbares Grün. */
+.oopt__present {
+  margin-left: 0.3em;
+  color: var(--green-600);
+  font-weight: 800;
+}
+.kiosk__oop .oopt__present {
+  color: #22c55e;
+}
 /* Ergebniszeile unter dem Matchup (nur gespielte Partien). */
 .oopt__result {
   margin-top: 0.2rem;

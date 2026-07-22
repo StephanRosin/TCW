@@ -10,10 +10,12 @@
 import { createHmac, scryptSync, timingSafeEqual } from "node:crypto";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import {
+  getWaidcupCheckin,
   getWaidcupPayments,
   openDatabase,
   readTournamentConfigs,
   refreshOrderOfPlay,
+  setWaidcupCheckin,
   setWaidcupPayment,
   type AppConfig,
   type TcwDatabase,
@@ -23,6 +25,12 @@ import {
 const COOKIE = "wc_admin";
 const ADMIN_USER = "admin";
 const SESSION_MS = 12 * 60 * 60 * 1000; // 12 h
+
+/** Heutiges Datum in Serverzeit (CH) als "YYYY-MM-DD" – identisch zum Order of Play. */
+function todayIso(now = new Date()): string {
+  const pad = (n: number): string => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
 
 // Cookie-Signaturschlüssel per scrypt (KDF) aus dem Admin-Passwort ableiten.
 // Deterministisch (fester Salt) → Sessions überleben Server-Neustarts; einmalig
@@ -157,7 +165,45 @@ export function registerWaidcupAdmin(
       }
       const writable = openDatabase({ filePath: config.dbFilePath });
       try {
-        setWaidcupPayment(writable, config.waidcupTournamentId, body.personKey, status, new Date().toISOString());
+        const at = new Date().toISOString();
+        setWaidcupPayment(writable, config.waidcupTournamentId, body.personKey, status, at);
+        // „bezahlt" setzt die Person für HEUTE automatisch auf anwesend.
+        if (status === "paid") {
+          setWaidcupCheckin(writable, config.waidcupTournamentId, body.personKey, todayIso(), true, at);
+        }
+      } finally {
+        writable.close();
+      }
+      return { ok: true };
+    },
+  );
+
+  app.get("/api/waidcup/admin/checkin", async (request, reply) => {
+    if (!enabled) return reply.code(503).send({ error: "Adminseite ist nicht konfiguriert." });
+    if (!isAuthed(request, secret)) return reply.code(401).send({ error: "Nicht angemeldet." });
+    return getWaidcupCheckin(database, config.waidcupTournamentId, todayIso());
+  });
+
+  app.post(
+    "/api/waidcup/admin/checkin",
+    { config: { rateLimit: { max: 120, timeWindow: "1 minute" } } },
+    async (request, reply) => {
+      if (!enabled) return reply.code(503).send({ error: "Adminseite ist nicht konfiguriert." });
+      if (!isAuthed(request, secret)) return reply.code(401).send({ error: "Nicht angemeldet." });
+      const body = (request.body ?? {}) as { personKey?: unknown; present?: unknown };
+      if (typeof body.personKey !== "string" || typeof body.present !== "boolean") {
+        return reply.code(400).send({ error: "Ungültige Anfrage." });
+      }
+      const writable = openDatabase({ filePath: config.dbFilePath });
+      try {
+        setWaidcupCheckin(
+          writable,
+          config.waidcupTournamentId,
+          body.personKey,
+          todayIso(),
+          body.present,
+          new Date().toISOString(),
+        );
       } finally {
         writable.close();
       }

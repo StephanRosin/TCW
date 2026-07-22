@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { playerNameKey } from "@tcw/shared";
+import { playerNameKey, waidcupPersonKey } from "@tcw/shared";
 import { openDatabase, type TcwDatabase } from "../db/connection.js";
+import { setWaidcupCheckin } from "./waidcup-checkin-service.js";
 import { upsertPlayer } from "./player-registry.js";
 import {
   getWaidcupLive,
@@ -152,6 +153,21 @@ test("getWaidcupOrderOfPlay: Draw behält die Runde, Round-robin zeigt nur den E
   // Round-robin: Gruppe („Mixed") wird nicht als Runde geführt → nur der Event.
   assert.equal(rr?.roundName, "");
   assert.equal(rr?.eventName, "DM A R1/R5");
+  db.close();
+});
+
+test("getWaidcupOrderOfPlay: anwesende Spieler (Check-In) bekommen side*Present=true", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  seed(db, [
+    { key: "cm1", date: "2026-07-04", time: "10:00", court: "Platz 1", p1: "Weiss Xenia (R5)", p2: "Roth Anna (R6)" },
+  ]);
+  // Nur Weiss Xenia für heute (2026-07-04) eingecheckt.
+  setWaidcupCheckin(db, TID, waidcupPersonKey("Weiss Xenia (R5)"), "2026-07-04", true, "2026-07-04T09:00:00Z");
+
+  const board = getWaidcupOrderOfPlay(db, TID, NOW);
+  const match = board.find((m) => m.court === "Platz 1")!;
+  assert.deepEqual(match.side1Present, [true]); // anwesend
+  assert.deepEqual(match.side2Present, [false]); // nicht eingecheckt
   db.close();
 });
 

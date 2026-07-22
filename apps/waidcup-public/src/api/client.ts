@@ -6,6 +6,7 @@
 import type {
   TournamentEventView,
   TournamentMatch,
+  WaidcupCheckinResponse,
   WaidcupLiveMatch,
   WaidcupLiveResponse,
   WaidcupPaymentStatus,
@@ -95,6 +96,15 @@ export const waidcupApi = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ personKey, status }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    },
+    checkin: async (): Promise<WaidcupCheckinResponse> => fetchJson("/api/waidcup/admin/checkin"),
+    setCheckin: async (personKey: string, present: boolean): Promise<void> => {
+      const response = await fetch("/api/waidcup/admin/checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ personKey, present }),
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
     },
