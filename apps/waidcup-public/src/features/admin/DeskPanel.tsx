@@ -70,6 +70,37 @@ function rowClass(person: WaidcupDeskPerson): string | undefined {
   return undefined;
 }
 
+/** Neuen Zustand mit geändertem Zahlungsstatus einer Person (inkl. CHF-Totals). */
+function applyStatus(
+  prev: WaidcupDeskResponse,
+  person: WaidcupDeskPerson,
+  next: WaidcupPaymentStatus,
+): WaidcupDeskResponse {
+  // „bezahlt" checkt eine heute spielende Person serverseitig auch ein.
+  const autoPresent = next === "paid" && person.playsToday;
+  const persons = prev.persons.map((p) =>
+    p.personKey === person.personKey
+      ? { ...p, status: next, present: autoPresent ? true : p.present }
+      : p,
+  );
+  const delta: Record<WaidcupPaymentStatus, number> = { open: 0, paid: 0, cancelled: 0 };
+  delta[person.status] -= person.cost;
+  delta[next] += person.cost;
+  return {
+    ...prev,
+    persons,
+    totalOpen: prev.totalOpen + delta.open,
+    totalPaid: prev.totalPaid + delta.paid,
+    totalCancelled: prev.totalCancelled + delta.cancelled,
+  };
+}
+
+/** Neuen Zustand mit geänderter Anwesenheit einer Person. */
+function applyPresent(prev: WaidcupDeskResponse, personKey: string, present: boolean): WaidcupDeskResponse {
+  const persons = prev.persons.map((p) => (p.personKey === personKey ? { ...p, present } : p));
+  return { ...prev, persons };
+}
+
 function SortHeader({
   label,
   col,
@@ -147,30 +178,10 @@ export function DeskPanel(): JSX.Element {
 
   const changeStatus = (person: WaidcupDeskPerson, next: WaidcupPaymentStatus): Promise<void> => {
     if (person.status === next) return Promise.resolve();
-    const previous = person.status;
     return busyGuard(person.personKey, async () => {
       try {
         await waidcupApi.admin.setPayment(person.personKey, next);
-        setData((prev) => {
-          if (!prev) return prev;
-          // „bezahlt" checkt eine heute spielende Person serverseitig auch ein.
-          const autoPresent = next === "paid" && person.playsToday;
-          const persons = prev.persons.map((p) =>
-            p.personKey === person.personKey
-              ? { ...p, status: next, present: autoPresent ? true : p.present }
-              : p,
-          );
-          let { totalOpen, totalPaid, totalCancelled } = prev;
-          const move = (status: WaidcupPaymentStatus, sign: number): void => {
-            const amount = sign * person.cost;
-            if (status === "paid") totalPaid += amount;
-            else if (status === "cancelled") totalCancelled += amount;
-            else totalOpen += amount;
-          };
-          move(previous, -1);
-          move(next, 1);
-          return { ...prev, persons, totalOpen, totalPaid, totalCancelled };
-        });
+        setData((prev) => (prev ? applyStatus(prev, person, next) : prev));
       } catch {
         setError("Speichern fehlgeschlagen.");
       }
@@ -182,13 +193,7 @@ export function DeskPanel(): JSX.Element {
     return busyGuard(person.personKey, async () => {
       try {
         await waidcupApi.admin.setCheckin(person.personKey, present);
-        setData((prev) => {
-          if (!prev) return prev;
-          const persons = prev.persons.map((p) =>
-            p.personKey === person.personKey ? { ...p, present } : p,
-          );
-          return { ...prev, persons };
-        });
+        setData((prev) => (prev ? applyPresent(prev, person.personKey, present) : prev));
       } catch {
         setError("Speichern fehlgeschlagen.");
       }
