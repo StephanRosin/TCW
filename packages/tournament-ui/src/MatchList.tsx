@@ -6,7 +6,7 @@
 import { useMemo, type JSX } from "react";
 import type { TournamentMatch } from "@tcw/shared";
 import { useI18n } from "./I18nProvider.js";
-import { compareTournamentMatches, type MatchListOrder } from "./matchOrder.js";
+import { sortTournamentMatches, type MatchListOrder } from "./matchOrder.js";
 import { PlayerLink } from "./PlayerLink.js";
 import { translateRound } from "./roundLabel.js";
 
@@ -51,7 +51,7 @@ export function MatchList({
   playerUrls?: Record<string, string>;
 }>): JSX.Element {
   const { t } = useI18n();
-  const sorted = useMemo(() => [...matches].sort(compareTournamentMatches(order)), [matches, order]);
+  const sorted = useMemo(() => sortTournamentMatches(matches, order), [matches, order]);
 
   if (matches.length === 0) {
     return <div className="state">{t("tournaments.noMatches")}</div>;
