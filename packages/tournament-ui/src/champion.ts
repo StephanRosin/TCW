@@ -6,12 +6,13 @@
  */
 import type { Discipline, PoolStanding } from "@tcw/shared";
 
-const WOMEN: ReadonlyArray<Discipline> = ["WS", "WD"];
+// Mixed (DM) wird gesondert behandelt und gehört deshalb nicht in diese Menge.
+const WOMEN = new Set<Discipline>(["WS", "WD"]);
 
 /** i18n-Schlüssel der Sieger-Beschriftung für eine Disziplin. */
 export function championLabelKey(discipline: Discipline | "" | undefined): string {
   if (discipline === "DM") return "tournaments.championMixed";
-  if (discipline && WOMEN.includes(discipline)) return "tournaments.championFemale";
+  if (discipline && WOMEN.has(discipline)) return "tournaments.championFemale";
   return "tournaments.champion";
 }
 
