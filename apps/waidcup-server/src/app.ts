@@ -95,9 +95,14 @@ export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise
     playerUrls: getWaidcupPlayerUrls(database, tournamentId),
   }));
   // Fotogalerie: Verzeichnis-Scan, kurz gepuffert (ein neuer Jahrgang ist nach
-  // spätestens einer Minute sichtbar, ohne Neustart).
+  // spätestens einer Minute sichtbar, ohne Neustart). Eigenes Limit, weil die
+  // Route – anders als die übrigen – auf die Platte zugreift.
   const gallery = cached(() => readWaidcupGallery(config.waidcupGalleryDir), GALLERY_CACHE_MS);
-  app.get("/api/waidcup/gallery", async () => gallery());
+  app.get(
+    "/api/waidcup/gallery",
+    { config: { rateLimit: { max: 120, timeWindow: "1 minute" } } },
+    async () => gallery(),
+  );
 
   // Login-geschützte Adminseite (Order-of-Play-Refresh + Bezahlt-Tracking).
   registerWaidcupAdmin(app, config, database);
