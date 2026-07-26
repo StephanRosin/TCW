@@ -1,8 +1,12 @@
 /**
- * Grossbild-Ansicht der Galerie: modaler Dialog mit Blättern per Pfeiltasten,
- * Schaltflächen und Wischgeste, ESC zum Schliessen. Geblättert wird innerhalb
- * der aktuell gefilterten Auswahl. Während der Dialog offen ist, scrollt die
- * Seite dahinter nicht mit.
+ * Grossbild-Ansicht der Galerie als natives <dialog>: der Browser übernimmt
+ * damit Fokusfalle, Hintergrund-Inertheit und das Schliessen per ESC. Ergänzt
+ * um Blättern per Pfeiltasten, Schaltflächen und Wischgeste; geblättert wird
+ * innerhalb der aktuell gefilterten Auswahl.
+ *
+ * Tastatur- und Touch-Listener hängen bewusst am Element (nicht als JSX-Props),
+ * damit der Dialog selbst keine Maus-/Tastaturbehandlung als nicht-interaktives
+ * Element trägt. Zum Schliessen per Klick daneben dient eine eigene Fläche.
  */
 import { useEffect, useRef, type JSX } from "react";
 import { useI18n } from "@tcw/tournament-ui";
@@ -25,49 +29,52 @@ export function Lightbox({
   onStep: (delta: number) => void;
 }>): JSX.Element | null {
   const { t, language } = useI18n();
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const touchStartX = useRef<number | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const photo = photos[index];
 
+  // Einmalig modal öffnen; erneutes showModal() auf einem offenen Dialog wirft.
   useEffect(() => {
-    const onKey = (event: KeyboardEvent): void => {
-      if (event.key === "Escape") onClose();
-      else if (event.key === "ArrowLeft") onStep(-1);
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
+  }, []);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return undefined;
+    let touchStartX: number | null = null;
+
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === "ArrowLeft") onStep(-1);
       else if (event.key === "ArrowRight") onStep(1);
     };
-    document.addEventListener("keydown", onKey);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    closeRef.current?.focus();
+    const onTouchStart = (event: TouchEvent): void => {
+      touchStartX = event.changedTouches[0]?.clientX ?? null;
+    };
+    const onTouchEnd = (event: TouchEvent): void => {
+      const startX = touchStartX;
+      touchStartX = null;
+      if (startX === null) return;
+      const distance = (event.changedTouches[0]?.clientX ?? startX) - startX;
+      if (Math.abs(distance) >= SWIPE_PX) onStep(distance < 0 ? 1 : -1);
+    };
+
+    dialog.addEventListener("keydown", onKeyDown);
+    dialog.addEventListener("touchstart", onTouchStart, { passive: true });
+    dialog.addEventListener("touchend", onTouchEnd, { passive: true });
     return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previousOverflow;
+      dialog.removeEventListener("keydown", onKeyDown);
+      dialog.removeEventListener("touchstart", onTouchStart);
+      dialog.removeEventListener("touchend", onTouchEnd);
     };
   });
 
   if (!photo) return null;
 
-  const onTouchEnd = (endX: number): void => {
-    const startX = touchStartX.current;
-    touchStartX.current = null;
-    if (startX === null) return;
-    const distance = endX - startX;
-    if (Math.abs(distance) >= SWIPE_PX) onStep(distance < 0 ? 1 : -1);
-  };
-
   return (
-    <div
-      className="lightbox"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("gallery.title")}
-      onClick={onClose}
-      onTouchStart={(event) => {
-        touchStartX.current = event.changedTouches[0]?.clientX ?? null;
-      }}
-      onTouchEnd={(event) => onTouchEnd(event.changedTouches[0]?.clientX ?? 0)}
-    >
-      <button ref={closeRef} type="button" className="lightbox__close" aria-label={t("gallery.close")} onClick={onClose}>
+    <dialog ref={dialogRef} className="lightbox" aria-label={t("gallery.title")} onClose={onClose}>
+      {/* Fläche hinter dem Bild: Klick daneben schliesst. */}
+      <button type="button" className="lightbox__backdrop" aria-label={t("gallery.close")} onClick={onClose} />
+      <button type="button" className="lightbox__close" aria-label={t("gallery.close")} onClick={onClose}>
         ✕
       </button>
       {photos.length > 1 ? (
@@ -75,16 +82,12 @@ export function Lightbox({
           type="button"
           className="lightbox__nav lightbox__nav--prev"
           aria-label={t("gallery.previous")}
-          onClick={(event) => {
-            event.stopPropagation();
-            onStep(-1);
-          }}
+          onClick={() => onStep(-1)}
         >
           ‹
         </button>
       ) : null}
-      {/* Klicks auf das Bild selbst dürfen den Dialog nicht schliessen. */}
-      <figure className="lightbox__figure" onClick={(event) => event.stopPropagation()}>
+      <figure className="lightbox__figure">
         <img className="lightbox__image" src={photo.large} alt="" />
         <figcaption className="lightbox__caption">
           <span>{formatGalleryDay(photo.day, language)}</span>
@@ -98,14 +101,11 @@ export function Lightbox({
           type="button"
           className="lightbox__nav lightbox__nav--next"
           aria-label={t("gallery.next")}
-          onClick={(event) => {
-            event.stopPropagation();
-            onStep(1);
-          }}
+          onClick={() => onStep(1)}
         >
           ›
         </button>
       ) : null}
-    </div>
+    </dialog>
   );
 }

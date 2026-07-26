@@ -1586,6 +1586,8 @@ table.board .player-row td {
 }
 /* Sieger über dem Baum: breite Tableaus und schmale Viewports scrollen
    horizontal, die Sieger-Spalte liegt dann ausserhalb des Sichtbereichs. */
+/* Deckende Fläche: der Banner steht bei Round-robin-Konkurrenzen direkt auf dem
+   Hintergrundbild, halbtransparent wären die Namen dort nicht lesbar. */
 .tbracket-champion-banner {
   display: flex;
   align-items: center;
@@ -1594,8 +1596,10 @@ table.board .player-row td {
   margin: 0 0 0.75rem;
   padding: 0.55rem 0.9rem;
   border-radius: 10px;
-  background: var(--own-row);
+  background: var(--surface);
   border: 1px solid var(--green-600);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
 }
 .tbracket-champion-banner__label {
   font-size: 0.72rem;
@@ -1613,6 +1617,10 @@ table.board .player-row td {
   flex-wrap: wrap;
   font-weight: 800;
   font-size: 1.05rem;
+  color: var(--text);
+}
+.tbracket-champion-banner__names a {
+  color: var(--own);
 }
 
 /* ---------- Spielermatches ---------- */

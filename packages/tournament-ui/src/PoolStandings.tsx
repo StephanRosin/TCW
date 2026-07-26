@@ -5,7 +5,9 @@
  * im Round-robin-Modus läuft. Geteilt zwischen Waidcup- und Spielbetriebs-App.
  */
 import type { JSX } from "react";
-import type { PoolStanding } from "@tcw/shared";
+import type { Discipline, PoolStanding } from "@tcw/shared";
+import { poolChampionNames } from "./champion.js";
+import { ChampionBanner } from "./ChampionBanner.js";
 import { useI18n } from "./I18nProvider.js";
 import { PlayerLink } from "./PlayerLink.js";
 
@@ -13,7 +15,13 @@ export function PoolStandings({
   pools,
   search = "",
   playerUrls,
-}: Readonly<{ pools: PoolStanding[]; search?: string; playerUrls?: Record<string, string> }>): JSX.Element | null {
+  discipline,
+}: Readonly<{
+  pools: PoolStanding[];
+  search?: string;
+  playerUrls?: Record<string, string>;
+  discipline?: Discipline | "";
+}>): JSX.Element | null {
   const { t } = useI18n();
   const needle = search.trim().toLowerCase();
   const rowMatches = (names: string[]): boolean =>
@@ -21,8 +29,11 @@ export function PoolStandings({
   if (pools.length === 0) {
     return null;
   }
+  // Steht die Gruppe fest, bekommt sie denselben Sieger-Banner wie ein Tableau.
+  const champion = poolChampionNames(pools);
   return (
     <div className="wc-pools">
+      {champion ? <ChampionBanner names={champion} discipline={discipline} playerUrls={playerUrls} /> : null}
       {pools.map((pool) => (
         <div key={pool.poolName} className="wc-pool">
           {pool.poolName ? <h4 className="wc-pool__name">{pool.poolName}</h4> : null}

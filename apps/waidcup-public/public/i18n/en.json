@@ -41,6 +41,8 @@
   "tournaments.noDate": "No date",
   "tournaments.tbd": "open",
   "tournaments.champion": "Winner",
+  "tournaments.championFemale": "Winner",
+  "tournaments.championMixed": "Winner",
   "tournaments.allTableaux": "All",
   "tournaments.playerSearchPlaceholder": "Search player",
   "live.nowTitle": "On court now",

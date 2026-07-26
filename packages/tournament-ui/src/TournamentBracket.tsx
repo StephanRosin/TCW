@@ -9,7 +9,9 @@
  * Ergebnis ohne Scrollen sichtbar.
  */
 import type { JSX } from "react";
-import type { TournamentBracket as Bracket, TournamentBracketMatch } from "@tcw/shared";
+import type { Discipline, TournamentBracket as Bracket, TournamentBracketMatch } from "@tcw/shared";
+import { championLabelKey } from "./champion.js";
+import { ChampionBanner } from "./ChampionBanner.js";
 import { useI18n } from "./I18nProvider.js";
 import { PlayerLink } from "./PlayerLink.js";
 import { translateRound } from "./roundLabel.js";
@@ -97,23 +99,20 @@ export function TournamentBracket({
   bracket,
   search,
   playerUrls,
-}: Readonly<{ bracket: Bracket; search: string; playerUrls?: Record<string, string> }>): JSX.Element {
+  discipline,
+}: Readonly<{
+  bracket: Bracket;
+  search: string;
+  playerUrls?: Record<string, string>;
+  discipline?: Discipline | "";
+}>): JSX.Element {
   const { t } = useI18n();
   const needle = search.trim().toLowerCase();
   const matchesSearch = (names: string[]): boolean =>
     needle !== "" && names.some((name) => name.toLowerCase().includes(needle));
   return (
     <>
-      {bracket.championNames.length > 0 ? (
-        <div className="tbracket-champion-banner">
-          <span className="tbracket-champion-banner__label">{t("tournaments.champion")}</span>
-          <span className="tbracket-champion-banner__names">
-            {bracket.championNames.map((name) => (
-              <PlayerLink key={name} name={name} playerUrls={playerUrls} />
-            ))}
-          </span>
-        </div>
-      ) : null}
+      <ChampionBanner names={bracket.championNames} discipline={discipline} playerUrls={playerUrls} />
       <div className="tbracket-wrap">
         <div className="tbracket">
           {bracket.rounds.map((round) => (
@@ -127,7 +126,7 @@ export function TournamentBracket({
             </div>
           ))}
           <div className="tbracket-round tbracket-round--champion">
-            <div className="tbracket-round__title">{t("tournaments.champion")}</div>
+            <div className="tbracket-round__title">{t(championLabelKey(discipline))}</div>
             <div className="tbracket-round__matches">
               <div className="tbracket-match tbracket-match--single">
                 <Slot

@@ -41,6 +41,8 @@
   "tournaments.noDate": "Sans date",
   "tournaments.tbd": "ouvert",
   "tournaments.champion": "Vainqueur",
+  "tournaments.championFemale": "Vainqueure",
+  "tournaments.championMixed": "Vainqueur·e",
   "tournaments.allTableaux": "Tous",
   "tournaments.playerSearchPlaceholder": "Rechercher un joueur",
   "live.nowTitle": "Sur le court",

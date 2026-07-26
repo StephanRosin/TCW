@@ -33,10 +33,24 @@ function EventBody({
 }: Readonly<{ event: TournamentEventView; search: string; playerUrls: Record<string, string> }>): JSX.Element {
   const { t } = useI18n();
   if (event.bracket) {
-    return <TournamentBracket bracket={event.bracket} search={search} playerUrls={playerUrls} />;
+    return (
+      <TournamentBracket
+        bracket={event.bracket}
+        search={search}
+        playerUrls={playerUrls}
+        discipline={event.discipline}
+      />
+    );
   }
   if (event.pools.length > 0) {
-    return <PoolStandings pools={event.pools} search={search} playerUrls={playerUrls} />;
+    return (
+      <PoolStandings
+        pools={event.pools}
+        search={search}
+        playerUrls={playerUrls}
+        discipline={event.discipline}
+      />
+    );
   }
   return <div className="state">{t("brackets.noBracket")}</div>;
 }

@@ -41,6 +41,8 @@
   "tournaments.noDate": "Senza data",
   "tournaments.tbd": "aperto",
   "tournaments.champion": "Vincitore",
+  "tournaments.championFemale": "Vincitrice",
+  "tournaments.championMixed": "Vincitore/trice",
   "tournaments.allTableaux": "Tutti",
   "tournaments.playerSearchPlaceholder": "Cerca giocatore",
   "live.nowTitle": "Ora in campo",

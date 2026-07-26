@@ -225,13 +225,20 @@ function TournamentPanelBody({
     return <RegistrationTable players={players} />;
   }
   if (showsBracket && singleEvent?.bracket) {
-    return <TournamentBracket bracket={singleEvent.bracket} search={search} playerUrls={playerUrls} />;
+    return (
+      <TournamentBracket
+        bracket={singleEvent.bracket}
+        search={search}
+        playerUrls={playerUrls}
+        discipline={singleEvent.discipline}
+      />
+    );
   }
   return (
     <>
       <MatchList matches={matches} playerUrls={playerUrls} />
       {singleEvent && singleEvent.pools.length > 0 ? (
-        <PoolStandings pools={singleEvent.pools} playerUrls={playerUrls} />
+        <PoolStandings pools={singleEvent.pools} playerUrls={playerUrls} discipline={singleEvent.discipline} />
       ) : null}
     </>
   );

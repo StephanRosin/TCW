@@ -172,6 +172,8 @@
   "tournaments.poolGames": "Games",
   "tournaments.tbd": "open",
   "tournaments.champion": "Winner",
+  "tournaments.championFemale": "Winner",
+  "tournaments.championMixed": "Winner",
   "teams.showPhoto": "Show team photo",
   "tournaments.agenda": "Agenda",
   "agenda.date": "Date",
