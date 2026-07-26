@@ -20,6 +20,7 @@ import {
   loadConfig,
   openDatabase,
   PUBLIC_SECURITY_HEADERS,
+  readWaidcupGallery,
   SERVER_LOGGER_OPTIONS,
   type AppConfig,
 } from "@tcw/core";
@@ -27,6 +28,21 @@ import type { HealthResponse } from "@tcw/shared";
 import { registerWaidcupAdmin } from "./admin.js";
 
 const WEB_DIST_DIR = resolve(loadConfig().repoRoot, "apps/waidcup-public/dist");
+const GALLERY_CACHE_MS = 60_000;
+
+/** Merkt sich das Ergebnis für `ttlMs`, damit jeder Aufruf nicht die Platte liest. */
+function cached<T>(read: () => T, ttlMs: number): () => T {
+  let value: T | null = null;
+  let readAt = 0;
+  return () => {
+    const now = Date.now();
+    if (value === null || now - readAt > ttlMs) {
+      value = read();
+      readAt = now;
+    }
+    return value;
+  };
+}
 
 export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise<FastifyInstance> {
   const app = Fastify({ logger: { ...SERVER_LOGGER_OPTIONS } });
@@ -78,6 +94,10 @@ export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise
     tomorrow: getWaidcupOrderOfPlay(database, tournamentId, new Date(), 1),
     playerUrls: getWaidcupPlayerUrls(database, tournamentId),
   }));
+  // Fotogalerie: Verzeichnis-Scan, kurz gepuffert (ein neuer Jahrgang ist nach
+  // spätestens einer Minute sichtbar, ohne Neustart).
+  const gallery = cached(() => readWaidcupGallery(config.waidcupGalleryDir), GALLERY_CACHE_MS);
+  app.get("/api/waidcup/gallery", async () => gallery());
 
   // Login-geschützte Adminseite (Order-of-Play-Refresh + Bezahlt-Tracking).
   registerWaidcupAdmin(app, config, database);
@@ -97,6 +117,19 @@ export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise
 
   if (existsSync(WEB_DIST_DIR)) {
     app.register(fastifyStatic, { root: WEB_DIST_DIR });
+  }
+  // Galeriebilder liegen ausserhalb des Repos; unveränderliche Dateinamen je
+  // Jahrgang, daher lange cachebar.
+  if (existsSync(config.waidcupGalleryDir)) {
+    app.register(fastifyStatic, {
+      root: resolve(config.waidcupGalleryDir),
+      prefix: "/gallery/",
+      decorateReply: false,
+      cacheControl: true,
+      maxAge: "30d",
+      index: false,
+      list: false,
+    });
   }
   // Hash-Routing: keine Server-Routen ausser "/" und den Assets; unbekannte
   // Pfade liefern strikt 404 (keine internen Dateien erreichbar).

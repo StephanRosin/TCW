@@ -12,6 +12,7 @@ import { MatchesView } from "./features/matches/MatchesView.js";
 import { LiveView } from "./features/live/LiveView.js";
 import { LocationView } from "./features/location/LocationView.js";
 import { InfosView } from "./features/infos/InfosView.js";
+import { GalleryView } from "./features/gallery/GalleryView.js";
 import { HelpersView } from "./features/helpers/HelpersView.js";
 import { OrderOfPlayView } from "./features/orderofplay/OrderOfPlayView.js";
 import { WebcamView } from "./features/webcam/WebcamView.js";
@@ -23,6 +24,8 @@ function ActiveView({ view }: Readonly<{ view: MainView }>): JSX.Element {
   switch (view) {
     case "infos":
       return <InfosView />;
+    case "gallery":
+      return <GalleryView />;
     case "helpers":
       return <HelpersView />;
     case "brackets":

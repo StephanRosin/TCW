@@ -4,6 +4,7 @@
   "nav.sections": "Seitenbereiche",
   "nav.location": "Standort",
   "nav.infos": "Infos",
+  "nav.gallery": "Galerie",
   "nav.helpers": "Helfer",
   "nav.brackets": "Turnierbaum",
   "nav.matches": "Matches",
@@ -188,5 +189,16 @@
   "infos.hintPayment": "Beim Check-in kann mit Twint oder in bar bezahlt werden.",
   "helpers.role.pastaGrill": "Pasta+Salat+Grill",
   "helpers.note.shiftEnd": "Schichtende {a}",
-  "orderOfPlay.openKiosk": "Kiosk öffnen"
+  "orderOfPlay.openKiosk": "Kiosk öffnen",
+  "gallery.title": "Galerie",
+  "gallery.all": "Alle",
+  "gallery.empty": "Noch keine Bilder vorhanden.",
+  "gallery.loading": "Bilder werden geladen …",
+  "gallery.error": "Bilder konnten nicht geladen werden.",
+  "gallery.open": "Bild {number} von {total} gross anzeigen",
+  "gallery.close": "Schliessen",
+  "gallery.previous": "Vorheriges Bild",
+  "gallery.next": "Nächstes Bild",
+  "gallery.counter": "{number} / {total}",
+  "gallery.photoCount": "{count} Bilder"
 }

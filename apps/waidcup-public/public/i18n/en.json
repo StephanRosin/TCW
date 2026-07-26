@@ -4,6 +4,7 @@
   "nav.sections": "Sections",
   "nav.location": "Location",
   "nav.infos": "Info",
+  "nav.gallery": "Gallery",
   "nav.helpers": "Helpers",
   "nav.brackets": "Draws",
   "nav.matches": "Matches",
@@ -188,5 +189,16 @@
   "infos.hintPayment": "At check-in you can pay by Twint or in cash.",
   "helpers.role.pastaGrill": "Pasta+salad+grill",
   "helpers.note.shiftEnd": "Shift ends {a}",
-  "orderOfPlay.openKiosk": "Open kiosk"
+  "orderOfPlay.openKiosk": "Open kiosk",
+  "gallery.title": "Gallery",
+  "gallery.all": "All",
+  "gallery.empty": "No photos yet.",
+  "gallery.loading": "Loading photos …",
+  "gallery.error": "Photos could not be loaded.",
+  "gallery.open": "View photo {number} of {total}",
+  "gallery.close": "Close",
+  "gallery.previous": "Previous photo",
+  "gallery.next": "Next photo",
+  "gallery.counter": "{number} / {total}",
+  "gallery.photoCount": "{count} photos"
 }

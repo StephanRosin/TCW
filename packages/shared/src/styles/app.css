@@ -1584,6 +1584,36 @@ table.board .player-row td {
 .tbracket-round--champion .tbracket-slot--winner {
   background: var(--own-row);
 }
+/* Sieger über dem Baum: breite Tableaus und schmale Viewports scrollen
+   horizontal, die Sieger-Spalte liegt dann ausserhalb des Sichtbereichs. */
+.tbracket-champion-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  background: var(--own-row);
+  border: 1px solid var(--green-600);
+}
+.tbracket-champion-banner__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: var(--green-600);
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+}
+.tbracket-champion-banner__names {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
 
 /* ---------- Spielermatches ---------- */
 .pm-heading {

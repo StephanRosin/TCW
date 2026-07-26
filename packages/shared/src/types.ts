@@ -592,6 +592,25 @@ export interface WaidcupDeskResponse {
   totalCancelled: number;
 }
 
+/** Ein Turniertag der Fotogalerie mit den Dateinamen seiner Bilder. */
+export interface WaidcupGalleryDay {
+  /** Tag als "YYYY-MM-DD". */
+  day: string;
+  /** Dateinamen (identisch in thumb/ und large/), chronologisch sortiert. */
+  images: string[];
+}
+
+/** Ein Jahrgang der Fotogalerie. */
+export interface WaidcupGalleryYear {
+  year: number;
+  days: WaidcupGalleryDay[];
+}
+
+export interface WaidcupGalleryResponse {
+  /** Jahrgänge, neueste zuerst. */
+  years: WaidcupGalleryYear[];
+}
+
 /** Live-Board des Waidcups: laufende und nächste Partien. */
 export interface WaidcupLiveResponse {
   /** Läuft jetzt (heute terminiert, Startzeit erreicht, noch ohne Resultat); nach Platz sortiert. */

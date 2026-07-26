@@ -98,6 +98,8 @@ export interface AppConfig {
   waidcupAdminPassword: string;
   /** Pfad zur SQLite-DB der CM-Platz-App (bestätigte CM-Termine; leer = aus). */
   cmPlatzDbPath: string;
+  /** Wurzel der Waidcup-Fotogalerie (<jahr>/<tag>/{thumb,large}); fehlt sie, bleibt der Tab leer. */
+  waidcupGalleryDir: string;
 }
 
 export function loadConfig(): AppConfig {
@@ -130,5 +132,6 @@ export function loadConfig(): AppConfig {
     waidcupTournamentId: readNumber("WAIDCUP_TOURNAMENT_ID", 158138),
     waidcupAdminPassword: process.env.WAIDCUP_ADMIN_PASSWORD ?? "",
     cmPlatzDbPath: process.env.CM_PLATZ_DB_PATH?.trim() ?? "",
+    waidcupGalleryDir: readPath("WAIDCUP_GALLERY_DIR", `${process.env.HOME ?? "."}/waidcup-gallery`),
   };
 }

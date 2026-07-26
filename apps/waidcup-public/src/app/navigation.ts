@@ -2,7 +2,7 @@
  * Hauptnavigation der Waidcup-Seite (Tabs) plus chromelose Kiosk-Route.
  * „Standort" ist zugleich die Willkommensseite und damit der Default.
  */
-export const MAIN_VIEWS = ["location", "infos", "helpers", "brackets", "matches", "orderofplay", "live", "webcam", "tour"] as const;
+export const MAIN_VIEWS = ["location", "infos", "gallery", "helpers", "brackets", "matches", "orderofplay", "live", "webcam", "tour"] as const;
 
 export type MainView = (typeof MAIN_VIEWS)[number];
 
@@ -23,14 +23,22 @@ export interface NavItem {
   labelKey: string;
 }
 
+/**
+ * Sichtbare Tabs. Nicht gelistete Views bleiben per Direkt-Hash erreichbar und
+ * voll funktionsfähig:
+ *  - `live`: nur der Tab entfällt (im Alltag wurde immer Order of Play genutzt);
+ *    das Live-Board bleibt die Grundlage der Kiosk-Route `#kiosk`.
+ *  - `helpers`: pausiert bis rund einen Monat vor dem Waidcup 2027 – dann die
+ *    Zeile unten wieder einkommentieren und den Helferplan aktualisieren.
+ */
 export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { view: "location", labelKey: "nav.location" },
   { view: "infos", labelKey: "nav.infos" },
-  { view: "helpers", labelKey: "nav.helpers" },
+  { view: "gallery", labelKey: "nav.gallery" },
+  // { view: "helpers", labelKey: "nav.helpers" }, // ab ~Juni 2027 wieder aktivieren
   { view: "brackets", labelKey: "nav.brackets" },
   { view: "matches", labelKey: "nav.matches" },
   { view: "orderofplay", labelKey: "nav.orderOfPlay" },
-  { view: "live", labelKey: "nav.live" },
   { view: "webcam", labelKey: "nav.webcam" },
   { view: "tour", labelKey: "nav.tour" },
 ];

@@ -4,6 +4,7 @@
   "nav.sections": "Sezioni",
   "nav.location": "Come arrivare",
   "nav.infos": "Info",
+  "nav.gallery": "Galleria",
   "nav.helpers": "Volontari",
   "nav.brackets": "Tabelloni",
   "nav.matches": "Partite",
@@ -188,5 +189,16 @@
   "infos.hintPayment": "Al check-in è possibile pagare con Twint o in contanti.",
   "helpers.role.pastaGrill": "Pasta+insalata+griglia",
   "helpers.note.shiftEnd": "Fine turno {a}",
-  "orderOfPlay.openKiosk": "Apri chiosco"
+  "orderOfPlay.openKiosk": "Apri chiosco",
+  "gallery.title": "Galleria",
+  "gallery.all": "Tutte",
+  "gallery.empty": "Ancora nessuna foto.",
+  "gallery.loading": "Caricamento delle foto …",
+  "gallery.error": "Impossibile caricare le foto.",
+  "gallery.open": "Mostra la foto {number} di {total}",
+  "gallery.close": "Chiudi",
+  "gallery.previous": "Foto precedente",
+  "gallery.next": "Foto successiva",
+  "gallery.counter": "{number} / {total}",
+  "gallery.photoCount": "{count} foto"
 }

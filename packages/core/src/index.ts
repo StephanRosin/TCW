@@ -19,6 +19,7 @@ export * from "./services/order-of-play-refresh.js";
 export * from "./services/waidcup-payments-service.js";
 export * from "./services/waidcup-checkin-service.js";
 export * from "./services/waidcup-desk-service.js";
+export * from "./services/waidcup-gallery-service.js";
 export * from "./integrations/cm-platz/reservations.js";
 export * from "./services/matches-import-service.js";
 export * from "./services/player-matches-service.js";

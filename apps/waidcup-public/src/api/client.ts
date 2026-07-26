@@ -7,6 +7,7 @@ import type {
   TournamentEventView,
   TournamentMatch,
   WaidcupDeskResponse,
+  WaidcupGalleryResponse,
   WaidcupLiveMatch,
   WaidcupLiveResponse,
   WaidcupPaymentStatus,
@@ -38,6 +39,7 @@ export const waidcupApi = {
     );
     return { matches: data.matches.map(withDisplayName), playerUrls: data.playerUrls };
   },
+  gallery: async (): Promise<WaidcupGalleryResponse> => fetchJson("/api/waidcup/gallery"),
   live: async (): Promise<WaidcupLiveResponse> => {
     const data = await fetchJson<WaidcupLiveResponse>("/api/waidcup/live");
     return { ...data, now: data.now.map(withDisplayName), upcoming: data.upcoming.map(withDisplayName) };

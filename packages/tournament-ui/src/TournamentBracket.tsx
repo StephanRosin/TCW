@@ -2,6 +2,11 @@
  * Tableau-Baum eines Turnier-Events: Spalten je Runde von der ersten Runde bis
  * zum Final (plus Sieger-Spalte). Wird vollständig gerendert, auch wenn spätere
  * Runden noch nicht ausgelost/gespielt sind (offene Plätze = "offen").
+ *
+ * Steht der Sieger fest, wird er zusätzlich als Banner über dem Baum gezeigt:
+ * breite Tableaus (ab 1/32-Final) und schmale Viewports scrollen horizontal, die
+ * Sieger-Spalte liegt dann ausserhalb des Sichtbereichs – der Banner macht das
+ * Ergebnis ohne Scrollen sichtbar.
  */
 import type { JSX } from "react";
 import type { TournamentBracket as Bracket, TournamentBracketMatch } from "@tcw/shared";
@@ -98,32 +103,44 @@ export function TournamentBracket({
   const matchesSearch = (names: string[]): boolean =>
     needle !== "" && names.some((name) => name.toLowerCase().includes(needle));
   return (
-    <div className="tbracket-wrap">
-      <div className="tbracket">
-        {bracket.rounds.map((round) => (
-          <div key={round.roundName} className="tbracket-round">
-            <div className="tbracket-round__title">{translateRound(round.roundName, t)}</div>
-            <div className="tbracket-round__matches">
-              {round.matches.map((match, index) => (
-                <BracketMatch key={index} match={match} matchesSearch={matchesSearch} playerUrls={playerUrls} />
-              ))}
+    <>
+      {bracket.championNames.length > 0 ? (
+        <div className="tbracket-champion-banner">
+          <span className="tbracket-champion-banner__label">{t("tournaments.champion")}</span>
+          <span className="tbracket-champion-banner__names">
+            {bracket.championNames.map((name) => (
+              <PlayerLink key={name} name={name} playerUrls={playerUrls} />
+            ))}
+          </span>
+        </div>
+      ) : null}
+      <div className="tbracket-wrap">
+        <div className="tbracket">
+          {bracket.rounds.map((round) => (
+            <div key={round.roundName} className="tbracket-round">
+              <div className="tbracket-round__title">{translateRound(round.roundName, t)}</div>
+              <div className="tbracket-round__matches">
+                {round.matches.map((match, index) => (
+                  <BracketMatch key={index} match={match} matchesSearch={matchesSearch} playerUrls={playerUrls} />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-        <div className="tbracket-round tbracket-round--champion">
-          <div className="tbracket-round__title">{t("tournaments.champion")}</div>
-          <div className="tbracket-round__matches">
-            <div className="tbracket-match tbracket-match--single">
-              <Slot
-                names={bracket.championNames}
-                isWinner={bracket.championNames.length > 0}
-                highlight={matchesSearch(bracket.championNames)}
-                playerUrls={playerUrls}
-              />
+          ))}
+          <div className="tbracket-round tbracket-round--champion">
+            <div className="tbracket-round__title">{t("tournaments.champion")}</div>
+            <div className="tbracket-round__matches">
+              <div className="tbracket-match tbracket-match--single">
+                <Slot
+                  names={bracket.championNames}
+                  isWinner={bracket.championNames.length > 0}
+                  highlight={matchesSearch(bracket.championNames)}
+                  playerUrls={playerUrls}
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

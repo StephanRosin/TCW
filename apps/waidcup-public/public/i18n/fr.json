@@ -4,6 +4,7 @@
   "nav.sections": "Rubriques",
   "nav.location": "Accès",
   "nav.infos": "Infos",
+  "nav.gallery": "Galerie",
   "nav.helpers": "Bénévoles",
   "nav.brackets": "Tableaux",
   "nav.matches": "Matchs",
@@ -188,5 +189,16 @@
   "infos.hintPayment": "Au check-in, le paiement est possible par Twint ou en espèces.",
   "helpers.role.pastaGrill": "Pâtes+salade+grill",
   "helpers.note.shiftEnd": "Fin de poste {a}",
-  "orderOfPlay.openKiosk": "Ouvrir le kiosque"
+  "orderOfPlay.openKiosk": "Ouvrir le kiosque",
+  "gallery.title": "Galerie",
+  "gallery.all": "Toutes",
+  "gallery.empty": "Aucune photo pour l'instant.",
+  "gallery.loading": "Chargement des photos …",
+  "gallery.error": "Impossible de charger les photos.",
+  "gallery.open": "Afficher la photo {number} sur {total}",
+  "gallery.close": "Fermer",
+  "gallery.previous": "Photo précédente",
+  "gallery.next": "Photo suivante",
+  "gallery.counter": "{number} / {total}",
+  "gallery.photoCount": "{count} photos"
 }
