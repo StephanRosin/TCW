@@ -18,27 +18,23 @@ function seed(db: TcwDatabase, matches: Array<{ date: string; status: "open" | "
   matches.forEach((m, index) => insert.run(TID, `m${index}`, m.date, m.status));
 }
 
-test("durchgespieltes Turnier nach der Karenzzeit gilt als abgeschlossen", () => {
+test("durchgespieltes Turnier gilt ab dem Tag nach der letzten Partie als abgeschlossen", () => {
   const db = openDatabase({ filePath: ":memory:" });
-  // Letzte Partie 25.07., „heute" 03.08. → 9 Tage, Karenz 7 überschritten.
   seed(db, [
     { date: "2026-07-18", status: "played" },
     { date: "2026-07-25", status: "played" },
   ]);
-  assert.equal(isTournamentSettled(db, TID, NOW), true);
+  assert.equal(isTournamentSettled(db, TID, NOW), true); // 03.08., lange vorbei
+  // Schon am Folgetag der letzten Partie – keine Wartezeit.
+  assert.equal(isTournamentSettled(db, TID, new Date(2026, 6, 26)), true);
   db.close();
 });
 
-test("innerhalb der Karenzzeit wird weiter importiert", () => {
+test("am Spieltag selbst wird weiter importiert (Ergebnisse laufen nach)", () => {
   const db = openDatabase({ filePath: ":memory:" });
-  seed(db, [{ date: "2026-07-30", status: "played" }]); // 4 Tage her
-  assert.equal(isTournamentSettled(db, TID, NOW), false);
-  // Genau auf der Grenze (7 Tage) noch nicht abgeschlossen
-  const grenze = openDatabase({ filePath: ":memory:" });
-  seed(grenze, [{ date: "2026-07-27", status: "played" }]);
-  assert.equal(isTournamentSettled(grenze, TID, NOW), false);
+  seed(db, [{ date: "2026-07-25", status: "played" }]);
+  assert.equal(isTournamentSettled(db, TID, new Date(2026, 6, 25, 23, 30)), false);
   db.close();
-  grenze.close();
 });
 
 test("offene Partien verhindern den Abschluss, auch bei altem Datum", () => {

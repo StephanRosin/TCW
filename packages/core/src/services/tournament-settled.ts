@@ -3,18 +3,23 @@
  * endlos weiter von Swisstennis abholt.
  *
  * Ein Turnier gilt als abgeschlossen, wenn es Partien gibt, ALLE gespielt sind
- * und die letzte über der Karenzzeit zurückliegt. Die Karenz lässt Platz für
- * nachträgliche Ergebniskorrekturen; danach ändert sich erfahrungsgemäss nichts
- * mehr. Ein neu aufgeschaltetes Turnier hat noch keine Partien und wird deshalb
- * ganz normal importiert – der Jahreswechsel braucht also keinen Handgriff.
+ * und die letzte vor dem heutigen Tag lag. Am Spieltag selbst wird bewusst
+ * weiter abgerufen: dort laufen Ergebnisse nachträglich ein, und solange noch
+ * gespielt wird, darf der Import nicht verstummen. Ein neu aufgeschaltetes
+ * Turnier hat noch keine Partien und wird ganz normal importiert – der
+ * Jahreswechsel braucht also keinen Handgriff.
  *
  * Der manuelle Sofort-Refresh der Adminseite geht an dieser Prüfung vorbei und
  * holt jederzeit frische Daten.
  */
 import type { TcwDatabase } from "../db/connection.js";
 
-/** Tage nach der letzten Partie, in denen weiter importiert wird. */
-export const SETTLED_GRACE_DAYS = 7;
+/**
+ * Zusätzliche Tage nach der letzten Partie, in denen weiter importiert wird.
+ * 0 = der Abruf endet am Tag nach der letzten Partie; der Spieltag selbst
+ * zählt durch den Vergleich `> graceDays` ohnehin noch dazu.
+ */
+export const SETTLED_GRACE_DAYS = 0;
 
 interface StateRow {
   total: number;
@@ -33,8 +38,8 @@ function daysSince(date: string, now: Date): number {
 }
 
 /**
- * Ist das Turnier durchgespielt und liegt die letzte Partie länger als die
- * Karenzzeit zurück? Nur dann darf der Import es überspringen.
+ * Ist das Turnier durchgespielt und liegt die letzte Partie vor dem heutigen
+ * Tag (plus etwaiger Karenz)? Nur dann darf der Import es überspringen.
  */
 export function isTournamentSettled(
   database: TcwDatabase,
