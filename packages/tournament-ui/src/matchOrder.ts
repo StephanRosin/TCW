@@ -77,7 +77,8 @@ export function sortTournamentMatches(
     if (a.group !== b.group) return GROUP_RANK[order][a.group] - GROUP_RANK[order][b.group];
     // Ohne jeden (auch geerbten) Termin ans Ende der eigenen Gruppe.
     if (a.timestamp === "" || b.timestamp === "") {
-      return a.timestamp === b.timestamp ? 0 : a.timestamp === "" ? 1 : -1;
+      if (a.timestamp === b.timestamp) return 0;
+      return a.timestamp === "" ? 1 : -1;
     }
     const byTime =
       a.group === "played"
