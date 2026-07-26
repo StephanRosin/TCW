@@ -143,6 +143,7 @@
   "helpers.timeColumn": "Zeit",
   "helpers.gridLabel": "Einsatzplan-Raster, horizontal scrollbar",
   "helpers.dayPickerLabel": "Tag auswählen",
+  "helpers.today": "Heute",
   "helpers.dayEmpty": "An diesem Tag sind keine Schichten eingeteilt.",
   "helpers.role.spielleitung": "Spielleitung",
   "helpers.role.assistenz": "Assistenz",

@@ -143,6 +143,7 @@
   "helpers.timeColumn": "Time",
   "helpers.gridLabel": "Shift plan grid, scrolls horizontally",
   "helpers.dayPickerLabel": "Select day",
+  "helpers.today": "Today",
   "helpers.dayEmpty": "No shifts scheduled on this day.",
   "helpers.role.spielleitung": "Match desk",
   "helpers.role.assistenz": "Assistant",

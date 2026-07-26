@@ -6,9 +6,10 @@
  * Mobile = Tag-Umschalter + Slot-Liste. Alle Texte (Rollen, Wochentage, Marker,
  * Tasks) sind i18n-Keys und werden hier übersetzt; nur Namen bleiben Klartext.
  */
-import { useMemo, useState, type JSX } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { useI18n } from "@tcw/tournament-ui";
 import { useIsMobile } from "../../hooks/useIsMobile.js";
+import { currentDayKey } from "./today.js";
 import {
   DAYS,
   LEGEND_ROLES,
@@ -61,28 +62,66 @@ function CellBody({ cell, query }: Readonly<{ cell: PlanCell; query: string }>):
 }
 
 /** Desktop-Raster: sticky Zeit-Spalte, horizontal scrollbar über alle Tage. */
-function PlanGrid({ query, matchedDays }: Readonly<{ query: string; matchedDays: ReadonlySet<string> }>): JSX.Element {
+function PlanGrid({
+  query,
+  matchedDays,
+  todayKey,
+}: Readonly<{ query: string; matchedDays: ReadonlySet<string>; todayKey: string | null }>): JSX.Element {
   const { t } = useI18n();
   const hasQuery = query.trim() !== "";
+  const scrollRef = useRef<HTMLElement>(null);
+  const todayRef = useRef<HTMLTableCellElement>(null);
+
+  // Am Turniertag den heutigen Tag an den linken Rand holen – direkt neben die
+  // klebende Zeit-Spalte, die sonst die erste Spalte verdecken würde. Beim
+  // letzten Turniertag bleibt er entsprechend rechts stehen (weiter geht nicht),
+  // ist aber vollständig sichtbar.
+  useEffect(() => {
+    const container = scrollRef.current;
+    const column = todayRef.current;
+    if (!container || !column) return undefined;
+    let cancelled = false;
+    const align = (): void => {
+      if (cancelled) return;
+      const stickyWidth = container.querySelector(".helpers-grid__timehead")?.getBoundingClientRect().width ?? 0;
+      container.scrollLeft +=
+        column.getBoundingClientRect().left - container.getBoundingClientRect().left - stickyWidth;
+    };
+    align(); // sofort grob positionieren, damit der Plan nicht links aufblitzt
+    // Endgültige Spaltenbreiten stehen erst, wenn die Schriften geladen sind.
+    void document.fonts.ready.then(() => requestAnimationFrame(align));
+    return () => {
+      cancelled = true;
+    };
+  }, [todayKey]);
+
   return (
-    <section className="helpers-grid__scroll" aria-label={t("helpers.gridLabel")} tabIndex={0}>
+    <section className="helpers-grid__scroll" aria-label={t("helpers.gridLabel")} tabIndex={0} ref={scrollRef}>
       <table className="helpers-grid">
         <thead>
           <tr>
             <th className="helpers-grid__timehead" scope="col">
               {t("helpers.timeColumn")}
             </th>
-            {DAYS.map((day) => (
-              <th
-                key={day.key}
-                scope="col"
-                className={`helpers-grid__dayhead${hasQuery && matchedDays.has(day.key) ? " helpers-grid__dayhead--hit" : ""}`}
-              >
-                <span className="helpers-grid__weekday">{t(day.weekdayKey)}</span>
-                <span className="helpers-grid__date">{day.date}</span>
-                <span className="helpers-grid__daylabel">{formatDayLabel(t, day.label)}</span>
-              </th>
-            ))}
+            {DAYS.map((day) => {
+              const isToday = day.key === todayKey;
+              return (
+                <th
+                  key={day.key}
+                  scope="col"
+                  ref={isToday ? todayRef : undefined}
+                  aria-current={isToday ? "date" : undefined}
+                  className={`helpers-grid__dayhead${
+                    hasQuery && matchedDays.has(day.key) ? " helpers-grid__dayhead--hit" : ""
+                  }${isToday ? " helpers-grid__dayhead--today" : ""}`}
+                >
+                  <span className="helpers-grid__weekday">{t(day.weekdayKey)}</span>
+                  <span className="helpers-grid__date">{day.date}</span>
+                  <span className="helpers-grid__daylabel">{formatDayLabel(t, day.label)}</span>
+                  {isToday ? <span className="helpers-grid__todaytag">{t("helpers.today")}</span> : null}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
@@ -94,7 +133,10 @@ function PlanGrid({ query, matchedDays }: Readonly<{ query: string; matchedDays:
               {DAYS.map((day) => {
                 const cell = day.cells[slot];
                 return (
-                  <td key={day.key} className="helpers-grid__cell">
+                  <td
+                    key={day.key}
+                    className={`helpers-grid__cell${day.key === todayKey ? " helpers-grid__cell--today" : ""}`}
+                  >
                     {cell ? <CellBody cell={cell} query={query} /> : null}
                   </td>
                 );
@@ -108,25 +150,39 @@ function PlanGrid({ query, matchedDays }: Readonly<{ query: string; matchedDays:
 }
 
 /** Mobile-Ansicht: ein Tag als Liste, mit Tag-Umschalter darüber. */
-function PlanDayList({ query, matchedDays }: Readonly<{ query: string; matchedDays: ReadonlySet<string> }>): JSX.Element {
+function PlanDayList({
+  query,
+  matchedDays,
+  todayKey,
+}: Readonly<{ query: string; matchedDays: ReadonlySet<string>; todayKey: string | null }>): JSX.Element {
   const { t } = useI18n();
-  const [dayKey, setDayKey] = useState<string>(DAYS[0]!.key);
+  // Am Turniertag startet die Ansicht beim heutigen Tag statt beim ersten.
+  const [dayKey, setDayKey] = useState<string>(todayKey ?? DAYS[0]!.key);
   const day: PlanDay = DAYS.find((d) => d.key === dayKey) ?? DAYS[0]!;
   const hasQuery = query.trim() !== "";
   const filledSlots = SLOTS.filter((slot) => day.cells[slot]);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  // Der Umschalter scrollt horizontal – den aktiven Tag ins Bild holen.
+  useEffect(() => {
+    pickerRef.current
+      ?.querySelector(".helpers-daypicker__btn.is-active")
+      ?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [dayKey]);
 
   return (
     <div className="helpers-daylist">
-      <div className="helpers-daypicker" role="tablist" aria-label={t("helpers.dayPickerLabel")}>
+      <div className="helpers-daypicker" role="tablist" aria-label={t("helpers.dayPickerLabel")} ref={pickerRef}>
         {DAYS.map((d) => (
           <button
             key={d.key}
             type="button"
             role="tab"
             aria-selected={d.key === dayKey}
+            aria-current={d.key === todayKey ? "date" : undefined}
             className={`helpers-daypicker__btn${d.key === dayKey ? " is-active" : ""}${
               hasQuery && matchedDays.has(d.key) ? " has-hit" : ""
-            }`}
+            }${d.key === todayKey ? " is-today" : ""}`}
             onClick={() => setDayKey(d.key)}
           >
             <span className="helpers-daypicker__wd">{t(d.weekdayKey).slice(0, 2)}</span>
@@ -140,6 +196,7 @@ function PlanDayList({ query, matchedDays }: Readonly<{ query: string; matchedDa
           {t(day.weekdayKey)}, {day.date}
         </strong>
         <span className="helpers-daylist__label">{formatDayLabel(t, day.label)}</span>
+        {day.key === todayKey ? <span className="helpers-daylist__today">{t("helpers.today")}</span> : null}
       </div>
 
       {filledSlots.length === 0 ? (
@@ -165,6 +222,9 @@ export function HelpersView(): JSX.Element {
 
   const matches = useMemo(() => findByName(DAYS, SLOTS, query), [query]);
   const matchedDays = useMemo(() => matchedDayKeys(matches), [matches]);
+  // Einmal je Aufruf bestimmt: liegt heute im Turnier, wird dieser Tag
+  // hervorgehoben und direkt angesteuert.
+  const todayKey = useMemo(() => currentDayKey(DAYS, new Date()), []);
   const hasQuery = query.trim() !== "";
   const pdfUrl = `/${PLAN_META.pdfFile}`;
 
@@ -230,9 +290,9 @@ export function HelpersView(): JSX.Element {
       </details>
 
       {isMobile ? (
-        <PlanDayList query={query} matchedDays={matchedDays} />
+        <PlanDayList query={query} matchedDays={matchedDays} todayKey={todayKey} />
       ) : (
-        <PlanGrid query={query} matchedDays={matchedDays} />
+        <PlanGrid query={query} matchedDays={matchedDays} todayKey={todayKey} />
       )}
     </section>
   );

@@ -143,6 +143,7 @@
   "helpers.timeColumn": "Ora",
   "helpers.gridLabel": "Griglia dei turni, scorrimento orizzontale",
   "helpers.dayPickerLabel": "Scegli il giorno",
+  "helpers.today": "Oggi",
   "helpers.dayEmpty": "Nessun turno previsto in questo giorno.",
   "helpers.role.spielleitung": "Direzione gioco",
   "helpers.role.assistenz": "Assistenza",

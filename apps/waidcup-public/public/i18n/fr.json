@@ -143,6 +143,7 @@
   "helpers.timeColumn": "Heure",
   "helpers.gridLabel": "Grille du planning, défilement horizontal",
   "helpers.dayPickerLabel": "Choisir le jour",
+  "helpers.today": "Aujourd'hui",
   "helpers.dayEmpty": "Aucun créneau prévu ce jour-là.",
   "helpers.role.spielleitung": "Direction du jeu",
   "helpers.role.assistenz": "Assistance",

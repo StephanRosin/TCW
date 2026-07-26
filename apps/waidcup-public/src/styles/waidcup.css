@@ -1412,6 +1412,27 @@
 .helpers-grid__dayhead--hit {
   box-shadow: inset 0 -3px 0 var(--accent);
 }
+/* Aktueller Turniertag: hervorgehoben und beim Aufruf an den linken Rand
+   gescrollt, damit der Plan sofort beim heutigen Tag steht. */
+.helpers-grid__dayhead--today {
+  background: var(--own-row);
+  box-shadow: inset 0 -3px 0 var(--green-600);
+}
+.helpers-grid__todaytag {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.08rem 0.4rem;
+  border-radius: 999px;
+  background: var(--green-600);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.helpers-grid__cell--today {
+  background: var(--own-row);
+}
 .helpers-grid__timehead {
   left: 0;
   z-index: 3;
@@ -1516,6 +1537,34 @@
 }
 .helpers-daypicker__btn.has-hit:not(.is-active) {
   box-shadow: inset 0 -3px 0 var(--accent);
+}
+/* Heutiger Tag bleibt als solcher erkennbar, auch wenn gerade ein anderer
+   Tag ausgewaehlt ist. */
+.helpers-daypicker__btn.is-today:not(.is-active) {
+  border-color: var(--green-600);
+  background: var(--own-row);
+  font-weight: 700;
+}
+.helpers-daypicker__btn.is-today::after {
+  content: "";
+  width: 0.32rem;
+  height: 0.32rem;
+  border-radius: 50%;
+  background: var(--green-600);
+}
+.helpers-daypicker__btn.is-today.is-active::after {
+  background: #fff;
+}
+.helpers-daylist__today {
+  margin-left: 0.5rem;
+  padding: 0.08rem 0.45rem;
+  border-radius: 999px;
+  background: var(--green-600);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 .helpers-daypicker__wd {
   font-weight: 700;
