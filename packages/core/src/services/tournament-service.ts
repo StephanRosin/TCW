@@ -7,6 +7,7 @@
 import { toErrorMessage } from "@tcw/shared";
 import type { AppConfig } from "../config.js";
 import type { TcwDatabase } from "../db/connection.js";
+import { isTournamentSettled } from "./tournament-settled.js";
 import { SwisstennisClient } from "../integrations/swisstennis/raw-client.js";
 import {
   displayDrawUrl,
@@ -191,6 +192,10 @@ export function createTournamentService(config: AppConfig, database: TcwDatabase
       const configs = readTournamentConfigs(database, true);
       const results: TournamentRefreshResult[] = [];
       for (const tournamentConfig of configs) {
+        // Durchgespielte Turniere nicht endlos weiter abholen; sie bleiben auf
+        // der Website sichtbar, nur der Abruf entfällt. Der manuelle
+        // Sofort-Refresh der Adminseite geht hier vorbei.
+        if (isTournamentSettled(database, tournamentConfig.swisstennisTournamentId)) continue;
         try {
           results.push(await refresh(tournamentConfig, options));
         } catch {
