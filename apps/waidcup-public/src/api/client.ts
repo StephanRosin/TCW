@@ -11,6 +11,7 @@ import type {
   WaidcupLiveMatch,
   WaidcupLiveResponse,
   WaidcupPaymentStatus,
+  WaidcupResults,
 } from "@tcw/shared";
 import { displayEventName } from "../lib/events.js";
 
@@ -48,16 +49,22 @@ export const waidcupApi = {
     today: WaidcupLiveMatch[];
     tomorrow: WaidcupLiveMatch[];
     playerUrls: Record<string, string>;
+    results: WaidcupResults;
   }> => {
     const data = await fetchJson<{
       today: WaidcupLiveMatch[];
       tomorrow: WaidcupLiveMatch[];
       playerUrls: Record<string, string>;
+      results: WaidcupResults;
     }>("/api/waidcup/order-of-play");
     return {
       today: data.today.map(withDisplayName),
       tomorrow: data.tomorrow.map(withDisplayName),
       playerUrls: data.playerUrls,
+      results: {
+        ...data.results,
+        events: data.results.events.map(withDisplayName),
+      },
     };
   },
   admin: {

@@ -29,14 +29,19 @@ function subdirectories(path: string): string[] {
   }
 }
 
-function imageNames(path: string): string[] {
+/** Dateinamen einer Ebene, gefiltert nach Endung; fehlt der Pfad, ist die Liste leer. */
+function readNames(path: string, pattern: RegExp): string[] {
   try {
     return readdirSync(path, { withFileTypes: true })
-      .filter((entry) => entry.isFile() && IMAGE.test(entry.name))
+      .filter((entry) => entry.isFile() && pattern.test(entry.name))
       .map((entry) => entry.name);
   } catch {
     return [];
   }
+}
+
+function imageNames(path: string): string[] {
+  return readNames(path, IMAGE);
 }
 
 /**
@@ -58,6 +63,14 @@ function versionOf(thumbDir: string, images: string[]): string {
   return Math.floor(newest / 1000).toString(36);
 }
 
+/** Liegt zu jedem Bild eine JPEG-Fassung? Nur dann wird sie zum Download angeboten. */
+function jpegCovers(dayPath: string, images: string[]): boolean {
+  const jpegs = new Set(
+    readNames(join(dayPath, "jpg"), /\.jpe?g$/i).map((name) => name.replace(/\.jpe?g$/i, "")),
+  );
+  return jpegs.size > 0 && images.every((name) => jpegs.has(name.replace(/\.webp$/i, "")));
+}
+
 /** Bilder eines Tages: Dateiname muss als Kachel und als Grossbild existieren. */
 function readDay(dayPath: string, day: string): WaidcupGalleryDay | null {
   const thumbDir = join(dayPath, "thumb");
@@ -65,7 +78,13 @@ function readDay(dayPath: string, day: string): WaidcupGalleryDay | null {
   const images = imageNames(thumbDir)
     .filter((name) => large.has(name))
     .sort((a, b) => a.localeCompare(b));
-  return images.length === 0 ? null : { day, images, version: versionOf(thumbDir, images) };
+  if (images.length === 0) return null;
+  return {
+    day,
+    images,
+    version: versionOf(thumbDir, images),
+    downloadVariant: jpegCovers(dayPath, images) ? "jpg" : "large",
+  };
 }
 
 function readYear(yearPath: string, year: number): WaidcupGalleryYear | null {

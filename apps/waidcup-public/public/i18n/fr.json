@@ -204,5 +204,7 @@
   "gallery.previous": "Photo précédente",
   "gallery.next": "Photo suivante",
   "gallery.counter": "{number} / {total}",
-  "gallery.photoCount": "{count} photos"
+  "gallery.photoCount": "{count} photos",
+  "results.heading": "Le tournoi est terminé. Voici les vainqueur·es :",
+  "results.runnerUp": "Runner-up"
 }

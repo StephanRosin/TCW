@@ -1,9 +1,10 @@
 /**
- * Rechnet die Waidcup-Originalfotos auf zwei webtaugliche WebP-Varianten herunter
+ * Rechnet die Waidcup-Originalfotos auf drei webtaugliche Varianten herunter
  * und legt sie in der Struktur ab, die der Server unter `/gallery/` ausliefert:
  *
  *   <out>/<jahr>/<jahr-monat-tag>/thumb/<name>.webp   (Kachel, 800px)
  *   <out>/<jahr>/<jahr-monat-tag>/large/<name>.webp   (Lightbox, 3200px)
+ *   <out>/<jahr>/<jahr-monat-tag>/jpg/<name>.jpg      (Download, 3200px)
  *
  * Die Quellordner heissen `JJJJMMTT` (z. B. 20260718); daraus werden Jahr und Tag
  * abgeleitet. `-auto-orient` dreht Hochformate nach EXIF gerade. Bereits erzeugte
@@ -21,8 +22,12 @@ import { promisify } from "node:util";
 
 const run = promisify(execFile);
 
-const THUMB = { dir: "thumb", size: 800, quality: 82 };
-const LARGE = { dir: "large", size: 3200, quality: 85 };
+const THUMB = { dir: "thumb", size: 800, quality: 82, ext: ".webp" };
+const LARGE = { dir: "large", size: 3200, quality: 85, ext: ".webp" };
+/** Fürs Herunterladen: JPEG öffnet auch ältere Programme und Fotolabore. */
+const DOWNLOAD = { dir: "jpg", size: 3200, quality: 88, ext: ".jpg" };
+
+const VARIANTS = [THUMB, LARGE, DOWNLOAD];
 
 const SOURCE_EXT = new Set([".jpg", ".jpeg", ".png"]);
 const DAY_DIR = /^(\d{4})(\d{2})(\d{2})$/;
@@ -65,10 +70,10 @@ function dayTargetDir(outDir: string, dirName: string): string | null {
 
 /** Fehlende oder veraltete Varianten eines Quellbildes. */
 async function jobsForImage(source: string, dayDir: string, file: string): Promise<Job[]> {
-  const name = `${basename(file, extname(file))}.webp`;
+  const stem = basename(file, extname(file));
   const jobs: Job[] = [];
-  for (const variant of [THUMB, LARGE]) {
-    const target = join(dayDir, variant.dir, name);
+  for (const variant of VARIANTS) {
+    const target = join(dayDir, variant.dir, `${stem}${variant.ext}`);
     if (await needsBuild(source, target)) {
       jobs.push({ source, target, size: variant.size, quality: variant.quality });
     }
@@ -77,7 +82,7 @@ async function jobsForImage(source: string, dayDir: string, file: string): Promi
 }
 
 async function jobsForDay(sourceDir: string, dayDir: string): Promise<Job[]> {
-  for (const variant of [THUMB, LARGE]) {
+  for (const variant of VARIANTS) {
     await mkdir(join(dayDir, variant.dir), { recursive: true });
   }
   const files = (await readdir(sourceDir)).filter((file) => SOURCE_EXT.has(extname(file).toLowerCase()));

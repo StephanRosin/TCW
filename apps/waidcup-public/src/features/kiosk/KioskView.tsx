@@ -16,6 +16,7 @@ import {
   currentBandTime,
   formatDate,
 } from "../orderofplay/OrderOfPlaySchedule.js";
+import { TournamentResults } from "../orderofplay/TournamentResults.js";
 
 const REFRESH_MS = 30_000;
 const MODE_KEY = "waidcup-kiosk-mode";
@@ -198,6 +199,15 @@ function OrderOfPlayBody({
 }: Readonly<{ data: OrderOfPlayData | null; day: "today" | "tomorrow"; now: Date }>): JSX.Element {
   const { t } = useI18n();
   if (data === null) return <div className="kiosk__empty">{t("common.loading")}</div>;
+  // Nach dem Turnier bliebe hier dauerhaft ein leeres Raster stehen – der
+  // Grossbildschirm zeigt dann die Sieger.
+  if (data.results.finished) {
+    return (
+      <FitBox deps={`results|${data.results.events.length}`}>
+        <TournamentResults events={data.results.events} playerUrls={data.playerUrls} compact />
+      </FitBox>
+    );
+  }
   const matches = day === "today" ? data.today : data.tomorrow;
   if (matches.length === 0) {
     return (

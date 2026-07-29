@@ -15,6 +15,7 @@ import {
   getWaidcupLive,
   getWaidcupMatches,
   getWaidcupOrderOfPlay,
+  getWaidcupResults,
   getWaidcupPlayerUrls,
   getWebcamFrame,
   loadConfig,
@@ -101,6 +102,8 @@ export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise
     today: getWaidcupOrderOfPlay(database, tournamentId, new Date(), 0),
     tomorrow: getWaidcupOrderOfPlay(database, tournamentId, new Date(), 1),
     playerUrls: getWaidcupPlayerUrls(database, tournamentId),
+    // Ist alles gespielt, tritt die Siegerübersicht an die Stelle des Spielplans.
+    results: getWaidcupResults(database, tournamentId),
   }));
   // Fotogalerie: Verzeichnis-Scan, kurz gepuffert (ein neuer Jahrgang ist nach
   // spätestens einer Minute sichtbar, ohne Neustart). Eigenes Limit, weil die

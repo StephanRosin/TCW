@@ -604,6 +604,11 @@ export interface WaidcupGalleryDay {
    * Cache-Dauer neu geladen werden – die Dateinamen bleiben ja gleich.
    */
   version: string;
+  /**
+   * Ordner für den Download: "jpg", sobald für jedes Bild eine JPEG-Fassung
+   * vorliegt (öffnet auch ältere Programme), sonst das WebP-Grossbild.
+   */
+  downloadVariant: "jpg" | "large";
 }
 
 /** Ein Jahrgang der Fotogalerie. */
@@ -615,6 +620,22 @@ export interface WaidcupGalleryYear {
 export interface WaidcupGalleryResponse {
   /** Jahrgänge, neueste zuerst. */
   years: WaidcupGalleryYear[];
+}
+
+/** Endstand einer Konkurrenz: Sieger und unterlegener Finalist (bzw. Rang 1 und 2). */
+export interface WaidcupEventResult {
+  eventId: number;
+  eventName: string;
+  discipline: Discipline | "";
+  winnerNames: string[];
+  runnerUpNames: string[];
+}
+
+/** Abschluss-Übersicht: steht das Turnier fest, treten die Sieger an die Stelle des Spielplans. */
+export interface WaidcupResults {
+  /** Alle Partien gespielt – erst dann ist die Übersicht sinnvoll. */
+  finished: boolean;
+  events: WaidcupEventResult[];
 }
 
 /** Live-Board des Waidcups: laufende und nächste Partien. */

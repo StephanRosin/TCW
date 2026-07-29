@@ -13,6 +13,7 @@ import { ResourceView, useI18n, useResource } from "@tcw/tournament-ui";
 import { orderOfPlayKioskHash } from "../../app/navigation.js";
 import { waidcupApi } from "../../api/client.js";
 import { ScheduleTable, buildGrid, currentBandTime, formatDate } from "./OrderOfPlaySchedule.js";
+import { TournamentResults } from "./TournamentResults.js";
 
 const NOW_TICK_MS = 30_000;
 
@@ -161,9 +162,15 @@ export function OrderOfPlayView(): JSX.Element {
   return (
     <section>
       <ResourceView state={state} errorKey="live.loadError">
-        {(data) => (
-          <OrderOfPlayBoard today={data.today} tomorrow={data.tomorrow} playerUrls={data.playerUrls} />
-        )}
+        {(data) =>
+          // Nach dem Turnier stünde hier nur ein leeres Platzraster – dann
+          // zeigen wir stattdessen, wer gewonnen hat.
+          data.results.finished ? (
+            <TournamentResults events={data.results.events} playerUrls={data.playerUrls} />
+          ) : (
+            <OrderOfPlayBoard today={data.today} tomorrow={data.tomorrow} playerUrls={data.playerUrls} />
+          )
+        }
       </ResourceView>
     </section>
   );

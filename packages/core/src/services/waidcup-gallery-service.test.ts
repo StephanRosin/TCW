@@ -106,3 +106,28 @@ test("Version bleibt stabil, solange sich nichts ändert", () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("downloadVariant: 'jpg' nur wenn zu JEDEM Bild eine JPEG-Fassung vorliegt", () => {
+  const vollstaendig = makeGallery({
+    "2026/2026-07-25/thumb": ["a.webp", "b.webp"],
+    "2026/2026-07-25/large": ["a.webp", "b.webp"],
+    "2026/2026-07-25/jpg": ["a.jpg", "b.jpg"],
+  });
+  const luecke = makeGallery({
+    "2026/2026-07-25/thumb": ["a.webp", "b.webp"],
+    "2026/2026-07-25/large": ["a.webp", "b.webp"],
+    "2026/2026-07-25/jpg": ["a.jpg"], // b fehlt
+  });
+  const ohne = makeGallery({
+    "2026/2026-07-25/thumb": ["a.webp"],
+    "2026/2026-07-25/large": ["a.webp"],
+  });
+  try {
+    assert.equal(readWaidcupGallery(vollstaendig).years[0]!.days[0]!.downloadVariant, "jpg");
+    // Halbe Abdeckung wäre ein 404 beim Download – dann lieber das WebP.
+    assert.equal(readWaidcupGallery(luecke).years[0]!.days[0]!.downloadVariant, "large");
+    assert.equal(readWaidcupGallery(ohne).years[0]!.days[0]!.downloadVariant, "large");
+  } finally {
+    for (const root of [vollstaendig, luecke, ohne]) rmSync(root, { recursive: true, force: true });
+  }
+});

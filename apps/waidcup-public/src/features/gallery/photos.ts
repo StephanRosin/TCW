@@ -11,7 +11,9 @@ export interface GalleryPhoto {
   day: string;
   thumb: string;
   large: string;
-  /** Sprechender Dateiname für den Download („waidcup-2026-07-25-KL5A2985.webp"). */
+  /** Datei fürs Herunterladen – JPEG, sobald vorhanden (öffnet überall). */
+  download: string;
+  /** Sprechender Dateiname für den Download („waidcup-2026-07-25-KL5A2985.jpg"). */
   downloadName: string;
 }
 
@@ -23,7 +25,7 @@ export interface GalleryPhoto {
 function photoUrl(
   year: number,
   day: string,
-  variant: "thumb" | "large",
+  variant: "thumb" | "large" | "jpg",
   name: string,
   version: string,
 ): string {
@@ -37,12 +39,20 @@ export function photosOf(year: WaidcupGalleryYear | undefined, day: string | nul
   return year.days
     .filter((entry) => day === null || entry.day === day)
     .flatMap((entry) =>
-      entry.images.map((name) => ({
-        id: `${entry.day}/${name}`,
-        day: entry.day,
-        thumb: photoUrl(year.year, entry.day, "thumb", name, entry.version),
-        large: photoUrl(year.year, entry.day, "large", name, entry.version),
-        downloadName: `waidcup-${entry.day}-${name}`,
-      })),
+      entry.images.map((name) => {
+        // Der Download nimmt die JPEG-Fassung, sobald der Tag sie vollständig
+        // hat; sonst bleibt es beim WebP-Grossbild.
+        const asJpeg = name.replace(/\.webp$/i, ".jpg");
+        const isJpeg = entry.downloadVariant === "jpg";
+        const downloadFile = isJpeg ? asJpeg : name;
+        return {
+          id: `${entry.day}/${name}`,
+          day: entry.day,
+          thumb: photoUrl(year.year, entry.day, "thumb", name, entry.version),
+          large: photoUrl(year.year, entry.day, "large", name, entry.version),
+          download: photoUrl(year.year, entry.day, entry.downloadVariant, downloadFile, entry.version),
+          downloadName: `waidcup-${entry.day}-${downloadFile}`,
+        };
+      }),
     );
 }
