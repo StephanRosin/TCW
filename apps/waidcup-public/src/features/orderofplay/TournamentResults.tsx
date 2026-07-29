@@ -2,14 +2,18 @@
  * Abschluss-Übersicht: tritt an die Stelle des Spielplans, sobald alle Partien
  * gespielt sind – ein leeres Platzraster hilft dann niemandem mehr.
  *
+ * Reihenfolge wie überall auf der Seite: Einzel vor Doppel, stärkere
+ * Klassierung zuerst, Frauen vor Männern (compareWaidcupEvents).
+ *
  * Je Konkurrenz eine Zeile mit Sieger und Runner-up. Statt Textmarken stehen
  * dort Pokale (Gold gross, Silber kleiner); die passende Beschriftung bleibt
  * als Vorlesetext erhalten, sonst ginge für Screenreader die Bedeutung
  * verloren. Alle Zeilen sind gleich hoch, damit die Tafel ruhig wirkt.
  */
-import type { JSX } from "react";
+import { useMemo, type JSX } from "react";
 import type { WaidcupEventResult } from "@tcw/shared";
 import { championLabelKey, PlayerLink, useI18n } from "@tcw/tournament-ui";
+import { compareWaidcupEvents } from "../../lib/events.js";
 
 /** Pokal in Metallfarben – bewusst themeunabhängig, Gold bleibt Gold. */
 function Trophy({ place }: Readonly<{ place: "gold" | "silver" }>): JSX.Element {
@@ -61,11 +65,17 @@ export function TournamentResults({
   compact?: boolean;
 }>): JSX.Element {
   const { t } = useI18n();
+  // Dieselbe Reihenfolge wie Tableaux und Matches: Einzel vor Doppel, stärkere
+  // Klassierung zuerst, Frauen vor Männern.
+  const sorted = useMemo(
+    () => [...events].sort((a, b) => compareWaidcupEvents(a.eventName, b.eventName)),
+    [events],
+  );
   return (
     <section className={compact ? "wc-results wc-results--compact" : "wc-results"}>
       <h2 className="wc-results__title">{t("results.heading")}</h2>
       <div className="wc-results__grid">
-        {events.map((event) => (
+        {sorted.map((event) => (
           <div key={event.eventId} className="wc-results__card">
             <div className="wc-results__event">{event.eventName}</div>
             <div className="wc-results__row wc-results__row--winner">

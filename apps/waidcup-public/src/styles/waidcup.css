@@ -2134,10 +2134,12 @@
   letter-spacing: -0.01em;
   line-height: 1.2;
 }
+/* Doppelpaarungen stehen untereinander statt nebeneinander – beim Mixed sind
+   das immer zwei Namen, die so klar als Paar lesbar bleiben. */
 .wc-results__names {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
+  flex-direction: column;
+  gap: 0.05rem;
 }
 .wc-results__row--runner .wc-results__names {
   font-size: 0.95rem;
