@@ -2046,9 +2046,11 @@
   text-align: center;
 }
 
+/* Raster statt Flex: 1fr-Zeilen machen alle Panels gleich hoch, egal ob eine
+   oder zwei Namenszeilen (Doppel) darin stehen. */
 .wc-results__grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-auto-rows: 1fr;
   gap: 0.55rem;
 }
 /* Alle Zeilen teilen dasselbe Spaltenraster – Konkurrenz, Sieger und Zweiter
@@ -2090,26 +2092,40 @@
   letter-spacing: 0.09em;
   color: var(--text-muted);
 }
+/* Pokal | Namen. Beide Zeilen teilen dieselbe Icon-Spaltenbreite, damit die
+   Namen von Sieger und Runner-up bündig stehen. */
 .wc-results__row {
   display: grid;
-  grid-template-columns: 6.4rem minmax(0, 1fr);
-  align-items: baseline;
-  gap: 0.7rem;
+  grid-template-columns: 4.2rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
 }
-.wc-results__label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
+/* Beschriftung nur für Screenreader – sichtbar steht dort der Pokal. */
+.wc-results__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
-/* Einziges farbiges Element der Zeile. */
-.wc-results__row--winner .wc-results__label {
-  justify-self: start;
-  color: #fff;
-  background: var(--green-600);
-  border-radius: 999px;
-  padding: 0.16rem 0.6rem;
+.wc-trophy {
+  justify-self: center;
+  display: block;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+}
+/* Deutlich höher als zwei umbrechende Namenszeilen (Doppel), damit der Pokal
+   die Zeile trägt und nicht mit dem Text um die Höhe konkurriert. */
+.wc-trophy--gold {
+  width: 3.9rem;
+  height: 3.9rem;
+}
+.wc-trophy--silver {
+  width: 2.7rem;
+  height: 2.7rem;
 }
 .wc-results__row--winner .wc-results__names {
   font-family: var(--font-display);
@@ -2123,7 +2139,7 @@
   flex-wrap: wrap;
   gap: 0.55rem;
 }
-.wc-results__row:not(.wc-results__row--winner) .wc-results__names {
+.wc-results__row--runner .wc-results__names {
   font-size: 0.95rem;
   color: var(--text-muted);
 }
@@ -2141,6 +2157,14 @@
   .wc-results__card {
     grid-template-columns: 1fr;
     gap: 0.45rem;
+  }
+  .wc-trophy--gold {
+    width: 3rem;
+    height: 3rem;
+  }
+  .wc-trophy--silver {
+    width: 2.2rem;
+    height: 2.2rem;
   }
 }
 @media (prefers-reduced-motion: reduce) {
