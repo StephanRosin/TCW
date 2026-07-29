@@ -11,6 +11,8 @@ export interface GalleryPhoto {
   day: string;
   thumb: string;
   large: string;
+  /** Sprechender Dateiname für den Download („waidcup-2026-07-25-KL5A2985.webp"). */
+  downloadName: string;
 }
 
 /**
@@ -40,6 +42,7 @@ export function photosOf(year: WaidcupGalleryYear | undefined, day: string | nul
         day: entry.day,
         thumb: photoUrl(year.year, entry.day, "thumb", name, entry.version),
         large: photoUrl(year.year, entry.day, "large", name, entry.version),
+        downloadName: `waidcup-${entry.day}-${name}`,
       })),
     );
 }

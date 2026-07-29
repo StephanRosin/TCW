@@ -200,6 +200,7 @@
   "gallery.error": "Bilder konnten nicht geladen werden.",
   "gallery.open": "Bild {number} von {total} gross anzeigen",
   "gallery.close": "Schliessen",
+  "gallery.download": "Bild herunterladen",
   "gallery.previous": "Vorheriges Bild",
   "gallery.next": "Nächstes Bild",
   "gallery.counter": "{number} / {total}",

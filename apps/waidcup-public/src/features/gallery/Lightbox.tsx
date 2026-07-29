@@ -74,6 +74,16 @@ export function Lightbox({
     <dialog ref={dialogRef} className="lightbox" aria-label={t("gallery.title")} onClose={onClose}>
       {/* Fläche hinter dem Bild: Klick daneben schliesst. */}
       <button type="button" className="lightbox__backdrop" aria-label={t("gallery.close")} onClick={onClose} />
+      {/* Lädt das angezeigte Grossbild; die Originale liegen nicht auf dem Server. */}
+      <a
+        className="lightbox__download"
+        href={photo.large}
+        download={photo.downloadName}
+        aria-label={t("gallery.download")}
+        title={t("gallery.download")}
+      >
+        ⬇
+      </a>
       <button type="button" className="lightbox__close" aria-label={t("gallery.close")} onClick={onClose}>
         ✕
       </button>

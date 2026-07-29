@@ -200,6 +200,7 @@
   "gallery.error": "Impossibile caricare le foto.",
   "gallery.open": "Mostra la foto {number} di {total}",
   "gallery.close": "Chiudi",
+  "gallery.download": "Scarica la foto",
   "gallery.previous": "Foto precedente",
   "gallery.next": "Foto successiva",
   "gallery.counter": "{number} / {total}",

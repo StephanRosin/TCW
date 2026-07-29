@@ -40,3 +40,8 @@ test("photosOf: jeder Tag bringt sein eigenes Versionskennzeichen mit", () => {
   assert.match(photos[0]!.thumb, /\?v=abc$/); // 18.07.
   assert.match(photos.at(-1)!.large, /\?v=xyz$/); // 25.07.
 });
+
+test("photosOf: Download bekommt einen sprechenden Dateinamen", () => {
+  const photos = photosOf(YEAR, "2026-07-25");
+  assert.equal(photos[0]!.downloadName, "waidcup-2026-07-25-c.webp");
+});
