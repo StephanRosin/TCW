@@ -52,7 +52,15 @@ export async function buildWaidcupApp(config: AppConfig = loadConfig()): Promise
   const database = openDatabase({ filePath: config.dbFilePath, readonly: true });
   const tournamentId = config.waidcupTournamentId;
 
-  await app.register(rateLimit, { max: 200, timeWindow: "1 minute" });
+  await app.register(rateLimit, {
+    max: 200,
+    timeWindow: "1 minute",
+    // Galeriebilder sind statische Dateien und werden nicht mitgezählt: eine
+    // Tagesansicht fordert mehrere hundert Kacheln an und würde das für die
+    // API gedachte Limit sonst sofort sprengen (ab der 201. Datei kam 429,
+    // die restlichen Kacheln blieben leer).
+    allowList: (request) => request.url.startsWith("/gallery/"),
+  });
 
   app.addHook("onSend", async (_request, reply, payload) => {
     for (const [header, value] of Object.entries(PUBLIC_SECURITY_HEADERS)) {

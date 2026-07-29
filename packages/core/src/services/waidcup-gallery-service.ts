@@ -10,7 +10,7 @@
  * vorliegt; alles andere (Fremddateien, halbe Konvertierungen) wird ignoriert.
  * Die Bilder selbst liefert der Server statisch unter `/gallery/` aus.
  */
-import { readdirSync } from "node:fs";
+import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import type { WaidcupGalleryDay, WaidcupGalleryResponse, WaidcupGalleryYear } from "@tcw/shared";
 
@@ -39,13 +39,33 @@ function imageNames(path: string): string[] {
   }
 }
 
+/**
+ * Kennzeichen des Bildstands: jüngste Änderungszeit der Kacheln, in Sekunden
+ * und Basis 36. Werden Bilder ersetzt oder ergänzt, ändert sich der Wert – und
+ * damit die Bild-URLs, sodass Browser die neuen Dateien laden statt der lange
+ * zwischengespeicherten alten.
+ */
+function versionOf(thumbDir: string, images: string[]): string {
+  let newest = 0;
+  for (const name of images) {
+    try {
+      const { mtimeMs } = statSync(join(thumbDir, name));
+      if (mtimeMs > newest) newest = mtimeMs;
+    } catch {
+      // Datei verschwand zwischen Auflisten und Prüfen – für die Version egal.
+    }
+  }
+  return Math.floor(newest / 1000).toString(36);
+}
+
 /** Bilder eines Tages: Dateiname muss als Kachel und als Grossbild existieren. */
 function readDay(dayPath: string, day: string): WaidcupGalleryDay | null {
+  const thumbDir = join(dayPath, "thumb");
   const large = new Set(imageNames(join(dayPath, "large")));
-  const images = imageNames(join(dayPath, "thumb"))
+  const images = imageNames(thumbDir)
     .filter((name) => large.has(name))
     .sort((a, b) => a.localeCompare(b));
-  return images.length === 0 ? null : { day, images };
+  return images.length === 0 ? null : { day, images, version: versionOf(thumbDir, images) };
 }
 
 function readYear(yearPath: string, year: number): WaidcupGalleryYear | null {

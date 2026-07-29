@@ -13,8 +13,20 @@ export interface GalleryPhoto {
   large: string;
 }
 
-function photoUrl(year: number, day: string, variant: "thumb" | "large", name: string): string {
-  return `/gallery/${year}/${day}/${variant}/${encodeURIComponent(name)}`;
+/**
+ * Bild-URL mit Versionskennzeichen: die Dateinamen bleiben über Jahre gleich,
+ * der Inhalt kann sich aber ändern (neuer Export). Ohne den Parameter zeigte
+ * der lange Browser-Cache weiterhin die alte Fassung.
+ */
+function photoUrl(
+  year: number,
+  day: string,
+  variant: "thumb" | "large",
+  name: string,
+  version: string,
+): string {
+  const path = `/gallery/${year}/${day}/${variant}/${encodeURIComponent(name)}`;
+  return version === "" ? path : `${path}?v=${encodeURIComponent(version)}`;
 }
 
 /** Alle Bilder eines Jahrgangs, chronologisch; `day` filtert auf einen Tag. */
@@ -26,8 +38,8 @@ export function photosOf(year: WaidcupGalleryYear | undefined, day: string | nul
       entry.images.map((name) => ({
         id: `${entry.day}/${name}`,
         day: entry.day,
-        thumb: photoUrl(year.year, entry.day, "thumb", name),
-        large: photoUrl(year.year, entry.day, "large", name),
+        thumb: photoUrl(year.year, entry.day, "thumb", name, entry.version),
+        large: photoUrl(year.year, entry.day, "large", name, entry.version),
       })),
     );
 }

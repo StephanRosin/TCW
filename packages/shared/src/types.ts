@@ -598,6 +598,12 @@ export interface WaidcupGalleryDay {
   day: string;
   /** Dateinamen (identisch in thumb/ und large/), chronologisch sortiert. */
   images: string[];
+  /**
+   * Kennzeichen des Bildstands (jüngste Änderung im Tag). Hängt als
+   * Abfrageparameter an den Bild-URLs, damit ersetzte Bilder trotz langer
+   * Cache-Dauer neu geladen werden – die Dateinamen bleiben ja gleich.
+   */
+  version: string;
 }
 
 /** Ein Jahrgang der Fotogalerie. */

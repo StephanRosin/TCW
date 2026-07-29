@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -71,4 +71,38 @@ test("readWaidcupGallery: nur Bilder mit Kachel UND Grossbild; leere Tage/Jahre 
 
 test("readWaidcupGallery: fehlendes Verzeichnis liefert leere Galerie statt Fehler", () => {
   assert.deepEqual(readWaidcupGallery(join(tmpdir(), "gibt-es-nicht-4711")), { years: [] });
+});
+
+test("Version ändert sich, wenn ein Bild ersetzt wird (sonst zeigt der Browser die alte Fassung)", () => {
+  const root = makeGallery({
+    "2026/2026-07-25/thumb": ["a.webp"],
+    "2026/2026-07-25/large": ["a.webp"],
+  });
+  try {
+    const vorher = readWaidcupGallery(root).years[0]!.days[0]!.version;
+    // Ersetzt wie beim erneuten Export: gleicher Name, neuer Inhalt/Zeitstempel.
+    const file = join(root, "2026/2026-07-25/thumb/a.webp");
+    writeFileSync(file, "neuer inhalt");
+    const spaeter = new Date(Date.now() + 5000);
+    utimesSync(file, spaeter, spaeter);
+
+    const nachher = readWaidcupGallery(root).years[0]!.days[0]!.version;
+    assert.notEqual(nachher, vorher);
+    assert.match(nachher, /^[0-9a-z]+$/); // URL-tauglich
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("Version bleibt stabil, solange sich nichts ändert", () => {
+  const root = makeGallery({
+    "2026/2026-07-25/thumb": ["a.webp", "b.webp"],
+    "2026/2026-07-25/large": ["a.webp", "b.webp"],
+  });
+  try {
+    const erste = readWaidcupGallery(root).years[0]!.days[0]!.version;
+    assert.equal(readWaidcupGallery(root).years[0]!.days[0]!.version, erste);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
