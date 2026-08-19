@@ -175,8 +175,14 @@ Weitere Skripte: `refresh:tournaments` (Turniere von SwissTennis aktualisieren),
 > die Start-Wrapper auf dem Server überschreiben `IC_PUBLIC_PORT` und `IC_ADMIN_PORT`
 > entsprechend.
 
-### Deployment & Status
+### Deployment & Dokumentation
 
-- **Deployment** (drei Dienste auf einem Server): siehe
-  [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
-- **Ausbaustand / Phasen:** siehe [`docs/STATUS.md`](docs/STATUS.md).
+Beides steht im gemeinsamen Obsidian-Vault, nicht mehr in diesem Repository:
+
+- **Spielbetrieb:** `~/Vault/10-Projekte/TCW/Spielbetrieb/Spielbetrieb.md`
+- **Waidcup:** `~/Vault/10-Projekte/TCW/Waidcup/Waidcup.md`
+
+Dort finden sich Architektur, Datenmodell, der komplette Deploy-Ablauf, bekannte Fallen und die
+Begründungen hinter den Entscheidungen. Einstieg: `~/Vault/00-Start.md`.
+
+Konkrete Hosts, Serverpfade und Zugangsdaten stehen bewusst nur dort.
