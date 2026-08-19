@@ -12,7 +12,19 @@ import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 
 export default tseslint.config(
-  { ignores: ["**/dist/**", "**/node_modules/**", "**/*.d.ts"] },
+  {
+    ignores: [
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/*.d.ts",
+      // Vendorter Snapshot der 3D-App aus dem separaten 3DTCW-Repo. Fremder
+      // Code, der hier nur mitdeployt wird - Lint-Regeln dieses Projekts
+      // gelten dafuer nicht.
+      "apps/waidcup-public/public/tcw3d/**",
+      // Werkzeug-Skripte der Claude-Skills, kein Anwendungscode.
+      ".claude/skills/**",
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
