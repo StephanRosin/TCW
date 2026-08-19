@@ -17,7 +17,8 @@ Resultate, Turniere), **MyTennis** (Spielerprofile) und **GotCourts**
 
 ### 1. Öffentliche Vereins-Website
 
-> Frontend `apps/web-public` · Server `apps/public-server` · Port **8090**
+> Frontend `apps/web-public` · Server `apps/public-server` · Port **8092** (live),
+> **8090** (Default im Code)
 
 Die öffentliche Seite des Vereins mit dem gesamten Interclub- und
 Vereinsbetrieb. Was Besucher:innen hier finden:
@@ -41,7 +42,8 @@ Mehrsprachig (DE/EN/FR/IT) und mit mehreren Farb-Themes.
 
 ### 2. Adminbereich (intern)
 
-> Frontend `apps/web-admin` · Server `apps/admin-server` · Port **8091**
+> Frontend `apps/web-admin` · Server `apps/admin-server` · Port **8093** (live),
+> **8091** (Default im Code)
 
 Das interne Verwaltungswerkzeug (nur im LAN erreichbar). Damit pflegt der
 Verein alle Inhalte der öffentlichen Seite:
@@ -99,8 +101,8 @@ Keine eigenständigen Apps, sondern die gemeinsame Grundlage aller drei Websites
 packages/shared        Typen, Konstanten, i18n, reine Domänenlogik
 packages/core          DB, Konfiguration, SwissTennis-/MyTennis-/GotCourts-Integration, Dienste
 packages/tournament-ui Geteilte React-Komponenten (Turnierbaum, Matchliste, …)
-apps/public-server     Öffentliche API + Auslieferung des Vereins-Frontends (Port 8090)
-apps/admin-server      Interne Admin-API + Admin-Frontend + Hintergrund-Jobs (Port 8091)
+apps/public-server     Öffentliche API + Auslieferung des Vereins-Frontends (live 8092)
+apps/admin-server      Interne Admin-API + Admin-Frontend + Hintergrund-Jobs (live 8093)
 apps/waidcup-server    Waidcup-API + Auslieferung der Waidcup-Seite (Port 8096)
 apps/web-public        React-SPA der öffentlichen Vereins-Seite (Dev-Port 5173)
 apps/web-admin         React-SPA des Adminbereichs (Dev-Port 5174)
@@ -160,13 +162,18 @@ Weitere Skripte: `refresh:tournaments` (Turniere von SwissTennis aktualisieren),
 | Variable | Default | Zweck |
 | --- | --- | --- |
 | `IC_DB_PATH` | `data/ic_teams.sqlite` | Pfad zur SQLite-Datenbank |
-| `IC_PUBLIC_PORT` | `8090` | Port der öffentlichen Vereins-API |
-| `IC_ADMIN_PORT` | `8091` | Port der Admin-API |
+| `IC_PUBLIC_PORT` | `8090` | Port der öffentlichen Vereins-API (live auf **8092** gesetzt) |
+| `IC_ADMIN_PORT` | `8091` | Port der Admin-API (live auf **8093** gesetzt) |
 | `IC_WAIDCUP_PORT` | `8096` | Port der Waidcup-API |
 | `IC_PUBLIC_HOST` | `0.0.0.0` | Bind-Adresse Public |
 | `IC_ADMIN_HOST` | `127.0.0.1` | Bind-Adresse Admin (LAN-intern) |
 | `IC_SWISSTENNIS_CACHE_TTL` | `7200` | Cache-Dauer für Turnier-Abrufe (Sek.) |
 | `IC_RESULTS_CACHE_TTL` | `86400` | Cache-Dauer der IC-Ergebnisse (Sek.) |
+
+> **Ports 8090/8091 nicht mit dem Livesystem verwechseln.** Das sind die Defaults im Code — und
+> zugleich die Ports des noch laufenden **Altsystems**. Der Neubau läuft live auf **8092/8093**;
+> die Start-Wrapper auf dem Server überschreiben `IC_PUBLIC_PORT` und `IC_ADMIN_PORT`
+> entsprechend.
 
 ### Deployment & Status
 
