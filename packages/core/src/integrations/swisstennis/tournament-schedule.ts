@@ -26,22 +26,31 @@ interface RawGamePlanMatch {
   hour?: string;
 }
 
+/** Setznummer "(1)" oder Klassierung "(R4/R3)", "(NC)" – auch mehrfach. */
+const RANKING_TOKEN = /\((?:\d+|[NR]\d+|NC)(?:\/(?:[NR]\d+|NC))*\)/g;
+
+/**
+ * Vergleicht nach Zeichenwert, nicht nach Sprachregeln – der Schlüssel muss
+ * über Anwendungen und Sprachen hinweg derselbe sein.
+ */
+function byCodeUnit(first: string, second: string): number {
+  if (first < second) return -1;
+  return first > second ? 1 : 0;
+}
+
 /** Vergleichsschlüssel einer Person: ohne Klassierung, klein, Wörter sortiert. */
 function personKey(name: string): string {
-  const withoutRanking = cleanText(name).replace(
-    /\((?:\d+|(?:N\d+|R\d+|NC)(?:\/(?:N\d+|R\d+|NC))*)\)/g,
-    " ",
-  );
-  return (withoutRanking.toLowerCase().match(/[\p{L}\p{N}_]+/gu) ?? []).sort().join(" ");
+  const withoutRanking = cleanText(name).replace(RANKING_TOKEN, " ");
+  return (withoutRanking.toLowerCase().match(/[\p{L}\p{N}_]+/gu) ?? []).sort(byCodeUnit).join(" ");
 }
 
 function teamKey(names: string[]): string {
-  return names.filter((name) => cleanText(name) !== "").map(personKey).sort().join("+");
+  return names.filter((name) => cleanText(name) !== "").map(personKey).sort(byCodeUnit).join("+");
 }
 
 /** Schlüssel einer Paarung – unabhängig davon, welche Seite zuerst steht. */
 export function scheduleKey(firstTeam: string[], secondTeam: string[]): string {
-  return [teamKey(firstTeam), teamKey(secondTeam)].sort().join("|");
+  return [teamKey(firstTeam), teamKey(secondTeam)].sort(byCodeUnit).join("|");
 }
 
 export function scheduleFor(

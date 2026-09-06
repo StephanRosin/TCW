@@ -43,7 +43,7 @@ const DOUBLE_DISCIPLINES = new Set(["MD", "WD", "DM"]);
 export function buildEventName(category: RawCategory): string {
   const raw = cleanText(category.competition ?? "");
   const numbered = /\bTableau\s+\d+\b/i.exec(raw);
-  const base = raw.replace(/\s*(?:Round\s*Robin(?:\s+Finaltableau)?|Finaltableau|Tableau)\s*$/i, "");
+  const base = raw.replace(/\s*(?:Round\s?Robin\s?(?:Finaltableau)?|Finaltableau|Tableau)\s*$/i, "");
   const name = cleanText(numbered ? `${base} ${numbered[0]}` : base);
   return name || `Event ${toNumber(category.eventId)}`;
 }

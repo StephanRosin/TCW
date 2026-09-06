@@ -43,7 +43,7 @@ function splitName(fullName: string): { firstName: string; lastName: string } {
   if (parts.length < 2) {
     return { firstName: "", lastName: parts[0] ?? "" };
   }
-  return { firstName: parts[parts.length - 1] ?? "", lastName: parts.slice(0, -1).join(" ") };
+  return { firstName: parts.at(-1) ?? "", lastName: parts.slice(0, -1).join(" ") };
 }
 
 export function mapEventRegistrations(payload: unknown): RegistrationRecord[] {

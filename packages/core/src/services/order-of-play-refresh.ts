@@ -12,6 +12,7 @@ import type { TcwDatabase } from "../db/connection.js";
 import { SwisstennisClient } from "../integrations/swisstennis/raw-client.js";
 import {
   drawUrl,
+  gamePlanUrl,
   poolsUrl,
   tournamentInfoUrl,
 } from "../integrations/swisstennis/tournament-urls.js";
@@ -19,7 +20,6 @@ import {
   addGamePlanDay,
   type ScheduleIndex,
 } from "../integrations/swisstennis/tournament-schedule.js";
-import { gamePlanUrl } from "../integrations/swisstennis/tournament-urls.js";
 import {
   mapTournamentMeta,
   type TournamentEventMeta,

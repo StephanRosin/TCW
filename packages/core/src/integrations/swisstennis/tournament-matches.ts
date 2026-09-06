@@ -35,6 +35,22 @@ export interface MatchRecord {
   winnerSide: number;
 }
 
+/**
+ * Vergleicht nach Zeichenwert, nicht nach Sprachregeln.
+ *
+ * Die Sortierung geht in die abgeleitete Partie-ID ein, und dieselbe ID wird in
+ * der Clubmeisterschaft (Python) und den Waidcup-Aufgaben berechnet. Pythons
+ * `sorted()` vergleicht nach Codepoint – `localeCompare` täte das nicht und
+ * würde die drei Anwendungen auseinanderlaufen lassen.
+ */
+function byCodeUnit(first: string, second: string): number {
+  if (first < second) return -1;
+  return first > second ? 1 : 0;
+}
+
+/** Setznummer "(1)" oder Klassierung "(R4/R3)", "(NC)" – auch mehrfach. */
+const RANKING_TOKEN = /\((?:\d+|[NR]\d+|NC)(?:\/(?:[NR]\d+|NC))*\)/g;
+
 const BYE = /^bye$/i;
 const PENDING = /^noch offen$/i;
 
@@ -118,17 +134,18 @@ interface RawPoolRanking {
  * Waidcup-Aufgaben – die drei müssen übereinstimmen.
  */
 export function roundRobinMatchId(eventId: number, firstTeam: string[], secondTeam: string[]): string {
-  const sides = [teamKey(firstTeam), teamKey(secondTeam)].sort();
-  return `rr_${createHash("sha1").update(`${eventId}|${sides[0]}|${sides[1]}`, "utf8").digest("hex").slice(0, 12)}`;
+  const sides = [teamKey(firstTeam), teamKey(secondTeam)].sort(byCodeUnit);
+  const digest = createHash("sha1").update(`${eventId}|${sides[0]}|${sides[1]}`, "utf8").digest("hex");
+  return `rr_${digest.slice(0, 12)}`;
 }
 
 function personKey(name: string): string {
-  const withoutRanking = cleanText(name).replace(/\((?:\d+|(?:N\d+|R\d+|NC)(?:\/(?:N\d+|R\d+|NC))*)\)/g, " ");
-  return (withoutRanking.toLowerCase().match(/[\p{L}\p{N}_]+/gu) ?? []).sort().join(" ");
+  const withoutRanking = cleanText(name).replace(RANKING_TOKEN, " ");
+  return (withoutRanking.toLowerCase().match(/[\p{L}\p{N}_]+/gu) ?? []).sort(byCodeUnit).join(" ");
 }
 
 function teamKey(names: string[]): string {
-  return names.filter((name) => name !== "").map(personKey).sort().join("+");
+  return names.filter((name) => name !== "").map(personKey).sort(byCodeUnit).join("+");
 }
 
 function mapRoundRobinMatches(
