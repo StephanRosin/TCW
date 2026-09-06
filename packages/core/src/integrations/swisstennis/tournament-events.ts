@@ -42,9 +42,12 @@ const DOUBLE_DISCIPLINES = new Set(["MD", "WD", "DM"]);
  */
 export function buildEventName(category: RawCategory): string {
   const raw = cleanText(category.competition ?? "");
-  const numbered = /\bTableau\s+\d+\b/i.exec(raw);
-  const base = raw.replace(/\s*(?:Round\s?Robin\s?(?:Finaltableau)?|Finaltableau|Tableau)\s*$/i, "");
-  const name = cleanText(numbered ? `${base} ${numbered[0]}` : base);
+  // Ein nummeriertes Tableau gehört zum Namen – sonst wären mehrere
+  // Konkurrenzen derselben Kategorie nicht auseinanderzuhalten.
+  if (/\bTableau\s+\d+\b/i.test(raw)) {
+    return raw;
+  }
+  const name = raw.replace(/(?:Round ?Robin ?(?:Finaltableau)?|Finaltableau|Tableau)$/i, "").trim();
   return name || `Event ${toNumber(category.eventId)}`;
 }
 
