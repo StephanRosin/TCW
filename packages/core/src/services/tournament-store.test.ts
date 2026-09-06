@@ -31,7 +31,7 @@ test("replaceTournamentData spiegelt Spieler ins Register (non-member, mit URL)"
   const database = openDatabase({ filePath: ":memory:" });
   const events: EventImport[] = [
     {
-      meta: { eventId: 1, eventName: "MS", discipline: "MS", mode: "Draw", matchTypeId: 1, sortOrder: 1 },
+      meta: { eventId: 1, eventName: "MS", discipline: "MS", mode: "Draw", isDouble: false, sortOrder: 1 },
       registrations: [
         {
           playerKey: "k1",
@@ -75,7 +75,7 @@ test("Turnier-Import setzt tournament_players.registry_id (weicher Link)", () =>
   const database = openDatabase({ filePath: ":memory:" });
   const events: EventImport[] = [
     {
-      meta: { eventId: 1, eventName: "MS", discipline: "MS", mode: "Draw", matchTypeId: 1, sortOrder: 1 },
+      meta: { eventId: 1, eventName: "MS", discipline: "MS", mode: "Draw", isDouble: false, sortOrder: 1 },
       registrations: [
         {
           playerKey: "k1",
@@ -120,7 +120,7 @@ test("loadTournamentEvents liest ranking aus dem Register (aktuell), nicht aus d
   const database = openDatabase({ filePath: ":memory:" });
   const events: EventImport[] = [
     {
-      meta: { eventId: 1, eventName: "MS", discipline: "MS", mode: "Draw", matchTypeId: 1, sortOrder: 1 },
+      meta: { eventId: 1, eventName: "MS", discipline: "MS", mode: "Draw", isDouble: false, sortOrder: 1 },
       registrations: [
         {
           playerKey: "k1",
@@ -171,7 +171,7 @@ test("replaceTournamentData speichert auch Spieler ohne Notiz (kein OR-IGNORE-Ve
   const database = openDatabase({ filePath: ":memory:" });
   const events: EventImport[] = [
     {
-      meta: { eventId: 1, eventName: "WS A R1/R5", discipline: "WS", mode: "Draw", matchTypeId: 2, sortOrder: 0 },
+      meta: { eventId: 1, eventName: "WS A R1/R5", discipline: "WS", mode: "Draw", isDouble: false, sortOrder: 0 },
       registrations: [registration("a", null), registration("b", "Kommentar"), registration("c", null)],
       matches: [],
       pools: [],
@@ -192,7 +192,7 @@ const CM = 158133;
 
 function eventWith(result: string): EventImport {
   return {
-    meta: { eventId: 100, eventName: "WS 40+", discipline: "WS", mode: "rr", matchTypeId: 0, sortOrder: 0 },
+    meta: { eventId: 100, eventName: "WS 40+", discipline: "WS", mode: "rr", isDouble: false, sortOrder: 0 },
     registrations: [],
     matches: [
       {

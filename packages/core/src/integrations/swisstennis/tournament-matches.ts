@@ -4,6 +4,7 @@
  * Es werden nur Partien übernommen, bei denen beide Seiten feststehen
  * (keine Platzhalter, kein "bye"/"noch offen").
  */
+import { createHash } from "node:crypto";
 import {
   isRankingToken,
   type PoolStanding,
@@ -13,6 +14,7 @@ import {
   type TournamentMatchStatus,
 } from "@tcw/shared";
 import { asArray, cleanText, toNumber } from "./normalize.js";
+import { scheduleFor, type ScheduleIndex } from "./tournament-schedule.js";
 
 export interface MatchRecord {
   matchKey: string;
@@ -84,146 +86,93 @@ function flipSets(result: string): string {
 // Round-robin (DisplayPools)
 // --------------------------------------------------------------------------
 
-interface RawRrPlayer {
-  plyFirstName?: string;
-  plyName?: string;
-  plyFirstName2?: string;
-  plyName2?: string;
-  plyRankingComment?: string;
-  plyRankingComment2?: string;
-}
-interface RawRrDate {
-  year?: number;
-  month?: number;
-  day?: number;
-  hour?: number;
-  minute?: number;
-}
-interface RawRrMatch {
-  rRMatchId?: number;
-  rrmComment?: string;
-  rrmDate?: RawRrDate;
-  rrmPlayer1WO?: number;
-  rrmPlayer2WO?: number;
-  ioCourt?: { IoCourt?: { crtName?: string } };
-  ioPlayerRrmIdPlayer2?: { IoPlayer?: RawRrPlayer };
-  [key: string]: unknown;
+interface RawPoolGame {
+  teams?: { players?: string[] }[];
+  score?: string;
+  wo?: boolean;
+  courtName?: string;
 }
 
-function pad2(value: number): string {
-  return String(value).padStart(2, "0");
+interface RawPoolGroup {
+  name?: string;
+  rankings?: RawPoolRanking[];
+  games?: RawPoolGame[];
 }
 
-function rrName(player: RawRrPlayer | undefined, isDouble: boolean): { name: string; name2: string } {
-  if (!player) return { name: "", name2: "" };
-  const name = formatPlayer(
-    `${cleanText(player.plyFirstName ?? "")} ${cleanText(player.plyName ?? "")}`,
-    cleanText(player.plyRankingComment ?? ""),
-  );
-  const name2 =
-    isDouble && (player.plyName2 || player.plyFirstName2)
-      ? formatPlayer(
-          `${cleanText(player.plyFirstName2 ?? "")} ${cleanText(player.plyName2 ?? "")}`,
-          cleanText(player.plyRankingComment2 ?? ""),
-        )
-      : "";
-  return { name, name2 };
+interface RawPoolRanking {
+  players?: { name?: string; id?: number }[];
+  victories?: string;
+  sets?: string;
+  games?: string;
+  isDouble?: boolean;
+  sort?: number;
 }
 
-function rrSchedule(date: RawRrDate | undefined): { date: string; time: string } {
-  if (date?.year == null) return { date: "", time: "" };
-  return {
-    date: `${date.year}-${pad2((date.month ?? 0) + 1)}-${pad2(date.day ?? 1)}`,
-    time: date.hour == null ? "" : `${pad2(date.hour)}:${pad2(date.minute ?? 0)}`,
-  };
+/**
+ * Stabile ID einer Gruppenpartie, abgeleitet aus Kategorie und Namen.
+ *
+ * Die Turnier-API gibt weder `rRMatchId` noch Spieler-IDs heraus. Die Seiten
+ * werden sortiert, damit ein Tausch von Heim und Gast dieselbe ID ergibt;
+ * Klassierungen und die Reihenfolge von Vor- und Nachname spielen keine Rolle.
+ * Dieselbe Berechnung steckt in der Clubmeisterschaft und den
+ * Waidcup-Aufgaben – die drei müssen übereinstimmen.
+ */
+export function roundRobinMatchId(eventId: number, firstTeam: string[], secondTeam: string[]): string {
+  const sides = [teamKey(firstTeam), teamKey(secondTeam)].sort();
+  return `rr_${createHash("sha1").update(`${eventId}|${sides[0]}|${sides[1]}`, "utf8").digest("hex").slice(0, 12)}`;
 }
 
-function rrResult(match: RawRrMatch): string {
-  const comment = cleanText(match.rrmComment ?? "").replaceAll("/", ":");
-  if (comment && comment.toUpperCase() !== "WO") {
-    return comment;
-  }
-  if (comment.toUpperCase() === "WO") {
-    return "w.o.";
-  }
-  const sets: string[] = [];
-  for (let set = 1; set <= 3; set += 1) {
-    const home = toNumber(match[`rrmPlayer1Set${set}Games`], -1);
-    const visit = toNumber(match[`rrmPlayer2Set${set}Games`], -1);
-    if (home >= 0 && visit >= 0) {
-      sets.push(`${home}:${visit}`);
-    }
-  }
-  return sets.join(" ");
+function personKey(name: string): string {
+  const withoutRanking = cleanText(name).replace(/\((?:\d+|(?:N\d+|R\d+|NC)(?:\/(?:N\d+|R\d+|NC))*)\)/g, " ");
+  return (withoutRanking.toLowerCase().match(/[\p{L}\p{N}_]+/gu) ?? []).sort().join(" ");
 }
 
-function rrWinnerSide(match: RawRrMatch, result: string): number {
-  // Walkover: das gesetzte WO-Feld markiert den Sieger (Wert = zugesprochene
-  // Sätze, z. B. 2), nicht den Verlierer.
-  if (match.rrmPlayer1WO) return 1;
-  if (match.rrmPlayer2WO) return 2;
-  let player1Sets = 0;
-  let player2Sets = 0;
-  for (let set = 1; set <= 3; set += 1) {
-    const home = toNumber(match[`rrmPlayer1Set${set}Games`], -1);
-    const visit = toNumber(match[`rrmPlayer2Set${set}Games`], -1);
-    if (home < 0 || visit < 0) continue;
-    if (home > visit) player1Sets += 1;
-    else if (visit > home) player2Sets += 1;
-  }
-  if (player1Sets !== player2Sets && (player1Sets > 0 || player2Sets > 0)) {
-    return player1Sets > player2Sets ? 1 : 2;
-  }
-  // Fallback: aus dem (oft als Kommentar gelieferten) Satzresultat ableiten.
-  return winnerSideFromScore(result);
+function teamKey(names: string[]): string {
+  return names.filter((name) => name !== "").map(personKey).sort().join("+");
 }
 
-function mapRoundRobinMatches(payload: unknown, eventName: string, eventId: number, isDouble: boolean): MatchRecord[] {
-  const event = (payload as { Iotto?: { IoEvent?: { ioPoolSet?: { IoPool?: unknown } } } }).Iotto?.IoEvent;
-  const pools = asArray<{ polName?: string; ioPlayerPoolSet?: { IoPlayerPool?: unknown } }>(
-    event?.ioPoolSet?.IoPool as never,
-  );
+function mapRoundRobinMatches(
+  payload: unknown,
+  eventName: string,
+  eventId: number,
+  _isDouble: boolean,
+  schedule?: ScheduleIndex,
+): MatchRecord[] {
+  const groups = asArray<RawPoolGroup>((payload as { groupCategories?: unknown } | null)?.groupCategories as never);
   const records: MatchRecord[] = [];
 
-  for (const pool of pools) {
-    const poolName = cleanText(pool.polName ?? "");
-    const playerPools = asArray<{ ioPlayer?: { IoPlayer?: RawRrPlayer } }>(
-      pool.ioPlayerPoolSet?.IoPlayerPool as never,
-    );
-    for (const playerPool of playerPools) {
-      const player1 = playerPool.ioPlayer?.IoPlayer;
-      const player1Names = rrName(player1, isDouble);
-      const matches = asArray<RawRrMatch>(
-        (player1 as { ioRRMatchRrmIdPlayer1Set?: { IoRRMatch?: unknown } } | undefined)
-          ?.ioRRMatchRrmIdPlayer1Set?.IoRRMatch as never,
-      );
-      for (const match of matches) {
-        const player2Names = rrName(match.ioPlayerRrmIdPlayer2?.IoPlayer, isDouble);
-        if (!isKnownPlayer(player1Names.name) || !isKnownPlayer(player2Names.name)) {
-          continue;
-        }
-        const result = rrResult(match);
-        const schedule = rrSchedule(match.rrmDate);
-        const fallbackKey = `${player1Names.name}:${player2Names.name}`;
-        records.push({
-          matchKey: `rr:${eventId}:${match.rRMatchId ?? fallbackKey}`,
-          eventId,
-          eventName,
-          mode: "Round-robin",
-          poolName,
-          roundName: poolName,
-          scheduledDate: schedule.date,
-          scheduledTime: schedule.time,
-          court: cleanText(match.ioCourt?.IoCourt?.crtName ?? ""),
-          player1Name: player1Names.name,
-          player1Name2: player1Names.name2,
-          player2Name: player2Names.name,
-          player2Name2: player2Names.name2,
-          result,
-          status: matchStatus(result),
-          winnerSide: rrWinnerSide(match, result),
-        });
+  for (const group of groups) {
+    const poolName = cleanText(group.name ?? "");
+    for (const game of asArray<RawPoolGame>(group.games as never)) {
+      const teams = asArray<{ players?: string[] }>(game.teams as never);
+      const first = asArray<string>(teams[0]?.players as never).map(cleanText).filter((name) => name !== "");
+      const second = asArray<string>(teams[1]?.players as never).map(cleanText).filter((name) => name !== "");
+      if (!isKnownPlayer(first[0] ?? "") || !isKnownPlayer(second[0] ?? "")) {
+        continue;
       }
+      // Bei einem Walkover liefert die Schnittstelle `wo: true` und ein leeres
+      // Resultat - aber nicht mehr, welche Seite gewonnen hat. Die frühere
+      // Schnittstelle hatte dafür ein Feld je Seite.
+      const result = cleanText(game.score ?? "") || (game.wo === true ? "w.o." : "");
+      const plan = scheduleFor(schedule, first, second);
+      records.push({
+        matchKey: `rr:${eventId}:${roundRobinMatchId(eventId, first, second)}`,
+        eventId,
+        eventName,
+        mode: "Round-robin",
+        poolName,
+        roundName: poolName,
+        scheduledDate: plan.date,
+        scheduledTime: plan.time,
+        court: plan.court || cleanText(game.courtName ?? ""),
+        player1Name: first[0] ?? "",
+        player1Name2: first[1] ?? "",
+        player2Name: second[0] ?? "",
+        player2Name2: second[1] ?? "",
+        result,
+        status: matchStatus(result),
+        winnerSide: winnerSideFromScore(result),
+      });
     }
   }
   return records;
@@ -241,7 +190,6 @@ interface RawDrawSlot {
   alevel?: number;
   rposition?: number;
   name?: RawDrawName;
-  court?: string | { content?: string };
   result?: { content?: string };
 }
 
@@ -299,18 +247,6 @@ function splitDrawSide(row: RawDrawSlot | undefined): { name: string; name2: str
   };
 }
 
-function parseCourt(court: RawDrawSlot["court"]): { date: string; time: string; court: string } {
-  const raw = typeof court === "string" ? court : cleanText(court?.content ?? "");
-  const match = /(\d{2})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})(?:\s+\((.+?)\))?/.exec(raw);
-  if (!match) {
-    return { date: "", time: "", court: raw };
-  }
-  return {
-    date: `20${match[3]}-${match[2]}-${match[1]}`,
-    time: `${match[4]}:${match[5]}`,
-    court: cleanText(match[6] ?? ""),
-  };
-}
 
 interface DrawMatchNode {
   level: number;
@@ -370,11 +306,66 @@ function resolveDrawWinner(
   return { winnerSide, result, winnerNames };
 }
 
+interface RawGridNode {
+  position?: { column?: number; row?: number };
+  name1?: string;
+  name2?: string;
+  player1Number?: number;
+  score?: string;
+}
+
+/**
+ * Bringt das Tableau-Raster der Turnier-API auf die Slot-Form, mit der dieses
+ * Modul seit jeher arbeitet – der Baumaufbau darunter bleibt unverändert.
+ *
+ * Spalte 1 sind die Ausgangspaarungen, die letzte Spalte ist der Sieger. Das
+ * alte XML zählte andersherum (`alevel` 0 war das Final), deshalb
+ * `alevel = columns - column`. `rposition` ist der Index innerhalb der Spalte,
+ * nach Zeile sortiert.
+ *
+ * Vollständige Namen stehen nur in Spalte 1; spätere Spalten kürzen ab
+ * ("Rosin S."), tragen aber dieselbe Spielernummer. Über sie wird der volle
+ * Name zurückgeholt – sonst liesse sich der Sieger nicht sicher zuordnen.
+ */
+export function drawSlotsFromGrid(payload: unknown): RawDrawSlot[] {
+  const grid = payload as { grid?: { columns?: number }; results?: unknown } | null;
+  const columns = toNumber(grid?.grid?.columns);
+  const nodes = asArray<RawGridNode>(grid?.results as never);
+  if (columns < 2 || nodes.length === 0) {
+    return [];
+  }
+  const byColumn = new Map<number, RawGridNode[]>();
+  for (const node of nodes) {
+    const column = toNumber(node.position?.column);
+    const list = byColumn.get(column);
+    if (list) list.push(node);
+    else byColumn.set(column, [node]);
+  }
+  for (const list of byColumn.values()) {
+    list.sort((a, b) => toNumber(a.position?.row) - toNumber(b.position?.row));
+  }
+  const leaves = new Map<number, RawGridNode>();
+  for (const node of byColumn.get(1) ?? []) {
+    if (node.player1Number !== undefined) leaves.set(node.player1Number, node);
+  }
+
+  const slots: RawDrawSlot[] = [];
+  for (const [column, list] of byColumn) {
+    list.forEach((node, index) => {
+      const full = (node.player1Number !== undefined ? leaves.get(node.player1Number) : undefined) ?? node;
+      slots.push({
+        alevel: columns - column,
+        rposition: index,
+        name: { content: full.name1 ?? "", name2: full.name2 ?? "" },
+        result: { content: node.score ?? "" },
+      });
+    });
+  }
+  return slots;
+}
+
 function buildDrawTree(payload: unknown): DrawTree | null {
-  const drawRows = asArray<RawDrawSlot>(
-    (payload as { Iotto?: { drawtable?: { drawbody?: { draw?: unknown } } } }).Iotto?.drawtable
-      ?.drawbody?.draw as never,
-  );
+  const drawRows = drawSlotsFromGrid(payload);
   if (drawRows.length === 0) {
     return null;
   }
@@ -419,20 +410,26 @@ function buildDrawTree(payload: unknown): DrawTree | null {
   return { maxLevel, nodes, championNames: fullNames.get("0:0") ?? [], seedByName };
 }
 
-function mapDrawMatches(payload: unknown, eventName: string, eventId: number): MatchRecord[] {
+function mapDrawMatches(
+  payload: unknown,
+  eventName: string,
+  eventId: number,
+  scheduleIndex?: ScheduleIndex,
+): MatchRecord[] {
   const tree = buildDrawTree(payload);
   if (!tree) {
     return [];
   }
   const records: MatchRecord[] = [];
   for (const node of tree.nodes) {
-    if (!node.slot?.court && !node.slot?.result?.content) {
-      continue;
-    }
     if (!isKnownPlayer(node.side1Names[0] ?? "") || !isKnownPlayer(node.side2Names[0] ?? "")) {
       continue;
     }
-    const schedule = parseCourt(node.slot?.court);
+    const schedule = scheduleFor(scheduleIndex, node.side1Names, node.side2Names);
+    // Ohne Resultat und ohne Termin ist die Partie noch nicht angesetzt.
+    if (node.result === "" && schedule.date === "") {
+      continue;
+    }
     records.push({
       matchKey: `draw:${eventId}:${node.level}:${node.position}`,
       eventId,
@@ -462,12 +459,13 @@ export function mapEventMatches(
   eventName: string,
   eventId: number,
   isDouble: boolean,
+  schedule?: ScheduleIndex,
 ): MatchRecord[] {
   if (mode === "Draw") {
-    return mapDrawMatches(payload, eventName, eventId);
+    return mapDrawMatches(payload, eventName, eventId, schedule);
   }
   if (mode === "Round-robin") {
-    return mapRoundRobinMatches(payload, eventName, eventId, isDouble);
+    return mapRoundRobinMatches(payload, eventName, eventId, isDouble, schedule);
   }
   return [];
 }
@@ -476,40 +474,35 @@ export function mapEventMatches(
 // Round-robin-Tabelle (DisplayPools)
 // --------------------------------------------------------------------------
 
-interface RawPoolPlayer {
-  plpRank?: number;
-  plpNbMatches?: number;
-  plpNbVictories?: number;
-  plpNbWonsets?: number;
-  plpNbLostSets?: number;
-  plpNbWonGames?: number;
-  plpNbLostGames?: number;
-  ioPlayer?: { IoPlayer?: RawRrPlayer };
-}
-
-/** Liefert die offizielle Pool-Tabelle (Rang, Siege, Sätze, Games) je Pool. */
-export function mapPoolStandings(payload: unknown, isDouble: boolean): PoolStanding[] {
-  const event = (payload as { Iotto?: { IoEvent?: { ioPoolSet?: { IoPool?: unknown } } } }).Iotto?.IoEvent;
-  const pools = asArray<{ polName?: string; ioPlayerPoolSet?: { IoPlayerPool?: unknown } }>(
-    event?.ioPoolSet?.IoPool as never,
-  );
-  return pools
-    .map((pool) => {
-      const rows = asArray<RawPoolPlayer>(pool.ioPlayerPoolSet?.IoPlayerPool as never)
+/**
+ * Liefert die offizielle Gruppentabelle je Gruppe.
+ *
+ * Die neue Schnittstelle liefert Siege, Sätze und Games bereits als fertige
+ * Zeichenketten ("3/3", "6/2", "49/41") und den Rang als `sort`. Die Anzahl
+ * gespielter Partien steckt im Nenner der Siege.
+ */
+export function mapPoolStandings(payload: unknown, _isDouble: boolean): PoolStanding[] {
+  const groups = asArray<RawPoolGroup>((payload as { groupCategories?: unknown } | null)?.groupCategories as never);
+  return groups
+    .map((group) => {
+      const rows = asArray<RawPoolRanking>(group.rankings as never)
         .map((entry) => {
-          const { name, name2 } = rrName(entry.ioPlayer?.IoPlayer, isDouble);
+          const names = asArray<{ name?: string }>(entry.players as never)
+            .map((player) => cleanText(player.name ?? ""))
+            .filter((name) => name !== "");
+          const [victories, matches] = cleanText(entry.victories ?? "").split("/");
           return {
-            rank: toNumber(entry.plpRank, 0),
-            names: [name, name2].filter((value) => value !== ""),
-            matches: toNumber(entry.plpNbMatches),
-            victories: toNumber(entry.plpNbVictories),
-            sets: `${toNumber(entry.plpNbWonsets)}:${toNumber(entry.plpNbLostSets)}`,
-            games: `${toNumber(entry.plpNbWonGames)}:${toNumber(entry.plpNbLostGames)}`,
+            rank: toNumber(entry.sort, 0),
+            names,
+            matches: toNumber(matches),
+            victories: toNumber(victories),
+            sets: cleanText(entry.sets ?? "").replace("/", ":"),
+            games: cleanText(entry.games ?? "").replace("/", ":"),
           };
         })
         .filter((row) => row.names.length > 0)
         .sort((a, b) => a.rank - b.rank);
-      return { poolName: cleanText(pool.polName ?? ""), rows };
+      return { poolName: cleanText(group.name ?? ""), rows };
     })
     .filter((pool) => pool.rows.length > 0);
 }
@@ -522,7 +515,7 @@ export function mapPoolStandings(payload: unknown, isDouble: boolean): PoolStand
  * Baut den vollständigen Tableau-Baum (von der ersten Runde bis zum Final),
  * auch wenn spätere Runden noch nicht ausgelost/gespielt sind (leere Seiten).
  */
-export function mapDrawBracket(payload: unknown): TournamentBracket | null {
+export function mapDrawBracket(payload: unknown, scheduleIndex?: ScheduleIndex): TournamentBracket | null {
   const tree = buildDrawTree(payload);
   if (!tree) {
     return null;
@@ -538,7 +531,7 @@ export function mapDrawBracket(payload: unknown): TournamentBracket | null {
     const matches: TournamentBracketMatch[] = tree.nodes
       .filter((node) => node.level === level)
       .map((node) => {
-        const schedule = parseCourt(node.slot?.court);
+        const schedule = scheduleFor(scheduleIndex, node.side1Names, node.side2Names);
         const scheduled =
           schedule.date || schedule.time || schedule.court
             ? { scheduledDate: schedule.date, scheduledTime: schedule.time, court: schedule.court }

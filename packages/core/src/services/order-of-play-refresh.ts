@@ -11,10 +11,15 @@ import type { PoolStanding, TournamentBracket } from "@tcw/shared";
 import type { TcwDatabase } from "../db/connection.js";
 import { SwisstennisClient } from "../integrations/swisstennis/raw-client.js";
 import {
-  displayDrawUrl,
-  displayPoolsUrl,
-  tournamentDisplayUrl,
+  drawUrl,
+  poolsUrl,
+  tournamentInfoUrl,
 } from "../integrations/swisstennis/tournament-urls.js";
+import {
+  addGamePlanDay,
+  type ScheduleIndex,
+} from "../integrations/swisstennis/tournament-schedule.js";
+import { gamePlanUrl } from "../integrations/swisstennis/tournament-urls.js";
 import {
   mapTournamentMeta,
   type TournamentEventMeta,
@@ -32,7 +37,6 @@ import {
   type TournamentConfig,
 } from "./tournament-store.js";
 
-const DOUBLE_MATCH_TYPE_IDS = new Set([3, 4, 5]);
 
 interface EventExtras {
   eventId: number;
@@ -72,8 +76,8 @@ export function orderOfPlayDates(now: Date, daysAhead = 1): string[] {
 }
 
 function matchesUrlFor(eventMeta: TournamentEventMeta): string | null {
-  if (eventMeta.mode === "Draw") return displayDrawUrl(eventMeta.eventId);
-  if (eventMeta.mode === "Round-robin") return displayPoolsUrl(eventMeta.eventId);
+  if (eventMeta.mode === "Draw") return drawUrl(eventMeta.eventId);
+  if (eventMeta.mode === "Round-robin") return poolsUrl(eventMeta.eventId);
   return null;
 }
 
@@ -86,27 +90,39 @@ export async function refreshOrderOfPlay(
   const tournamentId = tournamentConfig.swisstennisTournamentId;
   // Eigener Client mit TTL 0 ⇒ immer frischer Abruf (umgeht den 30-Min-Cache).
   const client = new SwisstennisClient(0, config.swisstennisTimeoutMs);
-  const meta = mapTournamentMeta(await client.fetchData(tournamentDisplayUrl(tournamentId)));
+  const meta = mapTournamentMeta(await client.fetchTournamentData(tournamentInfoUrl(tournamentId)));
+
+  // Termine kommen aus dem Spielplan, und der liefert nur einzelne Tage.
+  // Hier reichen heute und morgen - genau die Tage, um die es geht.
+  const dates = orderOfPlayDates(now, 1);
+  const schedule: ScheduleIndex = new Map();
+  for (const isoDate of dates) {
+    const [year, month, day] = isoDate.split("-");
+    try {
+      addGamePlanDay(schedule, isoDate, await client.fetchTournamentData(gamePlanUrl(tournamentId, `${day}.${month}.${year}`)));
+    } catch {
+      // Ein Tag ohne Antwort darf den Rest nicht kippen.
+    }
+  }
 
   const records: MatchRecord[] = [];
   const extras: EventExtras[] = [];
   for (const eventMeta of meta.events) {
     const matchesUrl = matchesUrlFor(eventMeta);
     if (!matchesUrl) continue;
-    const payload = await client.fetchData(matchesUrl);
-    const isDouble = DOUBLE_MATCH_TYPE_IDS.has(eventMeta.matchTypeId);
+    const payload = await client.fetchTournamentData(matchesUrl);
+    const isDouble = eventMeta.isDouble;
     records.push(
-      ...mapEventMatches(payload, eventMeta.mode, eventMeta.eventName, eventMeta.eventId, isDouble),
+      ...mapEventMatches(payload, eventMeta.mode, eventMeta.eventName, eventMeta.eventId, isDouble, schedule),
     );
     // Tableau/Pools aus demselben Payload für die Tableau-Ansicht.
     extras.push({
       eventId: eventMeta.eventId,
-      bracket: eventMeta.mode === "Draw" ? mapDrawBracket(payload) : null,
+      bracket: eventMeta.mode === "Draw" ? mapDrawBracket(payload, schedule) : null,
       pools: eventMeta.mode === "Round-robin" ? mapPoolStandings(payload, isDouble) : [],
     });
   }
 
-  const dates = orderOfPlayDates(now, 1);
   const dateSet = new Set(dates);
   // Auch Matches einbeziehen, die in der DB heute/morgen terminiert sind: eine
   // gerade gespielte Partie (z. B. W/O) verliert bei Swisstennis ihren Termin und

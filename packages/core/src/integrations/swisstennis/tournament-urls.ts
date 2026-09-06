@@ -1,25 +1,48 @@
 /**
- * URL-Bildung für die Swisstennis-Turnier-Endpunkte (advantage-Servlet).
+ * URL-Bildung für die Swisstennis-Turnier-Endpunkte.
+ *
+ * Die früheren Servlets unter `comp.swisstennis.ch/advantage/servlet/`
+ * verlangen seit dem 19.08.2026 eine angemeldete Session und antworten sonst
+ * mit HTTP 403. Dieselben Daten liegen ohne Anmeldung auf der API, die
+ * mytennis.ch selbst benutzt. Interclub und Team-Challenge (`/ic/`, `/hic/`)
+ * sind nicht betroffen und laufen unverändert über `urls.ts`.
+ *
+ * Siehe Vault: 30-Datenquellen/SwissTennis.md
  */
-const BASE = "https://comp.swisstennis.ch/advantage/servlet";
+const BASE = "https://low-scalability.microservices.swisstennis.ch/tournaments";
 
-export function tournamentDisplayUrl(tournamentId: number): string {
-  return `${BASE}/TournamentDisplay?tournament=Id${tournamentId}&Lang=de&outputFormat=XML`;
+/** Turnier mit allen Kategorien (ersetzt TournamentDisplay). */
+export function tournamentInfoUrl(tournamentId: number): string {
+  return `${BASE}/info?tournamentId=${tournamentId}&lang=de`;
 }
 
-export function publicDisplayEventUrl(eventId: number): string {
-  return `${BASE}/PublicDisplayEvent?eventId=${eventId}&Lang=de&outputFormat=XML`;
+/** Kategorie mit Teilnehmerliste (ersetzt PublicDisplayEvent). */
+export function categoryInfoUrl(eventId: number): string {
+  return `${BASE}/category-info?eventId=${eventId}&lang=de`;
 }
 
-export function displayDrawUrl(eventId: number): string {
-  return `${BASE}/DisplayDraw?eventId=${eventId}&Lang=de&outputFormat=XML`;
+/** Tableau als Raster (ersetzt DisplayDraw). */
+export function drawUrl(eventId: number): string {
+  return `${BASE}/draw?eventId=${eventId}&lang=de`;
 }
 
-export function displayPoolsUrl(eventId: number): string {
-  return `${BASE}/DisplayPools?eventId=${eventId}&Lang=de&outputFormat=XML`;
+/** Gruppen mit Ranglisten und Partien (ersetzt DisplayPools). */
+export function poolsUrl(eventId: number): string {
+  return `${BASE}/pools?eventId=${eventId}&lang=de`;
 }
 
-/** Berechneter Anmeldelink eines Turniers (nie manuell gepflegt). */
+/**
+ * Spielplan eines Tages (ersetzt Calendar).
+ *
+ * Start- und Enddatum müssen TT.MM.JJJJ sein und **denselben Tag** meinen: ein
+ * Mehrtagesbereich antwortet mit HTTP 200 und leerer Platzliste, ein ISO-Datum
+ * wird still ignoriert.
+ */
+export function gamePlanUrl(tournamentId: number, swissDate: string): string {
+  return `${BASE}/game-plan?tournamentId=${tournamentId}&startDate=${swissDate}&endDate=${swissDate}&lang=de`;
+}
+
+/** Öffentliche Turnierseite, für Verlinkungen. */
 export function registrationUrl(tournamentId: number): string {
   return `https://www.mytennis.ch/de/turniere/${tournamentId}`;
 }

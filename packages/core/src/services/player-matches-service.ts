@@ -28,7 +28,7 @@ import {
 import type { AppConfig } from "../config.js";
 import { createResultsService } from "./results-service.js";
 import { INTERCLUB, TEAM_CHALLENGE } from "../integrations/swisstennis/competition.js";
-import { tournamentDisplayUrl } from "../integrations/swisstennis/tournament-urls.js";
+import { registrationUrl } from "../integrations/swisstennis/tournament-urls.js";
 import { chooseBestHit, searchPlayers } from "../integrations/mytennis/search.js";
 import { upsertPlayer, resolveUrlByNameKey, registryIdForKey } from "./player-registry.js";
 
@@ -375,7 +375,7 @@ export function importTournaments(db: Database.Database, year: string, now: stri
       side2,
       result: String(r.result ?? ""),
       winnerSide: Number(r.winner_side ?? 0),
-      matchUrl: tournamentDisplayUrl(Number(r.st_id)),
+      matchUrl: registrationUrl(Number(r.st_id)),
     };
   });
   upsertRecords(db, year, records, now);

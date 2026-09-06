@@ -1,5 +1,13 @@
 /**
- * PublicDisplayEvent → Anmeldungen eines Events.
+ * `/tournaments/category-info` → Anmeldungen einer Kategorie.
+ *
+ * Anmeldedatum, E-Mail und Mobilnummer gibt Swisstennis seit dem 19.08.2026
+ * nicht mehr heraus – das sind Personendaten, die vorher ohne Anmeldung offen
+ * lagen. Sie kommen hier leer zurück; der Import übernimmt vorhandene Werte
+ * aus der Datenbank, statt sie zu überschreiben.
+ *
+ * Der Schlüssel ist die Lizenznummer (im Doppel beide), weil die neue
+ * Schnittstelle keine Spieler-ID mehr liefert.
  */
 import { asArray, cleanText } from "./normalize.js";
 
@@ -22,94 +30,55 @@ export interface RegistrationRecord {
   sortOrder: number;
 }
 
-interface RawRegisteredOn {
-  year?: number;
-  month?: number;
-  day?: number;
-  hour?: number;
-  minute?: number;
-  second?: number;
-}
-
-interface ParsedDate {
-  display: string;
-  sort: string;
-}
-
-function pad2(value: number): string {
-  return String(value).padStart(2, "0");
-}
-
-/** Swisstennis-Datumsobjekt (month 0-basiert) → Anzeige/Sortierform. */
-function parseRegisteredOn(value: RawRegisteredOn | string | undefined): ParsedDate {
-  if (value && typeof value === "object" && value.year != null) {
-    const month = (value.month ?? 0) + 1;
-    const day = value.day ?? 1;
-    const hour = value.hour ?? 0;
-    const minute = value.minute ?? 0;
-    const date = `${pad2(day)}.${pad2(month)}.${value.year}`;
-    const time = hour + minute > 0 ? ` ${pad2(hour)}:${pad2(minute)}` : "";
-    const sort = `${value.year}-${pad2(month)}-${pad2(day)}T${pad2(hour)}:${pad2(minute)}:${pad2(value.second ?? 0)}`;
-    return { display: `${date}${time}`, sort };
-  }
-  const raw = cleanText(value ?? "");
-  return { display: raw, sort: raw };
-}
-
 interface RawPlayer {
-  playerId?: number | string;
-  plyFirstName?: string;
-  plyName?: string;
-  plyFirstName2?: string;
-  plyName2?: string;
-  plyLicenceNb?: string;
-  plyLicenceNb2?: string;
-  plyConfirmed?: number;
-  plyRankingComment?: string;
-  plyRankingComment2?: string;
-  plyRegisteredOn?: RawRegisteredOn | string;
-  plyComment?: string;
+  name?: string;
+  licenceNb?: string;
+  rank?: string;
+  confirmed?: number | boolean;
 }
 
-function fullName(first: string, last: string): string {
-  return `${first} ${last}`.replace(/\s+/g, " ").trim();
-}
-
-function toRecord(player: RawPlayer, index: number): RegistrationRecord {
-  const firstName = cleanText(player.plyFirstName ?? "");
-  const lastName = cleanText(player.plyName ?? "");
-  const firstName2 = cleanText(player.plyFirstName2 ?? "");
-  const lastName2 = cleanText(player.plyName2 ?? "");
-  const name2 = fullName(firstName2, lastName2);
-  const registered = parseRegisteredOn(player.plyRegisteredOn);
-  const playerId = cleanText(String(player.playerId ?? ""));
-
-  return {
-    playerKey: playerId || `${firstName}|${lastName}|${index}`,
-    playerName: fullName(firstName, lastName),
-    playerName2: name2 || null,
-    firstName,
-    lastName,
-    firstName2,
-    lastName2,
-    licenseNumber: cleanText(player.plyLicenceNb ?? "") || null,
-    licenseNumber2: cleanText(player.plyLicenceNb2 ?? "") || null,
-    confirmed: player.plyConfirmed === 1 ? 1 : 0,
-    ranking: cleanText(player.plyRankingComment ?? "") || null,
-    ranking2: cleanText(player.plyRankingComment2 ?? "") || null,
-    registeredOn: registered.display,
-    registeredOnSort: registered.sort,
-    note: cleanText(player.plyComment ?? "") || null,
-    sortOrder: index,
-  };
+/** Die API schreibt Nachname zuerst: "Rosin Stephan". */
+function splitName(fullName: string): { firstName: string; lastName: string } {
+  const parts = cleanText(fullName).split(" ").filter((part) => part !== "");
+  if (parts.length < 2) {
+    return { firstName: "", lastName: parts[0] ?? "" };
+  }
+  return { firstName: parts[parts.length - 1] ?? "", lastName: parts.slice(0, -1).join(" ") };
 }
 
 export function mapEventRegistrations(payload: unknown): RegistrationRecord[] {
-  const event = (payload as { Iotto?: { IoEvent?: { ioPlayerSet?: { IoPlayer?: unknown } } } }).Iotto
-    ?.IoEvent;
-  if (!event) {
-    return [];
-  }
-  const players = asArray<RawPlayer>(event.ioPlayerSet?.IoPlayer as RawPlayer | RawPlayer[] | undefined);
-  return players.map((player, index) => toRecord(player, index));
+  const players = asArray<RawPlayer[] | RawPlayer>((payload as { players?: unknown } | null)?.players as never);
+  return players
+    .map((entry, index): RegistrationRecord | null => {
+      const team = asArray<RawPlayer>(entry as never);
+      const first = team[0];
+      const second = team[1];
+      if (!first) return null;
+      const name = cleanText(first.name ?? "");
+      if (name === "") return null;
+      const name2 = second ? cleanText(second.name ?? "") : "";
+      const license = cleanText(first.licenceNb ?? "") || null;
+      const license2 = second ? cleanText(second.licenceNb ?? "") || null : null;
+      const split = splitName(name);
+      const split2 = splitName(name2);
+      return {
+        playerKey: [license, license2].filter((value) => value !== null).join("|") || `${name}|${index}`,
+        playerName: name,
+        playerName2: name2 || null,
+        firstName: split.firstName,
+        lastName: split.lastName,
+        firstName2: split2.firstName,
+        lastName2: split2.lastName,
+        licenseNumber: license,
+        licenseNumber2: license2,
+        confirmed: Number(first.confirmed) === 1 ? 1 : 0,
+        ranking: cleanText(first.rank ?? "") || null,
+        ranking2: second ? cleanText(second.rank ?? "") || null : null,
+        registeredOn: "",
+        registeredOnSort: "",
+        note: null,
+        sortOrder: index,
+      };
+    })
+    .filter((record): record is RegistrationRecord => record !== null);
 }

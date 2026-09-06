@@ -53,4 +53,45 @@ export class SwisstennisClient {
     });
     return parseSwisstennisXml(await readResponseText(response));
   }
+
+  /**
+   * Wie `fetchData`, aber für die Turnier-API (JSON statt XML).
+   *
+   * Die Servlets unter `/advantage/` verlangen seit dem 19.08.2026 eine
+   * angemeldete Session. Turnierdaten kommen deshalb von der API, die
+   * mytennis.ch selbst benutzt – sie antwortet ohne Anmeldung, aber nur mit
+   * `Origin` und `Referer` auf mytennis.ch.
+   */
+  async fetchTournamentData(url: string): Promise<unknown> {
+    const cached = this.cache.get(url);
+    const now = Date.now();
+    if (cached && now - cached.fetchedAt < this.ttlMs) {
+      return cached.payload;
+    }
+    try {
+      const payload = await this.requestTournamentData(url);
+      this.cache.set(url, { fetchedAt: now, payload });
+      return payload;
+    } catch (error) {
+      if (cached) {
+        return cached.payload;
+      }
+      throw error;
+    }
+  }
+
+  private async requestTournamentData(url: string): Promise<unknown> {
+    const response = await requestSwisstennis(url, {
+      headers: {
+        Origin: "https://www.mytennis.ch",
+        Referer: "https://www.mytennis.ch/",
+        Accept: "application/json",
+      },
+      timeoutMs: this.timeoutMs,
+    });
+    // Ein Tableau-Abruf auf eine Gruppen-Konkurrenz antwortet mit 204 und
+    // leerem Rumpf statt mit einem Fehler.
+    const text = await readResponseText(response);
+    return text.trim() === "" ? null : JSON.parse(text);
+  }
 }

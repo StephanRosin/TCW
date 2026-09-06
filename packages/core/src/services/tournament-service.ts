@@ -10,11 +10,15 @@ import type { TcwDatabase } from "../db/connection.js";
 import { isTournamentSettled } from "./tournament-settled.js";
 import { SwisstennisClient } from "../integrations/swisstennis/raw-client.js";
 import {
-  displayDrawUrl,
-  displayPoolsUrl,
-  publicDisplayEventUrl,
-  tournamentDisplayUrl,
+  categoryInfoUrl,
+  drawUrl,
+  poolsUrl,
+  tournamentInfoUrl,
 } from "../integrations/swisstennis/tournament-urls.js";
+import {
+  loadTournamentSchedule,
+  type ScheduleIndex,
+} from "../integrations/swisstennis/tournament-schedule.js";
 import { mapTournamentMeta, type TournamentEventMeta } from "../integrations/swisstennis/tournament-events.js";
 import {
   mapEventRegistrations,
@@ -37,7 +41,6 @@ import {
   type TournamentConfig,
 } from "./tournament-store.js";
 
-const DOUBLE_MATCH_TYPE_IDS = new Set([3, 4, 5]);
 const URL_RESOLVE_CONCURRENCY = 5;
 
 /** Wendet `fn` mit begrenzter Parallelität an (schont MyTennis, verhindert Timeouts). */
@@ -117,26 +120,27 @@ export function createTournamentService(config: AppConfig, database: TcwDatabase
     eventMeta: TournamentEventMeta,
     existingUrls: Map<string, ExistingPlayerUrl>,
     resolvePlayerUrls: boolean,
+    schedule: ScheduleIndex,
   ): Promise<EventImport> {
-    const registrationsPayload = await client.fetchData(publicDisplayEventUrl(eventMeta.eventId));
+    const registrationsPayload = await client.fetchTournamentData(categoryInfoUrl(eventMeta.eventId));
     const rawRegistrations = mapEventRegistrations(registrationsPayload);
     const registrations = await mapWithLimit(rawRegistrations, URL_RESOLVE_CONCURRENCY, (record) =>
       enrichRegistration(record, existingUrls.get(record.playerKey), resolvePlayerUrls),
     );
 
-    const isDouble = DOUBLE_MATCH_TYPE_IDS.has(eventMeta.matchTypeId);
-    const rrUrl = eventMeta.mode === "Round-robin" ? displayPoolsUrl(eventMeta.eventId) : null;
-    const matchesUrl = eventMeta.mode === "Draw" ? displayDrawUrl(eventMeta.eventId) : rrUrl;
-    const matchesPayload = matchesUrl ? await client.fetchData(matchesUrl) : null;
+    const isDouble = eventMeta.isDouble;
+    const rrUrl = eventMeta.mode === "Round-robin" ? poolsUrl(eventMeta.eventId) : null;
+    const matchesUrl = eventMeta.mode === "Draw" ? drawUrl(eventMeta.eventId) : rrUrl;
+    const matchesPayload = matchesUrl ? await client.fetchTournamentData(matchesUrl) : null;
     const matches = matchesPayload
-      ? mapEventMatches(matchesPayload, eventMeta.mode, eventMeta.eventName, eventMeta.eventId, isDouble)
+      ? mapEventMatches(matchesPayload, eventMeta.mode, eventMeta.eventName, eventMeta.eventId, isDouble, schedule)
       : [];
     const pools =
       matchesPayload && eventMeta.mode === "Round-robin"
         ? mapPoolStandings(matchesPayload, isDouble)
         : [];
     const bracket =
-      matchesPayload && eventMeta.mode === "Draw" ? mapDrawBracket(matchesPayload) : null;
+      matchesPayload && eventMeta.mode === "Draw" ? mapDrawBracket(matchesPayload, schedule) : null;
 
     return { meta: eventMeta, registrations, matches, pools, bracket };
   }
@@ -147,14 +151,22 @@ export function createTournamentService(config: AppConfig, database: TcwDatabase
   ): Promise<TournamentRefreshResult> {
     const tournamentId = tournamentConfig.swisstennisTournamentId;
     try {
-      const meta = mapTournamentMeta(await client.fetchData(tournamentDisplayUrl(tournamentId)));
+      const meta = mapTournamentMeta(await client.fetchTournamentData(tournamentInfoUrl(tournamentId)));
       if (meta.events.length === 0) {
         return { tournamentId, events: 0, players: 0, matches: 0 };
       }
       const existingUrls = readExistingPlayerUrls(database, tournamentId);
+      // Termine stehen nicht mehr bei der Partie, sondern nur im Spielplan.
+      // Einmal je Turnier laden und ueber die Namen zuordnen.
+      const schedule = await loadTournamentSchedule(
+        (url) => client.fetchTournamentData(url),
+        tournamentId,
+        meta.startTime,
+        meta.endTime,
+      );
       const events: EventImport[] = [];
       for (const eventMeta of meta.events) {
-        events.push(await loadEvent(eventMeta, existingUrls, options.resolvePlayerUrls));
+        events.push(await loadEvent(eventMeta, existingUrls, options.resolvePlayerUrls, schedule));
       }
 
       // Schutz gegen transiente Swisstennis-Aussetzer: Liefert ein Import 0

@@ -1,84 +1,78 @@
 /**
- * TournamentDisplay → Turniername und Eventliste (Kategorien) mit Modus.
+ * `/tournaments/info` → Turniername und Kategorienliste mit Spielform.
+ *
+ * Die Spielform steht bei der neuen Schnittstelle nicht mehr in einem eigenen
+ * Feld, sondern nur im verlinkten PDF (`DisplayDraw.pdf` bzw.
+ * `DisplayPools.pdf`) – und im Kategoriennamen, den sie mitliefert.
  */
 import { disciplineOf } from "@tcw/shared";
-import { asArray, cleanText, toNumber } from "./normalize.js";
+import { cleanText, toNumber } from "./normalize.js";
 
 export interface TournamentEventMeta {
   eventId: number;
   eventName: string;
   discipline: string;
   mode: string;
-  matchTypeId: number;
+  isDouble: boolean;
   sortOrder: number;
 }
 
 export interface TournamentMeta {
   tournamentName: string;
   events: TournamentEventMeta[];
+  /** Turnierzeitraum im API-Format M/T/JJJJ, für den Spielplan. */
+  startTime: string;
+  endTime: string;
 }
 
-interface RawAgeCategory {
-  AgeCategory?: { agcWomenDescr?: string; agcMenDescr?: string; agcMixtDescr?: string };
-}
-interface RawEvent {
+interface RawCategory {
   eventId?: number;
-  evtDescr?: string;
-  ioEventMode?: { IoEventMode?: { evmName?: string } };
-  ioMatchType?: { IoMatchType?: { mtpName?: string; matchTypeId?: number } };
-  ageCategoryEvtIdAgeCategory?: RawAgeCategory;
-  rankingTypeEvtIdUpperRanking?: { RankingType?: { rnkDescr?: string } };
-  rankingTypeEvtIdLowerRanking?: { RankingType?: { rnkDescr?: string } };
+  competition?: string;
+  pdfUrl?: string;
 }
 
-function ageCategoryFor(matchType: string, age: RawAgeCategory["AgeCategory"]): string {
-  if (!age) return "";
-  if (matchType.startsWith("W")) return age.agcWomenDescr || age.agcMenDescr || "";
-  if (matchType.startsWith("D")) return age.agcMixtDescr || age.agcMenDescr || age.agcWomenDescr || "";
-  return age.agcMenDescr || age.agcWomenDescr || "";
-}
+const DOUBLE_DISCIPLINES = new Set(["MD", "WD", "DM"]);
 
-function rankingPart(event: RawEvent): string {
-  const upper = cleanText(event.rankingTypeEvtIdUpperRanking?.RankingType?.rnkDescr ?? "");
-  const lower = cleanText(event.rankingTypeEvtIdLowerRanking?.RankingType?.rnkDescr ?? "");
-  if (upper && lower) return `${upper}/${lower}`;
-  return upper || lower;
-}
-
-export function buildEventName(event: RawEvent): string {
-  const matchType = cleanText(event.ioMatchType?.IoMatchType?.mtpName ?? "");
-  const age = ageCategoryFor(matchType, event.ageCategoryEvtIdAgeCategory?.AgeCategory);
-  const parts = [matchType, age, rankingPart(event)].filter((part) => part !== "");
-  const name = parts.join(" ").trim();
-  return name || cleanText(event.evtDescr ?? "") || `Event ${toNumber(event.eventId)}`;
+/**
+ * Der Kategoriename der API trägt die Spielform am Ende ("… Round Robin",
+ * "… Tableau"). Sie fliegt raus, damit die Anzeige dieselbe bleibt wie zu
+ * Zeiten der alten Schnittstelle, wo sie aus eigenen Feldern kam. Ein
+ * nummeriertes Tableau ("Tableau 2") bleibt stehen – sonst wären mehrere
+ * Kategorien nicht mehr auseinanderzuhalten.
+ */
+export function buildEventName(category: RawCategory): string {
+  const raw = cleanText(category.competition ?? "");
+  const numbered = /\bTableau\s+\d+\b/i.exec(raw);
+  const base = raw.replace(/\s*(?:Round\s*Robin(?:\s+Finaltableau)?|Finaltableau|Tableau)\s*$/i, "");
+  const name = cleanText(numbered ? `${base} ${numbered[0]}` : base);
+  return name || `Event ${toNumber(category.eventId)}`;
 }
 
 export function mapTournamentMeta(payload: unknown): TournamentMeta {
-  const tournament = (payload as { Iotto?: { IoTournament?: Record<string, unknown> } }).Iotto
-    ?.IoTournament;
-  if (!tournament) {
-    throw new Error("Swisstennis-Turnierdaten sind unvollständig (kein IoTournament).");
+  const tournament = payload as { name?: string; startTime?: string; endTime?: string; categories?: RawCategory[] } | null;
+  if (!tournament || !Array.isArray(tournament.categories)) {
+    throw new Error("Swisstennis-Turnierdaten sind unvollständig (keine Kategorien).");
   }
-  const rawEvents = asArray<RawEvent>(
-    (tournament.ioEventSet as { IoEvent?: RawEvent | RawEvent[] } | undefined)?.IoEvent,
-  );
 
-  const events: TournamentEventMeta[] = rawEvents
-    .map((event, index) => {
-      const eventName = buildEventName(event);
+  const events: TournamentEventMeta[] = tournament.categories
+    .map((category, index) => {
+      const eventName = buildEventName(category);
+      const discipline = disciplineOf(eventName);
       return {
-        eventId: toNumber(event.eventId),
+        eventId: toNumber(category.eventId),
         eventName,
-        discipline: disciplineOf(eventName),
-        mode: cleanText(event.ioEventMode?.IoEventMode?.evmName ?? ""),
-        matchTypeId: toNumber(event.ioMatchType?.IoMatchType?.matchTypeId),
+        discipline,
+        mode: cleanText(category.pdfUrl ?? "").includes("DisplayPools") ? "Round-robin" : "Draw",
+        isDouble: DOUBLE_DISCIPLINES.has(discipline),
         sortOrder: index,
       };
     })
     .filter((event) => event.eventId > 0);
 
   return {
-    tournamentName: cleanText((tournament as { trnName?: string }).trnName ?? "") || "Turnier",
+    tournamentName: cleanText(tournament.name ?? "") || "Turnier",
     events,
+    startTime: cleanText(tournament.startTime ?? ""),
+    endTime: cleanText(tournament.endTime ?? ""),
   };
 }
