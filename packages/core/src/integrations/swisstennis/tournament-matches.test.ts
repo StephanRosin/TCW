@@ -180,6 +180,72 @@ test("mapEventMatches (Round-robin) liest Gruppenpartien mit Resultat und Sieger
   assert.equal(match.scheduledTime, "09:30");
 });
 
+test("mapEventMatches (Round-robin) uebernimmt die Klassierung aus der Gruppenrangliste", () => {
+  // Unter `games` stehen nur die nackten Namen, in der Rangliste daneben
+  // dieselben Namen mit Klassierung. Ohne Zuordnung ginge sie verloren -
+  // Tableau-Partien behalten sie, Gruppenpartien haetten sie sonst nicht.
+  const payload = {
+    groupCategories: [
+      {
+        name: "McEnroe",
+        rankings: [
+          { players: [{ name: "Griesmeyer Florian (R3)", id: 19821113 }], sort: 1 },
+          { players: [{ name: "Groenveld Max (R5)", id: 168752 }], sort: 2 },
+        ],
+        games: [
+          {
+            teams: [{ players: ["Griesmeyer Florian"] }, { players: ["Groenveld Max"] }],
+            score: "6:2 6:2",
+            wo: false,
+          },
+        ],
+      },
+    ],
+  };
+
+  const records = mapEventMatches(payload, "Round-robin", "MS A R1/R5", 829480, false);
+  assert.equal(records.length, 1);
+  assert.equal(records[0]!.player1Name, "Griesmeyer Florian (R3)");
+  assert.equal(records[0]!.player2Name, "Groenveld Max (R5)");
+});
+
+test("mapEventMatches (Round-robin): Schluessel bleibt trotz Klassierung stabil", () => {
+  // Der Schluessel wird bewusst aus den klassierungsfreien Namen gebildet.
+  // Sonst wuerde eine Neuklassierung jede Partie zu einer neuen Partie machen -
+  // genau der Fehler, der am 06.09.2026 den Ticker verdoppelt hat.
+  const spiel = {
+    teams: [{ players: ["Griesmeyer Florian"] }, { players: ["Groenveld Max"] }],
+    score: "6:2 6:2",
+    wo: false,
+  };
+  const ohne = mapEventMatches(
+    { groupCategories: [{ name: "McEnroe", games: [spiel] }] },
+    "Round-robin",
+    "MS A",
+    829480,
+    false,
+  );
+  const mit = mapEventMatches(
+    {
+      groupCategories: [
+        {
+          name: "McEnroe",
+          rankings: [
+            { players: [{ name: "Griesmeyer Florian (R3)" }] },
+            { players: [{ name: "Groenveld Max (R5)" }] },
+          ],
+          games: [spiel],
+        },
+      ],
+    },
+    "Round-robin",
+    "MS A",
+    829480,
+    false,
+  );
+  assert.equal(mit[0]!.matchKey, ohne[0]!.matchKey);
+});
+
 test("mapEventMatches (Round-robin): Walkover ohne Angabe der Siegerseite", () => {
   // Die Schnittstelle meldet `wo: true` und ein leeres Resultat, aber nicht
   // mehr, welche Seite gewonnen hat.

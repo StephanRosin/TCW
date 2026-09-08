@@ -148,6 +148,26 @@ function teamKey(names: string[]): string {
   return names.filter((name) => name !== "").map(personKey).sort(byCodeUnit).join("+");
 }
 
+/**
+ * Klassierungen der Gruppenpartien, aus derselben Antwort.
+ *
+ * Unter `games` stehen nur die nackten Namen ("Griesmeyer Florian"), in der
+ * Gruppenrangliste daneben dieselben Namen mit Klassierung
+ * ("Griesmeyer Florian (R3)"). Die Angabe ist also da, sie steht nur an einer
+ * anderen Stelle - ohne diese Zuordnung ginge sie beim Import verloren,
+ * waehrend Tableau-Partien sie behalten.
+ */
+function poolRankingNames(group: RawPoolGroup): Map<string, string> {
+  const byPerson = new Map<string, string>();
+  for (const row of asArray<RawPoolRanking>(group.rankings as never)) {
+    for (const player of asArray<{ name?: string }>(row.players as never)) {
+      const decorated = cleanText(player.name ?? "");
+      if (decorated !== "") byPerson.set(personKey(decorated), decorated);
+    }
+  }
+  return byPerson;
+}
+
 function mapRoundRobinMatches(
   payload: unknown,
   eventName: string,
@@ -160,6 +180,10 @@ function mapRoundRobinMatches(
 
   for (const group of groups) {
     const poolName = cleanText(group.name ?? "");
+    const ranked = poolRankingNames(group);
+    // Nur fuer die Anzeige: Schluessel und Spielplansuche laufen bewusst ueber
+    // die klassierungsfreien Namen, damit eine Neuklassierung nichts umwirft.
+    const withRanking = (name: string): string => ranked.get(personKey(name)) ?? name;
     for (const game of asArray<RawPoolGame>(group.games as never)) {
       const teams = asArray<{ players?: string[] }>(game.teams as never);
       const first = asArray<string>(teams[0]?.players as never).map(cleanText).filter((name) => name !== "");
@@ -182,10 +206,10 @@ function mapRoundRobinMatches(
         scheduledDate: plan.date,
         scheduledTime: plan.time,
         court: plan.court || cleanText(game.courtName ?? ""),
-        player1Name: first[0] ?? "",
-        player1Name2: first[1] ?? "",
-        player2Name: second[0] ?? "",
-        player2Name2: second[1] ?? "",
+        player1Name: withRanking(first[0] ?? ""),
+        player1Name2: withRanking(first[1] ?? ""),
+        player2Name: withRanking(second[0] ?? ""),
+        player2Name2: withRanking(second[1] ?? ""),
         result,
         status: matchStatus(result),
         winnerSide: winnerSideFromScore(result),
