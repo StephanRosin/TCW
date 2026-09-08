@@ -337,15 +337,25 @@ function tournamentCode(name: string): { code: string; label: string } {
 }
 
 export function importTournaments(db: Database.Database, year: string, now: string): number {
-  // Inaktive Turniere (z. B. Testdaten) gehoeren nicht in den Ticker bzw. die
-  // Spielermatches - auch frueher importierte Zeilen wieder entfernen.
+  // Alles entfernen, was dieser Import nicht mehr erzeugen wuerde: inaktive
+  // Turniere (z. B. Testdaten), geloeschte Partien und - der praktisch
+  // wichtigste Fall - Partien, deren `match_key` sich geaendert hat.
+  //
+  // Am 06.09.2026 traf das jede Gruppenpartie auf einmal: Die neue
+  // Swisstennis-API liefert keine `rRMatchId` mehr, weshalb der Import auf
+  // einen Namens-Hash umstellte. Die Zeilen unter dem alten Schluessel blieben
+  // liegen und erschienen im Ticker ein zweites Mal.
   db.prepare(
     `DELETE FROM player_matches
-     WHERE EXISTS (
-       SELECT 1 FROM tournaments t
-       WHERE t.active = 0
-         AND player_matches.match_uid LIKE 'tour:' || t.swisstennis_tournament_id || ':%'
-     )`,
+     WHERE match_uid LIKE 'tour:%'
+       AND NOT EXISTS (
+         SELECT 1 FROM tournament_matches tm
+         JOIN tournaments t ON t.swisstennis_tournament_id = tm.tournament_id
+         WHERE 'tour:' || tm.tournament_id || ':' || tm.event_id || ':' || tm.match_key
+               = player_matches.match_uid
+           AND TRIM(tm.result) <> ''
+           AND t.active = 1
+       )`,
   ).run();
   const rows = db
     .prepare(

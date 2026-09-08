@@ -178,6 +178,46 @@ test("importTournaments ignoriert inaktive Turniere und entfernt deren Altbestan
   db.close();
 });
 
+test("importTournaments entfernt Zeilen, deren Partie es nicht mehr gibt", () => {
+  // Echter Fall vom 06.09.2026: Die neue Swisstennis-API liefert für
+  // Gruppenspiele keine `rRMatchId` mehr, weshalb der Import auf einen
+  // Namens-Hash umstellte. Dadurch änderte sich der match_key JEDER
+  // Gruppenpartie – die Zeilen unter dem alten Schlüssel blieben liegen und
+  // erschienen im Ticker ein zweites Mal.
+  const db = openDatabase({ filePath: ":memory:" });
+  db.prepare("INSERT INTO tournaments (name, swisstennis_tournament_id, active) VALUES (?, ?, ?)").run(
+    "Clubmeisterschaft",
+    158133,
+    1,
+  );
+  db.prepare(
+    `INSERT INTO tournament_matches (
+       tournament_id, event_id, match_key, tournament_name, event_name, mode,
+       player1_name, player2_name, result, status, winner_side, updated_at
+     ) VALUES (158133, 42, 'rr:42:rr_neuerhash', 'Clubmeisterschaft', 'MS A', 'Round-robin',
+       'Rüede Manuel', 'Partal Onur', '7:5 2:6 13:11', 'played', 1, '2026-09-06T14:52:00Z')`,
+  ).run();
+  // Altbestand unter dem früheren Schlüssel (echte Swisstennis-ID).
+  db.prepare(
+    `INSERT INTO player_matches (
+       match_uid, year, competition_code, competition_label, discipline, match_date, sort_key,
+       s1p1_name, s1p1_key, s2p1_name, s2p1_key, result, winner_side, updated_at
+     ) VALUES ('tour:158133:42:rr:42:4491290', 2026, 'cm', 'CM', 'single', '15.6.2026', '2026-06-15',
+       'Manuel Rüede (R5)', 'manuelruede', 'Onur Partal (R7)', 'onurpartal', '7:5 2:6 13:11', 1,
+       '2026-06-15T10:00:00Z')`,
+  ).run();
+
+  importTournaments(db, "2026", "2026-09-06T14:52:00Z");
+
+  const ticker = getTickerMatches(db);
+  assert.equal(ticker.length, 1, "die Partie darf nur einmal im Ticker stehen");
+  const verwaist = db
+    .prepare("SELECT COUNT(*) AS n FROM player_matches WHERE match_uid LIKE '%:4491290'")
+    .get() as { n: number };
+  assert.equal(verwaist.n, 0, "die Zeile unter dem alten Schlüssel muss verschwinden");
+  db.close();
+});
+
 test("syncOpponentUrlsFromRegistry füllt leere Gegner-URLs aus dem Register", () => {
   const db = openDatabase({ filePath: ":memory:" });
   upsertPlayer(db, { name: "Extern Gegner", url: "https://www.mytennis.ch/de/spieler/424242" });
