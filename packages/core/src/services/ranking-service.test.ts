@@ -41,3 +41,45 @@ test("getRankingChanges: Nicht-Mitglieder und Ersterfassungen werden ausgeblende
   assert.ok(!items.some((i) => i.oldKlassierung === ""), "keine Ersterfassung (leere alte Klassierung)");
   db.close();
 });
+
+test("getRankingChanges: zeigt nur den letzten Lauf, ältere Runden fallen weg", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  upsertPlayer(db, { name: "Anna Mitglied", url: URL_MEMBER, klassierung: "R4", member: true, memberSource: "roster" });
+  const ins = db.prepare(
+    `INSERT INTO ranking_changes (player_id, player_name, myTennisID, old_klassierung, new_klassierung, changed_at)
+     VALUES (1, 'Anna Mitglied', ?, ?, ?, ?)`,
+  );
+  ins.run(URL_MEMBER, "R5", "R4", "2026-04-01 10:00:00");
+  ins.run(URL_MEMBER, "R4", "R3", "2026-10-07 06:30:00");
+  const { items } = getRankingChanges(db);
+  assert.equal(items.length, 1);
+  assert.equal(items[0]!.oldKlassierung, "R4");
+  assert.equal(items[0]!.newKlassierung, "R3");
+  db.close();
+});
+
+test("getRankingChanges: Name kommt aus dem Kader, nicht aus dem Importnamen", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  const regId = upsertPlayer(db, { name: "Anna Mitglied", url: URL_MEMBER, member: true, memberSource: "roster" });
+  db.prepare("INSERT INTO teams (gender, category, liga) VALUES ('Damen', 'Aktive', 'NLA')").run();
+  db.prepare("INSERT INTO players (team_id, name, registry_id) VALUES (1, 'Anna Mitglied', ?)").run(regId);
+  db.prepare(
+    `INSERT INTO ranking_changes (player_id, player_name, myTennisID, old_klassierung, new_klassierung, changed_at)
+     VALUES (?, 'Mitglied Anna (R5)', ?, 'R5', 'R4', '2026-10-07 06:30:00')`,
+  ).run(regId, URL_MEMBER);
+  const { items } = getRankingChanges(db);
+  assert.equal(items[0]!.playerName, "Anna Mitglied");
+  db.close();
+});
+
+test("getRankingChanges: ohne Kadereintrag wird der Klassierungszusatz entfernt", () => {
+  const db = openDatabase({ filePath: ":memory:" });
+  upsertPlayer(db, { name: "Anna Mitglied", url: URL_MEMBER, member: true, memberSource: "admin" });
+  db.prepare(
+    `INSERT INTO ranking_changes (player_id, player_name, myTennisID, old_klassierung, new_klassierung, changed_at)
+     VALUES (1, 'Mitglied Anna (R5)', ?, 'R5', 'R4', '2026-10-07 06:30:00')`,
+  ).run(URL_MEMBER);
+  const { items } = getRankingChanges(db);
+  assert.equal(items[0]!.playerName, "Mitglied Anna");
+  db.close();
+});

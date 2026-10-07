@@ -179,3 +179,22 @@ test("listMembers: Filter nach Namensteil, alphabetisch", () => {
   assert.deepEqual(adlers, ["Alex Adler", "Zoe Adler"]);
   db.close();
 });
+
+test("upsertPlayer: Klassierung und Setzposition gehoeren nicht in den Anzeigenamen", () => {
+  const db = freshDb();
+  upsertPlayer(db, { name: "(1) Rauch Markus (R4)", url: "https://www.mytennis.ch/de/spieler/800003" });
+  assert.equal(rows(db)[0]!.display_name, "Rauch Markus");
+  db.close();
+});
+
+test("upsertPlayer: ein Import ueberschreibt den Kadernamen eines Mitglieds nicht", () => {
+  const db = freshDb();
+  const url = "https://www.mytennis.ch/de/spieler/800004";
+  upsertPlayer(db, { name: "Lorena Roth", url, member: true, memberSource: "roster" });
+  upsertPlayer(db, { name: "Roth Lorena (R5)", url, klassierung: "R5" });
+  const all = rows(db);
+  assert.equal(all.length, 1);
+  assert.equal(all[0]!.display_name, "Lorena Roth");
+  assert.equal(all[0]!.klassierung, "R5", "die Klassierung aus dem Import kommt trotzdem an");
+  db.close();
+});
